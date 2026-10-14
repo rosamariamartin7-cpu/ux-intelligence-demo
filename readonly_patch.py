@@ -468,5 +468,69 @@ for old_id in [
 
 s = s.replace(body_marker, script + body_marker, 1)
 
+
+
+# Limpieza final de cualquier superficie visible de "Elemento".
+s = s.replace(
+    '<span>Componente</span><i aria-hidden="true">→</i>\n              <span>Elemento</span>',
+    '<span>Componente</span>'
+)
+s = s.replace(
+    "component:'Componente',element:'Elemento',recordType:'Tipo'",
+    "component:'Componente',recordType:'Tipo'"
+)
+s = s.replace(
+    '<label class="form-field">Elemento<input name="element" value="${escapeHtml(item.element)}"></label>',
+    ''
+)
+s = s.replace(
+    "['name','type','product','funnel','minifunnel','screen','component','element'].forEach",
+    "['name','type','product','funnel','minifunnel','screen','component'].forEach"
+)
+s = s.replace(
+    "item.documentScopeMode==='transversal'){item.funnel='';item.minifunnel='';item.screen='';item.component='';item.components=[];item.element='';}",
+    "item.documentScopeMode==='transversal'){item.funnel='';item.minifunnel='';item.screen='';item.component='';item.components=[];}"
+)
+
+# Mantener selects legacy ocultos para no romper funciones antiguas, pero nunca visibles.
+style_token = '</style>'
+readonly_style_id = '<style id="ux-demo-strict-readonly">'
+if readonly_style_id in s:
+    style_start = s.index(readonly_style_id)
+    style_end = s.index(style_token, style_start)
+    extra_css = """
+label:has(#uxs-element),
+label:has(.hierarchy-element),
+#uxs-element,
+.hierarchy-element {
+  display:none !important;
+}
+"""
+    s = s[:style_end] + extra_css + s[style_end:]
+
+# Eliminar el campo Elemento también de los snapshots de datos de la demo.
+def _strip_element_key(value):
+    if isinstance(value, dict):
+        for key in list(value.keys()):
+            if str(key).strip().lower() in {"element", "elemento"}:
+                value.pop(key, None)
+            else:
+                _strip_element_key(value[key])
+    elif isinstance(value, list):
+        for item in value:
+            _strip_element_key(item)
+
+history_dir = ROOT / "history"
+if history_dir.exists():
+    for json_path in history_dir.glob("*.json"):
+        try:
+            payload = json.loads(json_path.read_text(encoding="utf-8"))
+            _strip_element_key(payload)
+            json_path.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        except Exception:
+            pass
+
+print("Elemento removed from UI, taxonomy and demo exports")
+
 p.write_text(s, encoding="utf-8")
 print("Read-only demo filters aligned with UX review rules")
