@@ -32,8 +32,16 @@ style = r"""
 [data-add-insight-register],
 
 /* Taxonomy editing */
+#taxonomy .ux-taxonomy-header-actions,
 .ux-taxonomy-manage-v2,
 .taxonomy-inline-action,
+[data-taxonomy-term-create],
+#taxonomy-vocabulary-create,
+[data-vocabulary-add],
+[data-glossary-create],
+.glossary-kebab,
+[data-glossary-menu],
+#taxonomy-detail button:not([data-taxonomy-explore-context]),
 [data-taxonomy-manager-v2],
 [data-taxonomy-manager-v2-edit],
 [data-taxonomy-manager-v2-merge],
