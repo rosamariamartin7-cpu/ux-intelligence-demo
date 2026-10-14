@@ -14,15 +14,13 @@ style = r"""
 #import-workspace,
 #import-workspace-input,
 #export-workspace,
-.ux-taxonomy-manage-v2,
+
+/* Document / knowledge editing */
 [data-doc-action="edit"],
 [data-doc-action="delete"],
 [data-doc-action="add-register"],
 [data-doc-action="link-source"],
 [data-doc-action="relink-register"],
-[data-taxonomy-edit],
-[data-taxonomy-delete],
-[data-propose-taxonomy],
 [data-learning-suggestion-confirm],
 [data-learning-suggestion-edit],
 [data-learning-component-edit],
@@ -32,14 +30,36 @@ style = r"""
 [data-confirm-publish],
 [data-confirm-source-update],
 [data-add-insight-register],
+
+/* Taxonomy editing */
+.ux-taxonomy-manage-v2,
+.taxonomy-inline-action,
+[data-taxonomy-manager-v2],
+[data-taxonomy-manager-v2-edit],
+[data-taxonomy-manager-v2-merge],
+[data-taxonomy-manager-v2-delete],
+[data-taxonomy-edit],
+[data-taxonomy-delete],
+[data-propose-taxonomy],
+[data-vocabulary-add],
+[data-glossary-create],
 #taxonomy-manager-v2-modal,
+#taxonomy-manager-v2-edit,
+#taxonomy-manager-v2-merge,
+#taxonomy-manager-v2-confirm,
+
+/* Backup/import controls are not part of the shared demo */
 #import-workspace-modal {
   display:none !important;
 }
 </style>
 """
 
-if 'id="ux-demo-strict-readonly"' not in s:
+if 'id="ux-demo-strict-readonly"' in s:
+    start = s.index('<style id="ux-demo-strict-readonly">')
+    end = s.index('</style>', start) + len('</style>')
+    s = s[:start] + style.strip() + s[end:]
+else:
     s = s.replace(marker, style + marker, 1)
 
 p.write_text(s, encoding="utf-8")
