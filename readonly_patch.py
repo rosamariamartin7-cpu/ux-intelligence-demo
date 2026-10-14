@@ -1,102 +1,20 @@
 from pathlib import Path
-import json
-import re
-import unicodedata
 
 ROOT = Path("app/ux-intelligence-demo-exact")
 p = ROOT / "index.html"
-
-def _norm(value):
-    text = str(value or "")
-    text = "".join(ch for ch in unicodedata.normalize("NFD", text) if unicodedata.category(ch) != "Mn")
-    return re.sub(r"\\s+", " ", text).strip().lower()
-
-def _normalize_context(item):
-    if not isinstance(item, dict):
-        return
-    product = _norm(item.get("product"))
-    screen = _norm(item.get("screen"))
-
-    if product == "home":
-        # Home no usa funnel/minifunnel en la taxonomía actual.
-        item["funnel"] = ""
-        item["minifunnel"] = ""
-        return
-
-    if product != "booking":
-        return
-
-    funnel = ""
-    minifunnel = ""
-
-    # En Booking, Funnel representa la etapa real del journey.
-    if screen in {"availability/dispo", "dispo", "disponibilidad", "upsell panel"}:
-        funnel = "Availability"
-        item["screen"] = "Disponibilidad"
-    elif screen in {"summary / shopping cart", "resumen / shopping cart", "resumen", "shopping cart"}:
-        funnel = "Shopping Cart"
-        item["screen"] = "Shopping Cart"
-    elif screen in {"passengers/paxes", "pasajeros"}:
-        funnel = "Passengers"
-        item["screen"] = "Pasajeros"
-    elif screen in {"extras", "extras - asientos", "extras - equipaje", "asientos", "equipaje", "maletas"}:
-        funnel = "Extras"
-        # Minifunnel se reserva exclusivamente para el ancillary concreto.
-        if screen in {"extras - asientos", "asientos"}:
-            minifunnel = "Asientos"
-        elif screen in {"extras - equipaje", "equipaje", "maletas"}:
-            minifunnel = "Equipaje"
-    elif screen in {"pago", "payment"}:
-        funnel = "Payment"
-        item["screen"] = "Pago"
-
-    # Multipantalla, Login contextual, Home, etc. son conocimiento transversal:
-    # no se fuerza un funnel ni un minifunnel sin evidencia suficiente.
-    item["funnel"] = funnel
-    item["minifunnel"] = minifunnel
-
-def _normalize_snapshot():
-    history = ROOT / "history"
-    latest_path = history / "latest.json"
-    if not latest_path.exists():
-        return
-    latest = json.loads(latest_path.read_text(encoding="utf-8"))
-    revision = latest.get("revision")
-    if not revision:
-        return
-    snap_path = history / f"{revision}.json"
-    snapshot = json.loads(snap_path.read_text(encoding="utf-8"))
-
-    for document in snapshot.get("documents") or []:
-        _normalize_context(document)
-        register = document.get("insightRegister") or {}
-        for row in register.get("rows") or []:
-            _normalize_context(row)
-
-    knowledge = snapshot.get("knowledge") or {}
-    for learning in knowledge.get("learningState") or []:
-        _normalize_context(learning)
-    for evidence in knowledge.get("evidenceState") or []:
-        _normalize_context(evidence)
-    for pattern in knowledge.get("patternState") or []:
-        _normalize_context(pattern)
-    for unit in knowledge.get("knowledgeUnits") or []:
-        _normalize_context(unit)
-    for question in knowledge.get("openQuestionItems") or []:
-        _normalize_context(question)
-
-    snap_path.write_text(json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    print("Journey taxonomy normalized for shared demo")
-
-_normalize_snapshot()
-
 s = p.read_text(encoding="utf-8")
-s = s.replace('>Demo · solo consulta</span>', '>Herramienta interna UX · Demo solo consulta</span>', 1)
+
+# Identificación de la copia compartida.
+s = s.replace(
+    '>Demo · solo consulta</span>',
+    '>Herramienta interna UX · Demo solo consulta</span>',
+    1
+)
 
 marker = "</head>"
 style = r"""
 <style id="ux-demo-strict-readonly">
-/* Shared review build: consult, filter and download only. */
+/* Demo compartida: consultar, filtrar y descargar. Nunca editar ni subir. */
 #add-document,
 #add-evidence,
 #document-upload,
@@ -104,8 +22,6 @@ style = r"""
 #import-workspace,
 #import-workspace-input,
 #export-workspace,
-
-/* Document / knowledge editing */
 [data-doc-action="edit"],
 [data-doc-action="delete"],
 [data-doc-action="add-register"],
@@ -121,7 +37,7 @@ style = r"""
 [data-confirm-source-update],
 [data-add-insight-register],
 
-/* Taxonomy editing */
+/* Taxonomía: consulta pura. */
 #taxonomy .ux-taxonomy-header-actions,
 .ux-taxonomy-manage-v2,
 .taxonomy-inline-action,
@@ -139,14 +55,11 @@ style = r"""
 [data-taxonomy-edit],
 [data-taxonomy-delete],
 [data-propose-taxonomy],
-[data-vocabulary-add],
-[data-glossary-create],
 #taxonomy-manager-v2-modal,
 #taxonomy-manager-v2-edit,
 #taxonomy-manager-v2-merge,
 #taxonomy-manager-v2-confirm,
-
-/* Backup/import controls are not part of the shared demo */
+#taxonomy-vocabulary-create-modal,
 #import-workspace-modal {
   display:none !important;
 }
@@ -160,129 +73,240 @@ if 'id="ux-demo-strict-readonly"' in s:
 else:
     s = s.replace(marker, style + marker, 1)
 
-
-
-cascade_marker = "</body>"
-cascade_script = r"""
-<script id="ux-demo-cascading-taxonomy-filters">
+body_marker = "</body>"
+script = r"""
+<script id="ux-demo-controlled-journey-filters">
 (function(){
-  const fields=['product','funnel','minifunnel','screen','component','element'];
-  const ids=Object.fromEntries(fields.map(field=>[field,'uxs-'+field]));
-  const norm=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
-  let suppress=false;
+  const hierarchy=['product','funnel','minifunnel','screen','component','element'];
+  const ids=Object.fromEntries(hierarchy.map(field=>[field,'uxs-'+field]));
+  const BOOKING_FUNNELS=['Availability','Shopping Cart','Passengers','Extras','Payment'];
+  const EXTRA_FALLBACK=['Asientos','Maletas','Priority Boarding','Menú a bordo','Wi-Fi','Mascotas','Equipaje deportivo'];
+  const SUPPORTED_PRODUCTS=new Set(['home','booking']);
+  let internal=false;
 
-  function fieldValues(record,field){
-    if(!record)return [];
-    if(field==='component'){
-      const values=[record.component,...(Array.isArray(record.components)?record.components:[])];
-      return [...new Set(values.map(v=>String(v||'').trim()).filter(Boolean))];
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+  const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+
+  function taxonomyTerms(){
+    try{
+      const terms=Array.isArray(taxonomyProject?.state?.terms)?taxonomyProject.state.terms:[];
+      return terms.filter(term=>{
+        const status=norm(term?.status||'canonical');
+        const origin=clean(term?.origin);
+        const canonical=['canonical','canonico'].includes(status);
+        const governed=term?.governed===true||!/^excel revisado\s*·/i.test(origin);
+        return canonical&&governed;
+      });
+    }catch(_){return [];}
+  }
+  const termId=term=>clean(term?.id||term?.termId||term?.key);
+  const parentId=term=>clean(term?.parentId||term?.parentTermId||term?.parent?.id||term?.parent);
+  const termName=term=>clean(term?.canonicalName||term?.name||term?.label||term?.value);
+
+  function ancestry(term){
+    const terms=taxonomyTerms();
+    const byId=new Map(terms.map(item=>[termId(item),item]).filter(([id])=>id));
+    const out=[];
+    const seen=new Set();
+    let current=term;
+    while(current){
+      const id=termId(current);
+      if(id&&seen.has(id))break;
+      if(id)seen.add(id);
+      out.unshift(termName(current));
+      const pid=parentId(current);
+      current=pid?byId.get(pid):null;
     }
-    const value=record[field];
-    if(Array.isArray(value))return [...new Set(value.map(v=>String(v||'').trim()).filter(Boolean))];
-    return String(value||'').trim()?[String(value).trim()]:[];
+    return out.filter(Boolean);
   }
 
-  function records(){
+  function canonicalProducts(){
+    return [...new Set(taxonomyTerms()
+      .filter(term=>clean(term?.level)==='product')
+      .map(termName).filter(Boolean))]
+      .sort((a,b)=>a.localeCompare(b,'es'));
+  }
+
+  function bookingExtraMinifunnels(){
+    const values=taxonomyTerms()
+      .filter(term=>clean(term?.level)==='minifunnel')
+      .filter(term=>{
+        const path=ancestry(term).map(norm);
+        return path.includes('booking')&&path.includes('extras');
+      })
+      .map(termName).filter(Boolean);
+    const unique=[...new Set(values)];
+    return unique.length?unique.sort((a,b)=>a.localeCompare(b,'es')):EXTRA_FALLBACK.slice();
+  }
+
+  function structuredRecords(){
     try{
       if(typeof currentStructuredRecords==='function'){
-        const rows=currentStructuredRecords()||[];
-        return rows.map(row=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(row)||row);
+        return (currentStructuredRecords()||[]).map(row=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(row)||row);
       }
     }catch(_){}
     try{
-      if(Array.isArray(globalThis.sourceItems)){
-        return globalThis.sourceItems.flatMap(item=>(item.insightRegister?.rows||[]))
-          .map(row=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(row)||row);
-      }
-    }catch(_){}
-    return [];
+      return (Array.isArray(globalThis.sourceItems)?globalThis.sourceItems:[])
+        .flatMap(item=>(item.insightRegister?.rows||[]))
+        .map(row=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(row)||row);
+    }catch(_){return [];}
+  }
+
+  function valuesOf(row,field){
+    if(!row)return [];
+    if(field==='component'){
+      return [...new Set([row.component,...(Array.isArray(row.components)?row.components:[])]
+        .map(clean).filter(Boolean))];
+    }
+    const value=row[field];
+    if(Array.isArray(value))return [...new Set(value.map(clean).filter(Boolean))];
+    return clean(value)?[clean(value)]:[];
   }
 
   function selected(field){
-    const el=document.getElementById(ids[field]);
-    return String(el?.value||'').trim();
+    return clean(document.getElementById(ids[field])?.value);
   }
 
-  function matches(record,field,value){
+  function funnelMatches(rowValue,selectedValue){
+    const rv=norm(rowValue),sv=norm(selectedValue);
+    if(rv===sv)return true;
+    const aliases={
+      'availability':['availability','disponibilidad','availability/dispo','dispo'],
+      'shopping cart':['shopping cart','resumen','resumen / shopping cart','summary / shopping cart'],
+      'passengers':['passengers','pasajeros','passengers/paxes','paxes'],
+      'extras':['extras'],
+      'payment':['payment','pago']
+    };
+    return (aliases[sv]||[sv]).includes(rv);
+  }
+
+  function rowMatches(row,field,value){
     if(!value)return true;
-    return fieldValues(record,field).some(candidate=>norm(candidate)===norm(value));
+    const candidates=valuesOf(row,field);
+    if(field==='funnel')return candidates.some(candidate=>funnelMatches(candidate,value));
+    return candidates.some(candidate=>norm(candidate)===norm(value));
   }
 
-  function availableValues(targetField){
-    const targetIndex=fields.indexOf(targetField);
-    let rows=records();
-    fields.slice(0,targetIndex).forEach(parent=>{
+  function productAllowsDetails(product){
+    return !product||SUPPORTED_PRODUCTS.has(norm(product));
+  }
+
+  function dataValues(field){
+    const product=selected('product');
+    if(!productAllowsDetails(product))return [];
+
+    let rows=structuredRecords();
+    const parents={
+      screen:['product','funnel','minifunnel'],
+      component:['product','funnel','minifunnel','screen'],
+      element:['product','funnel','minifunnel','screen','component']
+    }[field]||[];
+
+    parents.forEach(parent=>{
       const value=selected(parent);
-      if(value)rows=rows.filter(row=>matches(row,parent,value));
+      if(value)rows=rows.filter(row=>rowMatches(row,parent,value));
     });
+
     const out=[];
     const seen=new Set();
-    rows.forEach(row=>fieldValues(row,targetField).forEach(value=>{
+    rows.forEach(row=>valuesOf(row,field).forEach(value=>{
       const key=norm(value);
       if(key&&!seen.has(key)){seen.add(key);out.push(value);}
     }));
     return out.sort((a,b)=>a.localeCompare(b,'es'));
   }
 
-  function setOptions(field,{preserve=true}={}){
+  function desiredOptions(field){
+    const product=selected('product');
+    if(field==='product')return canonicalProducts();
+
+    if(!productAllowsDetails(product))return [];
+
+    if(field==='funnel'){
+      return !product||norm(product)==='booking' ? BOOKING_FUNNELS.slice() : [];
+    }
+
+    if(field==='minifunnel'){
+      const funnel=selected('funnel');
+      return (!product||norm(product)==='booking')&&norm(funnel)==='extras'
+        ? bookingExtraMinifunnels()
+        : [];
+    }
+
+    if(field==='screen'||field==='component'||field==='element'){
+      return dataValues(field);
+    }
+    return [];
+  }
+
+  function setSelect(field,{preserve=true}={}){
     const el=document.getElementById(ids[field]);
     if(!el)return;
-    const current=preserve?String(el.value||''):'';
-    const values=availableValues(field);
-    el.innerHTML='<option value="">Todos</option>'+values.map(value=>'<option value="'+escapeHtml(value)+'">'+escapeHtml(value)+'</option>').join('');
-    if(current&&values.some(value=>norm(value)===norm(current))){
-      const matched=values.find(value=>norm(value)===norm(current));
-      el.value=matched||'';
-    }else{
-      el.value='';
+    const current=preserve?clean(el.value):'';
+    const options=desiredOptions(field);
+    el.innerHTML='<option value="">Todos</option>'+options.map(value=>'<option value="'+esc(value)+'">'+esc(value)+'</option>').join('');
+
+    const matched=current&&options.find(value=>norm(value)===norm(current));
+    el.value=matched||'';
+  }
+
+  function clearField(field){
+    const el=document.getElementById(ids[field]);
+    if(!el||!el.value)return;
+    el.value='';
+    el.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+
+  function refreshFrom(field){
+    const index=hierarchy.indexOf(field);
+    internal=true;
+    try{
+      hierarchy.slice(index+1).forEach(child=>clearField(child));
+      hierarchy.slice(index+1).forEach(child=>setSelect(child,{preserve:false}));
+      if(field==='product')setSelect('product',{preserve:true});
+      globalThis.__dsSyncSelects?.();
+    }finally{
+      internal=false;
     }
   }
 
-  function resetDescendants(field){
-    const index=fields.indexOf(field);
-    suppress=true;
-    fields.slice(index+1).forEach(child=>{
-      const el=document.getElementById(ids[child]);
-      if(!el)return;
-      if(el.value!==''){
-        el.value='';
-        el.dispatchEvent(new Event('change',{bubbles:true}));
-      }
-    });
-    suppress=false;
+  function refreshAll(){
+    internal=true;
+    try{
+      setSelect('product',{preserve:true});
+      setSelect('funnel',{preserve:true});
+      setSelect('minifunnel',{preserve:true});
+      setSelect('screen',{preserve:true});
+      setSelect('component',{preserve:true});
+      setSelect('element',{preserve:true});
+      globalThis.__dsSyncSelects?.();
+    }finally{
+      internal=false;
+    }
   }
 
-  function updateAll(){
-    fields.forEach(field=>setOptions(field,{preserve:true}));
-    try{globalThis.__dsSyncSelects?.();}catch(_){}
-  }
-
-  function onChange(event){
-    const field=fields.find(name=>event.target?.id===ids[name]);
-    if(!field||suppress)return;
-    resetDescendants(field);
-    fields.slice(fields.indexOf(field)+1).forEach(child=>setOptions(child,{preserve:false}));
-    try{globalThis.__dsSyncSelects?.();}catch(_){}
-  }
-
-  function escapeHtml(value){
-    return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  function onHierarchyChange(event){
+    if(internal)return;
+    const field=hierarchy.find(name=>event.target?.id===ids[name]);
+    if(!field)return;
+    setTimeout(()=>refreshFrom(field),0);
   }
 
   function init(){
-    fields.forEach(field=>document.getElementById(ids[field])?.addEventListener('change',onChange));
-    updateAll();
-    setTimeout(updateAll,350);
-    setTimeout(updateAll,1200);
+    hierarchy.forEach(field=>document.getElementById(ids[field])?.addEventListener('change',onHierarchyChange));
+    refreshAll();
+    setTimeout(refreshAll,300);
+    setTimeout(refreshAll,1000);
 
-    const prev=globalThis.__uxSimpleExploreRefresh;
-    if(typeof prev==='function'&&!prev.__uxCascadeWrapped){
+    const previous=globalThis.__uxSimpleExploreRefresh;
+    if(typeof previous==='function'&&!previous.__uxDemoControlled){
       const wrapped=function(){
-        const result=prev.apply(this,arguments);
-        setTimeout(updateAll,0);
+        const result=previous.apply(this,arguments);
+        setTimeout(refreshAll,0);
         return result;
       };
-      wrapped.__uxCascadeWrapped=true;
+      wrapped.__uxDemoControlled=true;
       globalThis.__uxSimpleExploreRefresh=wrapped;
     }
   }
@@ -293,9 +317,18 @@ cascade_script = r"""
 </script>
 """
 
-if 'id="ux-demo-cascading-taxonomy-filters"' not in s:
-    s = s.replace(cascade_marker, cascade_script + cascade_marker, 1)
+# Replace any previous demo-specific hierarchy patch with the current one.
+for old_id in [
+    'ux-demo-cascading-taxonomy-filters',
+    'ux-demo-controlled-journey-filters'
+]:
+    token = f'<script id="{old_id}">'
+    if token in s:
+        start = s.index(token)
+        end = s.index('</script>', start) + len('</script>')
+        s = s[:start] + s[end:]
 
+s = s.replace(body_marker, script + body_marker, 1)
 
 p.write_text(s, encoding="utf-8")
-print("Strict read-only UI applied")
+print("Read-only demo filters aligned with UX review rules")
