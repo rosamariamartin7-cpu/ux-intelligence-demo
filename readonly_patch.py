@@ -4,6 +4,62 @@ ROOT = Path("app/ux-intelligence-demo-exact")
 p = ROOT / "index.html"
 s = p.read_text(encoding="utf-8")
 
+# ELEMENTO deja de formar parte del modelo gobernado.
+# Se elimina de taxonomía, filtros, rutas visibles y exportaciones.
+def _remove_element_level_from_demo():
+    global s
+
+    # Filtro principal de Explorar: eliminar el control completo.
+    import re
+    s = re.sub(
+        r'<label>Elemento\s*<select id="uxs-element".*?</label>',
+        '',
+        s,
+        count=1,
+        flags=re.S
+    )
+
+    # Jerarquía y filtros JS.
+    replacements = {
+        "['screen','uxs-screen'],['component','uxs-component'],['element','uxs-element'],": "['screen','uxs-screen'],['component','uxs-component'],",
+        "new Set(['product','funnel','minifunnel','screen','component','element'])": "new Set(['product','funnel','minifunnel','screen','component'])",
+        "['product','funnel','minifunnel','screen','component','element']": "['product','funnel','minifunnel','screen','component']",
+        "['component','screen','minifunnel','funnel','product']": "['component','screen','minifunnel','funnel','product']",
+        "const LEVELS=['product','funnel','minifunnel','screen','component','element'];": "const LEVELS=['product','funnel','minifunnel','screen','component'];",
+        "element:'Elemento'": "",
+        ",element:'Elemento'": "",
+        "['Elemento','element'],": "",
+        "['Elemento','element']": "",
+        "['Elemento','elemento','element']": "",
+        "['Elemento','elemento','element'],": "",
+        "element:row.element||'',": "",
+        "element:first(row,['Elemento','elemento','element']),": "",
+        ",item.element": "",
+        ",element:item.element": "",
+        "item.element=''": "",
+    }
+    for old, new in replacements.items():
+        s = s.replace(old, new)
+
+    # Export general: eliminar columna Elemento.
+    s = s.replace(
+        "['Iniciativa','initiative'],['Producto','product'],['Pantalla','screen'],['Componente','component'],['Elemento','element'],",
+        "['Iniciativa','initiative'],['Producto','product'],['Pantalla','screen'],['Componente','component'],"
+    )
+
+    # Cualquier ruta de contexto simple debe terminar en Componente.
+    s = s.replace(
+        "[record.product,record.funnel,record.minifunnel,record.screen,record.component,record.element]",
+        "[record.product,record.funnel,record.minifunnel,record.screen,record.component]"
+    )
+    s = s.replace(
+        "[item.product,item.funnel,item.minifunnel,item.screen,item.component,item.element]",
+        "[item.product,item.funnel,item.minifunnel,item.screen,item.component]"
+    )
+
+_remove_element_level_from_demo()
+
+
 # La copia compartida solo expone áreas con conocimiento actual:
 # Home, Booking y Frequent Flyer/SUMA. Se ocultan Check-in, MMB y el resto.
 import json
@@ -60,7 +116,11 @@ if taxonomy_path.exists():
                 current = by_id[pid]
             return term_name(last)
 
-        state["terms"] = [term for term in terms if _allowed_root(root_product(term))]
+        state["terms"] = [
+            term for term in terms
+            if _allowed_root(root_product(term))
+            and _norm_demo(term.get("level")) != "element"
+        ]
         taxonomy_path.write_text(json.dumps(tax, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
         print("Demo taxonomy pruned to Home, Booking and Frequent Flyer")
     except Exception as exc:
@@ -140,7 +200,7 @@ body_marker = "</body>"
 script = r"""
 <script id="ux-demo-controlled-journey-filters">
 (function(){
-  const hierarchy=['product','funnel','minifunnel','screen','component','element'];
+  const hierarchy=['product','funnel','minifunnel','screen','component'];
   const ids=Object.fromEntries(hierarchy.map(field=>[field,'uxs-'+field]));
   const BOOKING_FUNNELS=['Availability','Shopping Cart','Passengers','Extras','Payment'];
   const EXTRA_FALLBACK=['Asientos','Maletas','Priority Boarding','Menú a bordo','Wi-Fi','Mascotas','Equipaje deportivo'];
