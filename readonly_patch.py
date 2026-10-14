@@ -4,6 +4,69 @@ ROOT = Path("app/ux-intelligence-demo-exact")
 p = ROOT / "index.html"
 s = p.read_text(encoding="utf-8")
 
+# La copia compartida solo expone áreas con conocimiento actual:
+# Home, Booking y Frequent Flyer/SUMA. Se ocultan Check-in, MMB y el resto.
+import json
+import unicodedata
+
+def _norm_demo(value):
+    text = str(value or "")
+    text = "".join(ch for ch in unicodedata.normalize("NFD", text) if unicodedata.category(ch) != "Mn")
+    return " ".join(text.lower().split())
+
+def _allowed_root(name):
+    value = _norm_demo(name)
+    return value in {"home", "booking", "frequent flyer", "suma", "suma frequent flyer", "suma / frequent flyer"} \
+        or "frequent flyer" in value \
+        or value.startswith("suma")
+
+taxonomy_path = ROOT / "taxonomy-state.json"
+if taxonomy_path.exists():
+    try:
+        tax = json.loads(taxonomy_path.read_text(encoding="utf-8"))
+        state = tax.get("state") if isinstance(tax, dict) and isinstance(tax.get("state"), dict) else tax
+        terms = state.get("terms", []) if isinstance(state, dict) else []
+        by_id = {
+            str(term.get("id") or term.get("termId") or term.get("key") or ""): term
+            for term in terms if isinstance(term, dict)
+        }
+
+        def term_id(term):
+            return str(term.get("id") or term.get("termId") or term.get("key") or "")
+
+        def parent_id(term):
+            parent = term.get("parentId") or term.get("parentTermId") or term.get("parent")
+            if isinstance(parent, dict):
+                return str(parent.get("id") or "")
+            return str(parent or "")
+
+        def term_name(term):
+            return str(term.get("canonicalName") or term.get("name") or term.get("label") or term.get("value") or "")
+
+        def root_product(term):
+            current = term
+            seen = set()
+            last = term
+            while isinstance(current, dict):
+                ident = term_id(current)
+                if ident and ident in seen:
+                    break
+                if ident:
+                    seen.add(ident)
+                last = current
+                pid = parent_id(current)
+                if not pid or pid not in by_id:
+                    break
+                current = by_id[pid]
+            return term_name(last)
+
+        state["terms"] = [term for term in terms if _allowed_root(root_product(term))]
+        taxonomy_path.write_text(json.dumps(tax, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        print("Demo taxonomy pruned to Home, Booking and Frequent Flyer")
+    except Exception as exc:
+        print("Taxonomy pruning skipped:", exc)
+
+
 # Identificación de la copia compartida.
 s = s.replace(
     '>Demo · solo consulta</span>',
@@ -81,7 +144,7 @@ script = r"""
   const ids=Object.fromEntries(hierarchy.map(field=>[field,'uxs-'+field]));
   const BOOKING_FUNNELS=['Availability','Shopping Cart','Passengers','Extras','Payment'];
   const EXTRA_FALLBACK=['Asientos','Maletas','Priority Boarding','Menú a bordo','Wi-Fi','Mascotas','Equipaje deportivo'];
-  const SUPPORTED_PRODUCTS=new Set(['home','booking']);
+  const SUPPORTED_PRODUCTS=new Set(['home','booking','frequent flyer','suma','suma frequent flyer','suma / frequent flyer']);
   let internal=false;
 
   const clean=value=>String(value??'').trim();
@@ -121,10 +184,16 @@ script = r"""
     return out.filter(Boolean);
   }
 
+  function isAllowedProductName(value){
+    const key=norm(value);
+    return SUPPORTED_PRODUCTS.has(key)||key.includes('frequent flyer')||key.startsWith('suma');
+  }
+
   function canonicalProducts(){
     return [...new Set(taxonomyTerms()
       .filter(term=>clean(term?.level)==='product')
-      .map(termName).filter(Boolean))]
+      .map(termName).filter(Boolean)
+      .filter(isAllowedProductName))]
       .sort((a,b)=>a.localeCompare(b,'es'));
   }
 
@@ -140,16 +209,25 @@ script = r"""
     return unique.length?unique.sort((a,b)=>a.localeCompare(b,'es')):EXTRA_FALLBACK.slice();
   }
 
+  function isRelevantRecord(row){
+    const product=norm(row?.product);
+    const initiatives=[row?.initiative,...(Array.isArray(row?.initiatives)?row.initiatives:[])].map(norm);
+    return isAllowedProductName(product)||initiatives.some(value=>value.includes('frequent flyer')||value.startsWith('suma'));
+  }
+
   function structuredRecords(){
     try{
       if(typeof currentStructuredRecords==='function'){
-        return (currentStructuredRecords()||[]).map(row=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(row)||row);
+        return (currentStructuredRecords()||[])
+          .map(row=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(row)||row)
+          .filter(isRelevantRecord);
       }
     }catch(_){}
     try{
       return (Array.isArray(globalThis.sourceItems)?globalThis.sourceItems:[])
         .flatMap(item=>(item.insightRegister?.rows||[]))
-        .map(row=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(row)||row);
+        .map(row=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(row)||row)
+        .filter(isRelevantRecord);
     }catch(_){return [];}
   }
 
