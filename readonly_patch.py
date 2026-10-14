@@ -1,6 +1,95 @@
 from pathlib import Path
+import json
+import re
+import unicodedata
 
-p = Path("app/ux-intelligence-demo-exact/index.html")
+ROOT = Path("app/ux-intelligence-demo-exact")
+p = ROOT / "index.html"
+
+def _norm(value):
+    text = str(value or "")
+    text = "".join(ch for ch in unicodedata.normalize("NFD", text) if unicodedata.category(ch) != "Mn")
+    return re.sub(r"\\s+", " ", text).strip().lower()
+
+def _normalize_context(item):
+    if not isinstance(item, dict):
+        return
+    product = _norm(item.get("product"))
+    screen = _norm(item.get("screen"))
+
+    if product == "home":
+        # Home no usa funnel/minifunnel en la taxonomía actual.
+        item["funnel"] = ""
+        item["minifunnel"] = ""
+        return
+
+    if product != "booking":
+        return
+
+    funnel = ""
+    minifunnel = ""
+
+    # En Booking, Funnel representa la etapa real del journey.
+    if screen in {"availability/dispo", "dispo", "disponibilidad", "upsell panel"}:
+        funnel = "Availability"
+        item["screen"] = "Disponibilidad"
+    elif screen in {"summary / shopping cart", "resumen / shopping cart", "resumen", "shopping cart"}:
+        funnel = "Shopping Cart"
+        item["screen"] = "Shopping Cart"
+    elif screen in {"passengers/paxes", "pasajeros"}:
+        funnel = "Passengers"
+        item["screen"] = "Pasajeros"
+    elif screen in {"extras", "extras - asientos", "extras - equipaje", "asientos", "equipaje", "maletas"}:
+        funnel = "Extras"
+        # Minifunnel se reserva exclusivamente para el ancillary concreto.
+        if screen in {"extras - asientos", "asientos"}:
+            minifunnel = "Asientos"
+        elif screen in {"extras - equipaje", "equipaje", "maletas"}:
+            minifunnel = "Equipaje"
+    elif screen in {"pago", "payment"}:
+        funnel = "Payment"
+        item["screen"] = "Pago"
+
+    # Multipantalla, Login contextual, Home, etc. son conocimiento transversal:
+    # no se fuerza un funnel ni un minifunnel sin evidencia suficiente.
+    item["funnel"] = funnel
+    item["minifunnel"] = minifunnel
+
+def _normalize_snapshot():
+    history = ROOT / "history"
+    latest_path = history / "latest.json"
+    if not latest_path.exists():
+        return
+    latest = json.loads(latest_path.read_text(encoding="utf-8"))
+    revision = latest.get("revision")
+    if not revision:
+        return
+    snap_path = history / f"{revision}.json"
+    snapshot = json.loads(snap_path.read_text(encoding="utf-8"))
+
+    for document in snapshot.get("documents") or []:
+        _normalize_context(document)
+        register = document.get("insightRegister") or {}
+        for row in register.get("rows") or []:
+            _normalize_context(row)
+
+    knowledge = snapshot.get("knowledge") or {}
+    for learning in knowledge.get("learningState") or []:
+        _normalize_context(learning)
+    for evidence in knowledge.get("evidenceState") or []:
+        _normalize_context(evidence)
+    for pattern in knowledge.get("patternState") or []:
+        _normalize_context(pattern)
+    for unit in knowledge.get("knowledgeUnits") or []:
+        _normalize_context(unit)
+    for question in knowledge.get("openQuestionItems") or []:
+        _normalize_context(question)
+
+    snap_path.write_text(json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print("Journey taxonomy normalized for shared demo")
+
+_normalize_snapshot()
+
 s = p.read_text(encoding="utf-8")
 
 marker = "</head>"
