@@ -91,6 +91,7 @@ def _normalize_snapshot():
 _normalize_snapshot()
 
 s = p.read_text(encoding="utf-8")
+s = s.replace('>Demo · solo consulta</span>', '>Herramienta interna UX · Demo solo consulta</span>', 1)
 
 marker = "</head>"
 style = r"""
