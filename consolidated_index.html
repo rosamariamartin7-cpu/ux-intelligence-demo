@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-build="2026-10-15-v6-90-consolidated">
+<html lang="es" data-build="2026-10-15-v6-92-final-hierarchy-fix">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -77,7 +77,8 @@
       border-right:1px solid rgba(255,255,255,.08);
     }
     .brand { display:flex; align-items:center; gap:11px; padding:26px 22px 22px; }
-    .brand-mark { width:34px; height:34px; display:grid; place-items:center; flex:0 0 auto; border-radius:9px; color:var(--ae-navy-900); background:linear-gradient(135deg,#fff,#b9edff); box-shadow:0 6px 16px rgba(0,0,0,.15); font-weight:800; letter-spacing:-.04em; }
+    .brand-mark { width:40px; height:30px; display:flex; align-items:center; justify-content:center; flex:0 0 auto; background:transparent; }
+    .brand-mark img { display:block; width:40px; height:auto; object-fit:contain; }
     .brand-copy strong,.brand-copy span { display:block; }
     .brand-copy strong { font-size:14px; line-height:1.25; }
     .brand-copy span { margin-top:2px; color:rgba(255,255,255,.62); font-size:11px; }
@@ -158,7 +159,8 @@
     #overview .compact-head { max-width:880px; margin:14px auto 30px; text-align:center; }
     #overview .compact-head .eyebrow { justify-content:center; }
     #overview .compact-head h1 { margin-inline:auto; font-size:43px; }
-    #overview .compact-head p { margin-inline:auto; font-size:17px; }\n    #overview .overview-intro-spacer { min-height:53px; }
+    #overview .compact-head p { margin-inline:auto; font-size:17px; }
+    #overview .overview-intro-spacer { min-height:53px; }
     .overview-search { position:relative; max-width:760px; margin:0 auto 52px; text-align:center; }
     .overview-search > label { display:block; margin-bottom:12px; font-size:18px; font-weight:680; }
     .overview-search-field { position:relative; }
@@ -3311,7 +3313,8 @@
 .learning-table .row-action{
   white-space:nowrap;
 }
-.learning-table th:nth-child(4),\n.learning-table td[data-label="Impacto UX"]{text-align:left;}
+.learning-table th:nth-child(4),
+.learning-table td[data-label="Impacto UX"]{text-align:left;}
 .learning-table .row-action{text-align:right;}
 @media(max-width:1280px) and (min-width:781px){
   #learnings .table-shell{overflow-x:auto;}
@@ -4699,7 +4702,7 @@
   <div class="app-shell">
     <aside class="sidebar" id="primary-navigation" aria-label="Navegación principal">
       <div class="brand">
-        <div class="brand-mark">AE</div>
+        <div class="brand-mark"><img src="data:image/png;base64,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" alt="Air Europa"></div>
         <div class="brand-copy"><strong>UX Intel</strong><span>Air Europa</span></div>
       </div>
       <nav class="nav-section" aria-label="Secciones de UX Intel">
@@ -4798,7 +4801,7 @@
 
             <aside class="ux-home-side-column-v31 ux-home-side-column-v32" aria-label="Preguntas abiertas y cobertura">
               <section class="ux-home-panel ux-home-gaps-panel" aria-labelledby="ux-home-gaps-title">
-                <header class="ux-home-panel-head"><div><h2 id="ux-home-gaps-title">Qué nos falta saber</h2><p>Preguntas abiertas consolidadas que pueden orientar próximos análisis, research o experimentación.</p></div><button class="text-button no-wrap" type="button" data-home-all-questions>Ver todas</button></header>
+                <header class="ux-home-panel-head"><div><h2 id="ux-home-gaps-title">Qué nos falta saber</h2><p>Preguntas prioritarias de los learnings consolidados para orientar próximos análisis, research o experimentación.</p></div><button class="text-button no-wrap" type="button" data-home-all-questions>Ver prioritarias</button></header>
                 <div id="ux-home-gaps-list"></div>
               </section>
 
@@ -5613,12 +5616,14 @@
         });
       });
 
+      // Reglas cerradas del journey.
       if(normalizeText(resolved.product)==='home'){
         resolved.funnel='';
         resolved.minifunnel='';
       }
       if(normalizeText(resolved.funnel)!=='extras')resolved.minifunnel='';
 
+      // Conservamos el valor histórico para trazabilidad, pero fuera del modelo activo.
       const legacy={};
       for(const level of ['product','funnel','minifunnel','component']){
         const raw=String(source[level]||'').trim();
@@ -7010,10 +7015,41 @@
       return item.product===context.product&&(!selected.length||selected.some(component=>componentsOf(item).includes(component)));
     }
     function homeQuestions(){
-      const published=openQuestionItems.filter(item=>sourceItems.some(source=>source.id===item.documentId)).map(item=>({text:item.text,item,action:`data-doc-action="open" data-id="${escapeHtml(item.documentId)}"`,sources:catalogSources(item)}));
-      const consolidated=learnings.flatMap(item=>(item.open||[]).map(text=>({text,item,action:`data-learning="${escapeHtml(item.id)}"`,sources:catalogSources(item)})));
-      const seen=new Set();
-      return [...published,...consolidated].filter(question=>{const key=JSON.stringify([question.item.product,question.item.funnel,question.item.minifunnel,question.item.component,normalizeText(question.text)]);if(!question.text||seen.has(key))return false;seen.add(key);return true;});
+      // La Home no es un backlog de todas las preguntas históricas.
+      // Muestra únicamente preguntas de learnings consolidados, una por learning,
+      // priorizadas y con diversidad de iniciativas.
+      const rank={Alto:0,Medio:1,Bajo:2};
+      const candidates=learnings
+        .filter(learning=>Array.isArray(learning.open)&&learning.open.some(value=>String(value||'').trim()))
+        .map(learning=>{
+          const question=(learning.open||[]).map(value=>String(value||'').trim()).find(Boolean)||'';
+          const initiative=(governedLearningInitiatives(learning)[0]||learning.initiative||'Sin iniciativa').trim();
+          const updated=Date.parse(learning.updatedAt||learning.createdAt||'')||0;
+          return {
+            text:question,
+            item:learning,
+            action:`data-learning="${escapeHtml(learning.id)}"`,
+            sources:catalogSources(learning),
+            initiative,
+            impactRank:rank[String(learning.impactUx||'').trim()]??3,
+            updated
+          };
+        })
+        .filter(candidate=>candidate.text)
+        .sort((a,b)=>a.impactRank-b.impactRank||b.updated-a.updated||a.text.localeCompare(b.text,'es'));
+
+      const selected=[];
+      const perInitiative=new Map();
+      for(const candidate of candidates){
+        if(selected.some(existing=>semanticSimilarity(existing.text,candidate.text)>=.72))continue;
+        const key=normalizeText(candidate.initiative||'Sin iniciativa');
+        const used=perInitiative.get(key)||0;
+        if(used>=2)continue;
+        selected.push(candidate);
+        perInitiative.set(key,used+1);
+        if(selected.length>=8)break;
+      }
+      return selected;
     }
     function knowledgeContexts(){
       const keys=new Map();
@@ -7024,11 +7060,9 @@
       }).sort((a,b)=>b.learnings.length-a.learnings.length);
     }
     function goToKnowledgeContext(context){
-      showPanel('explore');resetFilterGroup('explore');
-      for(const level of ['product','component']){
-        const select=document.getElementById(`explore-${level}`),value=context[level];
-        if(value&&[...select.options].some(option=>option.value===value)){select.value=value;refreshHierarchy('explore',level);}
-      }
+      // Contextos de búsqueda/Home deben abrir el explorador actual y conservar
+      // toda la jerarquía seleccionada: Producto → Funnel → Minifunnel → Componente.
+      goToSimpleExploreContext(context||{});
     }
     function goToSimpleExploreContext(context){
       showPanel('explore');
@@ -7065,7 +7099,7 @@
 
     function openHomeQuestions(){
       const questions=homeQuestions();
-      openDrawer('<div class="drawer-kicker">Qué falta saber</div><h2>Preguntas abiertas</h2>',
+      openDrawer('<div class="drawer-kicker">Qué falta saber</div><h2>Preguntas abiertas prioritarias</h2><p class="drawer-lead">Selección de cuestiones todavía abiertas en learnings consolidados. Las preguntas de trabajo de cada análisis permanecen en su contexto original.</p>',
         `<div class="relation-list">${questions.map(question=>`<div class="relation-row"><div class="relation-copy"><strong>${escapeHtml(question.text)}</strong><span>${escapeHtml(pathOf(question.item))}</span></div><button class="relation-action" type="button" ${question.action}>Ver contexto</button><span></span></div>`).join('')}</div>`);
     }
     document.addEventListener('click',event=>{
@@ -8366,7 +8400,71 @@
       return changed;
     }
 
+    function rollbackLegacyGlobalQuestionReconciliation(){
+      let changed=false;
+
+      // Restaura preguntas de learnings modificadas por la reconciliación global anterior.
+      learnings.forEach(learning=>{
+        const history=Array.isArray(learning?.questionHistory)?learning.questionHistory:[];
+        if(!history.length)return;
+
+        const current=Array.isArray(learning.open)?[...learning.open]:[];
+        const removeKeys=new Set(
+          history.map(entry=>normalizeText(entry?.to||'')).filter(Boolean)
+        );
+        const restored=current.filter(value=>!removeKeys.has(normalizeText(value)));
+
+        history.forEach(entry=>{
+          const original=String(entry?.from||'').trim();
+          if(original&&!restored.some(value=>normalizeText(value)===normalizeText(original))){
+            restored.push(original);
+          }
+        });
+
+        learning.open=restored;
+        delete learning.questionHistory;
+        changed=true;
+      });
+
+      // Las preguntas de análisis/documento son histórico: nunca deben cerrarse por matching global.
+      openQuestionItems.forEach(question=>{
+        const history=Array.isArray(question?.questionHistory)?question.questionHistory:[];
+        if(!history.length)return;
+        const original=String(history[0]?.from||'').trim();
+        if(original)question.text=original;
+        delete question.questionHistory;
+        delete question.resolvedAt;
+        delete question.resolvedBy;
+        changed=true;
+      });
+
+      return changed;
+    }
+
+    function reconcileConfirmedLearningQuestions(){
+      // Solo revisa preguntas dentro del learning que el usuario vinculó explícitamente.
+      let changed=false;
+      sourceItems.forEach(item=>{
+        const candidates=item?.insightRegister?.learningSuggestions?.candidates||[];
+        candidates.forEach(candidate=>{
+          if(candidate?.status!=='confirmed')return;
+          if(!['Reforzar learning existente','Ampliar learning'].includes(candidate.action))return;
+
+          const learningId=String(candidate.appliedLearningId||candidate.targetLearningId||'').trim();
+          if(!learningId)return;
+          const learning=learnings.find(value=>String(value?.id||'')===learningId);
+          if(!learning)return;
+
+          const rows=learningSuggestionRows(item,candidate);
+          if(!rows.length)return;
+          if(reconcileLearningQuestions(learning,rows,item))changed=true;
+        });
+      });
+      return changed;
+    }
+
     function finalizeLearningStateAfterRestore(){
+      const rollbackQuestions=rollbackLegacyGlobalQuestionReconciliation();
       const migrated=migrateWorkspaceToSchema3AfterRestore();
       const deskRepair=repairBuscadorDeskResearchLearningDecisions();
       const stateRepair=repairBuscadorAuditAndRestoreQMLearningDecisions();
@@ -8377,16 +8475,17 @@
       // cuando ya han terminado project history, IndexedDB, Excel sync y reparaciones.
       const historyChanged=normalizeLearningHistoryState();
       refreshCatalogMetadata();
-      if(migrated||deskRepair||stateRepair||componentRepair||suggestionLockRepair||historyChanged)safeStorageWrite({project:false});
+      const targetedQuestionRepair=reconcileConfirmedLearningQuestions();
+      if(rollbackQuestions||migrated||deskRepair||stateRepair||componentRepair||suggestionLockRepair||targetedQuestionRepair||historyChanged)safeStorageWrite({project:false});
       // Si el histórico de proyecto está disponible, guarda también el estado saneado
       // para que los errores corregidos no reaparezcan en la siguiente restauración.
-      if((deskRepair||stateRepair||componentRepair||suggestionLockRepair||historyChanged)&&typeof projectHistory!=='undefined'&&projectHistory?.ready&&!projectHistory?.error&&typeof queueProjectHistory==='function'){
+      if((rollbackQuestions||deskRepair||stateRepair||componentRepair||suggestionLockRepair||targetedQuestionRepair||historyChanged)&&typeof projectHistory!=='undefined'&&projectHistory?.ready&&!projectHistory?.error&&typeof queueProjectHistory==='function'){
         Promise.resolve(queueProjectHistory()).catch(error=>console.warn('[UX Intel learning repair] No se pudo persistir el saneado en history',error));
       }
       refreshAllTaxonomyFilters?.();
       renderOverview();
       renderLearnings();
-      return migrated||deskRepair||stateRepair||componentRepair||suggestionLockRepair||historyChanged;
+      return rollbackQuestions||migrated||deskRepair||stateRepair||componentRepair||suggestionLockRepair||targetedQuestionRepair||historyChanged;
     }
 
     auditDocumentStorage().then(()=>restoreProjectHistory()).then(()=>discoverRecoverableAnalyses()).then(()=>hydrateDocumentAnalyses()).then(()=>finishProjectRestoration()).then(()=>syncInsightRegistersFromStoredFiles()).then(()=>repairReviewedInsightRegisterMetadata()).then(()=>ensureRecentLearningSuggestions()).then(()=>finalizeLearningStateAfterRestore()).catch(error=>console.error('No se pudieron cargar los análisis guardados',error));
@@ -9362,6 +9461,126 @@
       return changed;
     }
 
+
+    // Mantiene las preguntas abiertas sincronizadas con nueva evidencia ya revisada.
+    // Solo actúa cuando una fila declara explícitamente su estado (Resuelta / Parcial / Abierta)
+    // y la relación semántica con una pregunta existente es suficientemente fuerte.
+    function questionResolutionStatus(row){
+      const value=normalizeText(row?.status||'');
+      if(value==='resuelta')return 'resolved';
+      if(value==='parcial')return 'partial';
+      if(value==='abierta')return 'open';
+      return '';
+    }
+    function questionResolutionRowText(row){
+      return [row?.insight,row?.evidence,row?.implication,row?.recommendation,row?.openQuestion,row?.product,row?.funnel,row?.minifunnel,row?.screen,row?.component,row?.element]
+        .filter(Boolean).join(' · ');
+    }
+    function questionOwnerCompatible(owner,row){
+      const ownerProduct=normalizeText(owner?.product||''),rowProduct=normalizeText(row?.product||'');
+      return !(ownerProduct&&rowProduct&&ownerProduct!==rowProduct);
+    }
+    function questionLooksLikeDesignQuestion(question){
+      const value=normalizeText(question||'');
+      const asksHow=/^[¿?¡!\s]*(como|de que forma|que patron|que tratamiento|como deberia|como deben)/.test(value);
+      const designTopic=/(comunic|mostrar|presentar|explicar|diseñ|patron|interaccion|mensaje|jerarquia|visual)/.test(value);
+      return asksHow&&designTopic;
+    }
+    function questionTopicBonus(question,row){
+      const q=normalizeText(question||''),text=normalizeText(questionResolutionRowText(row));
+      let bonus=0;
+      ['upsell','fare families','fare family','priority boarding','asientos','equipaje','login','multipasajero'].forEach(term=>{
+        if(q.includes(term)&&text.includes(term))bonus+=0.10;
+      });
+      ['millas','acumulacion','beneficios','tarifa','suma','pasajero','elegibilidad','descuento'].forEach(term=>{
+        if(q.includes(term)&&text.includes(term))bonus+=0.025;
+      });
+      return Math.min(0.18,bonus);
+    }
+    function questionResolutionMatch(question,owner,rows){
+      // Las preguntas de diseño/representación siguen abiertas aunque una dependencia técnica se aclare.
+      if(questionLooksLikeDesignQuestion(question))return null;
+      let best=null;
+      (rows||[]).forEach(row=>{
+        const status=questionResolutionStatus(row);
+        if(!status||!questionOwnerCompatible(owner,row))return;
+        let score=semanticSimilarity(question,questionResolutionRowText(row))+questionTopicBonus(question,row);
+        if(normalizeText(owner?.product||'')&&normalizeText(owner?.product||'')===normalizeText(row?.product||''))score+=0.04;
+        const ownerComponent=normalizeText(owner?.component||''),rowComponent=normalizeText(row?.component||'');
+        if(ownerComponent&&rowComponent&&ownerComponent===rowComponent)score+=0.04;
+        const ownerScreen=normalizeText(owner?.screen||''),rowScreen=normalizeText(row?.screen||'');
+        if(ownerScreen&&rowScreen&&(ownerScreen===rowScreen||rowScreen.includes(ownerScreen)||ownerScreen.includes(rowScreen)))score+=0.03;
+        if(score>=0.30&&(!best||score>best.score))best={row,status,score};
+      });
+      return best;
+    }
+    function recordQuestionTransition(owner,from,to,status,item,row){
+      owner.questionHistory=Array.isArray(owner.questionHistory)?owner.questionHistory:[];
+      const entry={from:String(from||''),to:String(to||''),status,sourceName:item?.name||'',sourceFile:item?.originalName||'',at:new Date().toISOString(),rowRef:row?.sourceRow||''};
+      const duplicate=owner.questionHistory.some(value=>normalizeText(value?.from||'')===normalizeText(entry.from)&&normalizeText(value?.to||'')===normalizeText(entry.to)&&String(value?.sourceName||'')===entry.sourceName);
+      if(!duplicate)owner.questionHistory.push(entry);
+    }
+    function reconcileLearningQuestions(learning,rows,item){
+      const current=Array.isArray(learning?.open)?learning.open:[];
+      if(!current.length)return false;
+      let changed=false;
+      const next=[];
+      current.forEach(question=>{
+        const match=questionResolutionMatch(question,learning,rows);
+        if(!match){next.push(question);return;}
+        const replacement=String(match.row?.openQuestion||'').trim();
+        if(match.status==='resolved'){
+          changed=true;
+          if(replacement&&normalizeText(replacement)!==normalizeText(question))next.push(replacement);
+          recordQuestionTransition(learning,question,replacement,'resolved',item,match.row);
+          return;
+        }
+        if(replacement&&normalizeText(replacement)!==normalizeText(question)){
+          next.push(replacement);changed=true;
+          recordQuestionTransition(learning,question,replacement,match.status,item,match.row);
+        }else next.push(question);
+      });
+      const seen=new Set();
+      learning.open=next.filter(value=>{const key=normalizeText(value);if(!key||seen.has(key))return false;seen.add(key);return true;});
+      if(changed)learning.updatedAt=new Date().toISOString().slice(0,10);
+      return changed;
+    }
+    function reconcileStandaloneQuestions(rows,item){
+      let changed=false;
+      openQuestionItems.forEach(questionItem=>{
+        if(questionItem?.resolvedAt||!questionItem?.text)return;
+        const match=questionResolutionMatch(questionItem.text,questionItem,rows);
+        if(!match)return;
+        const replacement=String(match.row?.openQuestion||'').trim();
+        recordQuestionTransition(questionItem,questionItem.text,replacement,match.status,item,match.row);
+        if(match.status==='resolved'&&!replacement){
+          questionItem.resolvedAt=new Date().toISOString();
+          questionItem.resolvedBy=item?.name||'';
+          changed=true;
+          return;
+        }
+        if(replacement&&normalizeText(replacement)!==normalizeText(questionItem.text)){
+          questionItem.text=replacement;
+          questionItem.updatedAt=new Date().toISOString();
+          changed=true;
+        }
+      });
+      return changed;
+    }
+    function reconcileOpenQuestionsFromRows(rows,item){
+      const useful=(rows||[]).filter(row=>questionResolutionStatus(row));
+      if(!useful.length)return false;
+      let changed=false;
+      learnings.forEach(learning=>{if(reconcileLearningQuestions(learning,useful,item))changed=true;});
+      if(reconcileStandaloneQuestions(useful,item))changed=true;
+      return changed;
+    }
+    function reconcileResolvedQuestionKnowledge(){
+      // Conservada solo por compatibilidad con estados antiguos.
+      // UX Intel ya no modifica preguntas mediante matching global.
+      return false;
+    }
+
     function applyLearningSuggestion(item,candidate){
       const rows=learningSuggestionRows(item,candidate),publishedAt=new Date().toISOString(),entries=rows.map((row,index)=>({row,index})),evidence=learningSuggestionEvidence(entries,item);
       const components=[...new Set(rows.map(row=>canonicalComponentName(row.component)).filter(Boolean))];
@@ -9403,11 +9622,13 @@
         at:candidate.resolvedAt
       }]);
       rememberLearningSuggestionDecision(item,candidate,status,candidate.appliedLearningId||candidate.targetLearningId||'');
+      if(status==='evidence-only')reconcileOpenQuestionsFromRows(learningSuggestionRows(item,candidate),item);
       safeStorageWrite({project:true});renderOverview();renderLearnings();renderSources();renderExplore();openInsightRegister(item);
     }
     function confirmLearningSuggestion(item,candidate){
       try{
         const learning=applyLearningSuggestion(item,candidate),state=item.insightRegister.learningSuggestions;
+        reconcileOpenQuestionsFromRows(learningSuggestionRows(item,candidate),item);
         state.history=dedupeLearningSuggestionHistory([...(state.history||[]),{
           candidateId:candidate.id,
           fingerprint:candidate.fingerprint,
@@ -9418,6 +9639,9 @@
           at:candidate.resolvedAt
         }]);
         rememberLearningSuggestionDecision(item,candidate,candidate.status,learning?.id||candidate.appliedLearningId||candidate.targetLearningId||'');
+        if(learning&&['Reforzar learning existente','Ampliar learning'].includes(candidate.action)){
+          reconcileLearningQuestions(learning,learningSuggestionRows(item,candidate),item);
+        }
         if(!safeStorageWrite({project:true}))throw new Error('No se ha podido guardar la decisión.');
         refreshCatalogMetadata();refreshAllTaxonomyFilters?.();renderOverview();renderLearnings();renderSources();renderExplore();openInsightRegister(item);showToast(learning?'Learning actualizado':'Evidencia mantenida',learning?`${learning.id} se ha actualizado con esta fuente.`:'Los registros siguen disponibles en Explorar sin crear ni modificar un learning.');
       }catch(error){console.error('[UX Intel learning suggestion]',error);showToast('No se ha aplicado la sugerencia',String(error?.message||error));}
@@ -9954,7 +10178,26 @@
         candidate.rowRefs=learningSuggestionSourceRows(selectedEntries);
         candidate.evidence=learningSuggestionEvidence(selectedEntries,item);
         candidate.action=String(data.get('action')||candidate.action).trim();
-        candidate.targetLearningId=String(data.get('targetLearningId')||'').trim();
+
+        // Guardado robusto del learning objetivo.
+        // El select visual del UI Kit puede mostrar una opción seleccionada aunque,
+        // en algunos drawers dinámicos, el select nativo no llegue a reflejarla en FormData.
+        const targetSelect=event.target.querySelector('select[name="targetLearningId"]');
+        let targetLearningId=String(data.get('targetLearningId')||targetSelect?.value||'').trim();
+        if(!targetLearningId&&targetSelect){
+          const visibleLabel=String(targetSelect.nextElementSibling?.querySelector('.ds-select-value')?.textContent||'').trim();
+          const visibleTarget=learnings.find(learning=>{
+            const id=String(learning?.id||'').trim();
+            const title=String(learning?.title||'').trim();
+            return visibleLabel===title||visibleLabel===`${id} · ${title}`||(title&&visibleLabel.endsWith(`· ${title}`));
+          });
+          if(visibleTarget)targetLearningId=String(visibleTarget.id||'').trim();
+        }
+        if(!targetLearningId&&['Reforzar learning existente','Ampliar learning','Contradice learning'].includes(candidate.action)){
+          const eligibleTargets=learnings.filter(learning=>!item.initiative||[learning.initiative,...(learning.initiatives||[])].some(value=>initiativeNameEquals(value,item.initiative)));
+          if(eligibleTargets.length===1)targetLearningId=String(eligibleTargets[0].id||'').trim();
+        }
+        candidate.targetLearningId=targetLearningId;
         candidate.fingerprint=learningSuggestionHash(`${candidate.targetLearningId||candidate.action}|${candidate.rowRefs.join(',')}`);
         candidate.newLearningTitle=String(data.get('newLearningTitle')||'').trim();
         candidate.component=String(data.get('component')||'').trim();
@@ -10174,11 +10417,10 @@
         .map(entry=>({...entry.item,id:JSON.stringify(entry.item)}));
 
       const contextCount=item=>structured.filter(row=>{
-        const product=!item.product||normalizeText(row.product)===normalizeText(item.product);
-        const screen=!item.screen||normalizeText(row.screen)===normalizeText(item.screen);
-        const component=!item.component||normalizeText(row.component)===normalizeText(item.component);
-        const element=!item.element||normalizeText(row.element)===normalizeText(item.element);
-        return product&&screen&&component&&element;
+        const current=globalThis.UXGovernedTaxonomy?.normalizeRecord?.(row)||row;
+        return ['product','funnel','minifunnel','component'].every(level=>
+          !item[level]||normalizeText(current[level])===normalizeText(item[level])
+        );
       }).length;
 
       return [
@@ -10756,14 +10998,14 @@
         return item?.status==='canonical'&&governed;
       });
       const byId=new Map(all.map(item=>[String(item?.id||''),item]).filter(([id])=>id));
-      const chain=[],seen=new Set();let current=term;
+      const chain=[];const seen=new Set();let current=term;
       while(current){
         const id=String(current?.id||'');
         if(id&&seen.has(id))break;
         if(id)seen.add(id);
         chain.unshift(current);
-        const pid=String(current?.parentId||'');
-        current=pid?byId.get(pid):null;
+        const parentId=String(current?.parentId||'');
+        current=parentId?byId.get(parentId):null;
       }
       const context={};
       chain.forEach(item=>{
@@ -10784,26 +11026,19 @@
         const governed=term?.governed===true||!/^excel revisado\s*·/i.test(origin);
         return term.level===field&&term.status==='canonical'&&governed;
       });
-
       const selectedProduct=norm(filters.product||'');
       const selectedFunnel=norm(filters.funnel||'');
-
-      if(field==='funnel'){
+      if(field==='funnel'&&selectedProduct){
         if(selectedProduct==='home')return [];
-        if(selectedProduct){
-          terms=terms.filter(term=>norm(exploreTaxonomyContext(term).product||'')===selectedProduct);
-        }
+        terms=terms.filter(term=>norm(exploreTaxonomyContext(term).product||'')===selectedProduct);
       }
-
       if(field==='minifunnel'){
         if(selectedFunnel!=='extras')return [];
         terms=terms.filter(term=>{
           const context=exploreTaxonomyContext(term);
-          if(norm(context.funnel||'')!=='extras')return false;
-          return !selectedProduct||norm(context.product||'')===selectedProduct;
+          return norm(context.funnel||'')==='extras'&&(!selectedProduct||norm(context.product||'')===selectedProduct);
         });
       }
-
       return terms.map(term=>term.canonicalName);
     }catch(_){return [];}
   }
@@ -10820,8 +11055,9 @@
     if(field==='funnel'&&norm(filters.product||'')==='home')return [];
     if(field==='minifunnel'&&norm(filters.funnel||'')!=='extras')return [];
     if(journeyLevels.has(field)){
-      const canonical=dedupe(taxonomyValues(field));
-      return canonical;
+      // Nunca convertir valores observados en datos/Excel en vocabulario canónico.
+      // Si el canon no está disponible todavía, el filtro espera al canon.
+      return dedupe(taxonomyValues(field));
     }
     const governed=dedupe(controlledTaxonomyValues(field));
     if(governed.length)return governed;
@@ -10835,33 +11071,15 @@
     return false;
   }
 
-  function normalizeExploreHierarchyFilters(){
-    if(norm(filters.product||'')==='home'){
-      filters.funnel='';
-      filters.minifunnel='';
-      return;
-    }
-    const validFunnels=dedupe(taxonomyValues('funnel')).map(norm);
-    if(filters.funnel&&!validFunnels.includes(norm(filters.funnel))){
-      filters.funnel='';
-      filters.minifunnel='';
-    }
-    if(norm(filters.funnel||'')!=='extras'){
-      filters.minifunnel='';
-      return;
-    }
-    const validMinifunnels=dedupe(taxonomyValues('minifunnel')).map(norm);
-    if(filters.minifunnel&&!validMinifunnels.includes(norm(filters.minifunnel)))filters.minifunnel='';
-  }
-
   function fillSelect(id,field,label){
     const el=document.getElementById(id); if(!el)return;
-    const current=filters[field]||'';
     const options=filterOptions(field);
+    const current=filters[field]||'';
     el.innerHTML=`<option value="">Todos</option>`+options.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
     el.disabled=hierarchyFilterDisabled(field);
-    el.value=options.some(value=>norm(value)===norm(current))?current:'';
-    if(el.value!==current)filters[field]='';
+    const valid=options.some(value=>norm(value)===norm(current));
+    el.value=valid?current:'';
+    if(current&&!valid)filters[field]='';
   }
 
   function escapeHtml(v){
@@ -11334,7 +11552,6 @@
 
   function refresh(){
     records=normalizedRecords().map(record=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(record)||record);
-    normalizeExploreHierarchyFilters();
     ids.forEach(([field,id])=>fillSelect(id,field,field));
     try{globalThis.__dsSyncSelects?.();}catch(_){}
     renderUxLineMultiselect();
@@ -11347,9 +11564,7 @@
     if(initialized){ refresh(); return; }
     initialized=true;
     records=normalizedRecords().map(record=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(record)||record);
-    normalizeExploreHierarchyFilters();
     ids.forEach(([field,id])=>fillSelect(id,field,field));
-    try{globalThis.__dsSyncSelects?.();}catch(_){}
     renderUxLineMultiselect();
     ids.forEach(([field,id])=>{
       const el=document.getElementById(id); if(!el)return;
@@ -11390,13 +11605,8 @@
       if(remove){
         const field=remove.dataset.uxsRemove;
         filters[field]='';
-        if(field==='product'){
-          filters.funnel='';
-          filters.minifunnel='';
-        }else if(field==='funnel'){
-          filters.minifunnel='';
-        }
-        normalizeExploreHierarchyFilters();
+        if(field==='product'){filters.funnel='';filters.minifunnel='';}
+        if(field==='funnel')filters.minifunnel='';
         ids.forEach(([name,id])=>fillSelect(id,name,name));
         try{globalThis.__dsSyncSelects?.();}catch(_){}
         apply();
@@ -11413,7 +11623,6 @@
           if(select)select.value='';
         });
         filters.uxLine=[];renderUxLineMultiselect();
-        normalizeExploreHierarchyFilters();
         ids.forEach(([name,id])=>fillSelect(id,name,name));
         try{globalThis.__dsSyncSelects?.();}catch(_){}
         const from=document.getElementById('uxs-included-from'),to=document.getElementById('uxs-included-to');
@@ -13333,6 +13542,76 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,100),{once:true});
   else setTimeout(run,100);
   window.addEventListener('load',()=>setTimeout(run,400),{once:true});
+})();
+</script>
+
+
+<script id="ux-strict-governed-taxonomy-persistence">
+(function(){
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+  const legacyKey=level=>'legacy'+level.charAt(0).toUpperCase()+level.slice(1);
+
+  function normalizeItem(item){
+    if(!item||typeof item!=='object'||!globalThis.UXGovernedTaxonomy?.normalizeRecord)return false;
+    const normalized=globalThis.UXGovernedTaxonomy.normalizeRecord(item);
+    let changed=false;
+
+    for(const level of ['product','funnel','minifunnel','component']){
+      const before=clean(item[level]);
+      const after=clean(normalized[level]);
+      if(before&&norm(before)!==norm(after)&&!clean(item[legacyKey(level)])){
+        item[legacyKey(level)]=before;
+        changed=true;
+      }
+      if(before!==after){
+        item[level]=after;
+        changed=true;
+      }
+    }
+
+    if(Array.isArray(item.components)){
+      const next=clean(normalized.component)?[clean(normalized.component)]:[];
+      if(JSON.stringify(item.components)!==JSON.stringify(next)){
+        if(item.components.length&&!Array.isArray(item.legacyComponents))item.legacyComponents=[...item.components];
+        item.components=next;
+        changed=true;
+      }
+    }
+    return changed;
+  }
+
+  function apply(){
+    if(!globalThis.UXGovernedTaxonomy?.normalizeRecord)return false;
+    let changed=false;
+    const collections=[];
+    try{if(Array.isArray(sourceItems))collections.push(sourceItems);}catch(_){}
+    try{if(Array.isArray(learnings))collections.push(learnings);}catch(_){}
+    try{if(Array.isArray(evidenceItems))collections.push(evidenceItems);}catch(_){}
+    try{if(Array.isArray(experiments))collections.push(experiments);}catch(_){}
+    try{if(Array.isArray(patternItems))collections.push(patternItems);}catch(_){}
+
+    collections.forEach(items=>items.forEach(item=>{
+      if(normalizeItem(item))changed=true;
+      const rows=item?.insightRegister?.rows;
+      if(Array.isArray(rows))rows.forEach(row=>{if(normalizeItem(row))changed=true;});
+    }));
+
+    if(changed){
+      try{safeStorageWrite?.({project:false});}catch(_){try{safeStorageWrite?.();}catch(__){}}
+      try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+      try{refreshAllTaxonomyFilters?.();}catch(_){}
+    }
+    return changed;
+  }
+
+  function init(){
+    setTimeout(apply,500);
+    setTimeout(apply,1500);
+    setTimeout(apply,3200);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
 })();
 </script>
 
