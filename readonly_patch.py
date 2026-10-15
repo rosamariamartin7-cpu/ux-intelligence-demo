@@ -49,6 +49,7 @@ readonly_css = r'''
 /* Learnings / evidence / findings: lectura sí; edición/publicación no */
 [data-learning-suggestion-confirm],
 [data-learning-suggestion-edit],
+[data-learning-suggestion-evidence],
 [data-approve-routine-clusters],
 [data-duplicate-decision],
 [data-learning-component-edit],
@@ -115,7 +116,7 @@ readonly_js = r'''
   const writeSelectors = [
     '#add-document','#add-evidence','[data-doc-action="edit"]','[data-doc-action="delete"]',
     '[data-doc-action="add-register"]','[data-doc-action="link-source"]','[data-doc-action="relink-register"]',
-    '[data-learning-suggestion-confirm]','[data-learning-suggestion-edit]','[data-learning-component-edit]',
+    '[data-learning-suggestion-confirm]','[data-learning-suggestion-edit]','[data-learning-suggestion-evidence]','[data-learning-component-edit]',
     '[data-approve-routine-clusters]','[data-duplicate-decision]',
     '[data-finding-edit]','[data-insight-edit]','[data-open-publish-preview]','[data-confirm-publish]',
     '[data-taxonomy-term-create]','[data-taxonomy-manager-v2-edit]','[data-taxonomy-manager-v2-merge]',
