@@ -1,13 +1,25 @@
 from pathlib import Path
-import shutil
+import json
 
 ROOT = Path("app/ux-intelligence-demo-exact")
 ROOT.mkdir(parents=True, exist_ok=True)
 
-src_data = Path("data.js")
-if not src_data.exists():
-    raise SystemExit("ERROR: no se encuentra data.js en el repo")
-shutil.copy2(src_data, ROOT / "data.js")
+# Recupera el snapshot íntegro desde el index standalone del repo.
+# Evita depender del antiguo data.js, que quedó truncado.
+source_index = Path("index.html")
+if not source_index.exists():
+    raise SystemExit("ERROR: no se encuentra index.html fuente en el repo")
+source_text = source_index.read_text(encoding="utf-8")
+marker = "const HISTORY = "
+start = source_text.find(marker)
+if start < 0:
+    raise SystemExit("ERROR: no se encuentra const HISTORY en index.html")
+payload_text = source_text[start + len(marker):]
+history, _ = json.JSONDecoder().raw_decode(payload_text)
+(ROOT / "demo-data.json").write_text(
+    json.dumps(history, ensure_ascii=False, separators=(",", ":")),
+    encoding="utf-8"
+)
 
 html = r'''<!doctype html>
 <html lang="es">
@@ -116,7 +128,6 @@ button{cursor:pointer}
 </div>
 <div class="loading" id="loading">Cargando UX Intelligence…</div>
 <div id="drawer-root"></div>
-<script src="data.js"></script>
 <script>
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -127,13 +138,9 @@ let DATA={payload:null,documents:[],rows:[],learnings:[],evidence:[]};
 let state={page:'overview',q:'',filters:{product:'',funnel:'',minifunnel:'',component:'',device:'',impact:''}};
 
 async function decodePayload(){
-  if(!window.UX_DEMO_GZ) throw new Error('No se ha cargado el dataset de la demo.');
-  if(typeof DecompressionStream==='undefined') throw new Error('Este navegador no soporta la descompresión necesaria para la demo.');
-  const raw=atob(window.UX_DEMO_GZ);
-  const bytes=new Uint8Array(raw.length);
-  for(let i=0;i<raw.length;i++) bytes[i]=raw.charCodeAt(i);
-  const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-  return JSON.parse(await new Response(stream).text());
+  const response=await fetch('demo-data.json',{cache:'no-store'});
+  if(!response.ok) throw new Error('No se pudo cargar el dataset de la demo ('+response.status+').');
+  return await response.json();
 }
 function walk(obj,fn,seen=new Set()){
   if(!obj||typeof obj!=='object'||seen.has(obj))return;seen.add(obj);fn(obj);
@@ -324,4 +331,4 @@ boot();
 
 (ROOT / "index.html").write_text(html, encoding="utf-8")
 print("UX Intelligence demo CRO standalone rebuilt")
-print("Dataset copied:", (ROOT / "data.js").stat().st_size, "bytes")
+print("Dataset rebuilt:", (ROOT / "demo-data.json").stat().st_size, "bytes")
