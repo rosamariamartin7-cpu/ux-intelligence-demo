@@ -33,7 +33,7 @@ readonly_css = r'''
 #add-document,#add-evidence,#document-upload,#insight-register-upload{display:none!important;}
 
 /* Workspace / backup: no import ni restauración */
-#import-workspace,#import-workspace-input,[data-import-workspace],[data-workspace-restore]{display:none!important;}
+#import-workspace,#import-workspace-input,#import-workspace-confirm,[data-import-workspace],[data-workspace-restore]{display:none!important;}
 
 /* Documentos: consultar/abrir/descargar sí; editar/borrar/revincular no */
 [data-doc-action="edit"],
@@ -49,6 +49,8 @@ readonly_css = r'''
 /* Learnings / evidence / findings: lectura sí; edición/publicación no */
 [data-learning-suggestion-confirm],
 [data-learning-suggestion-edit],
+[data-approve-routine-clusters],
+[data-duplicate-decision],
 [data-learning-component-edit],
 [data-finding-edit],
 [data-insight-edit],
@@ -79,7 +81,15 @@ readonly_css = r'''
 #taxonomy-manager-v2-edit,
 #taxonomy-manager-v2-merge,
 #taxonomy-manager-v2-confirm,
-#taxonomy-vocabulary-create-modal{display:none!important;}
+#taxonomy-vocabulary-create-modal,
+#taxonomy-manager-v2-edit-action,
+#taxonomy-manager-v2-merge-action,
+#taxonomy-manager-v2-confirm-action,
+#delete-modal,
+[data-delete-confirm]{display:none!important;}
+
+/* Estado de guardado no tiene sentido en una demo sin escritura */
+#storage-save-status{display:none!important;}
 
 /* Mantener explícitamente visibles las acciones de consulta/export */
 #uxs-export,#uxs-export-cro,
@@ -106,10 +116,13 @@ readonly_js = r'''
     '#add-document','#add-evidence','[data-doc-action="edit"]','[data-doc-action="delete"]',
     '[data-doc-action="add-register"]','[data-doc-action="link-source"]','[data-doc-action="relink-register"]',
     '[data-learning-suggestion-confirm]','[data-learning-suggestion-edit]','[data-learning-component-edit]',
+    '[data-approve-routine-clusters]','[data-duplicate-decision]',
     '[data-finding-edit]','[data-insight-edit]','[data-open-publish-preview]','[data-confirm-publish]',
     '[data-taxonomy-term-create]','[data-taxonomy-manager-v2-edit]','[data-taxonomy-manager-v2-merge]',
     '[data-taxonomy-manager-v2-delete]','[data-taxonomy-edit]','[data-taxonomy-delete]',
-    '[data-propose-taxonomy]','[data-source-update]','[data-confirm-source-update]'
+    '[data-propose-taxonomy]','[data-source-update]','[data-confirm-source-update]',
+    '[data-delete-confirm]','#import-workspace-confirm','#taxonomy-manager-v2-edit-action',
+    '#taxonomy-manager-v2-merge-action','#taxonomy-manager-v2-confirm-action'
   ];
   document.addEventListener('click', e => {
     const target = e.target?.closest?.(writeSelectors.join(','));
