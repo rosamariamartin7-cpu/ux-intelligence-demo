@@ -5586,24 +5586,40 @@
     }
     function governedTaxonomyRecord(item){
       const source=item||{};
-      const result={};
+      const resolved={product:'',funnel:'',minifunnel:'',component:''};
       const levels=['component','minifunnel','funnel','product'];
+
+      // La taxonomía gobernada es la única fuente válida para estos cuatro niveles.
+      // Un valor histórico o procedente del Excel que no exista en el canon NO se
+      // promociona a Producto/Funnel/Minifunnel/Componente: queda vacío.
       levels.forEach(level=>{
         const rawValues=level==='component'
           ? (isLearningCatalogItem(source)
               ? [source.component].filter(Boolean)
               : [...(Array.isArray(source.components)?source.components:[]),source.component].filter(Boolean))
           : [source[level]].filter(Boolean);
+
         let matched=null;
         for(const value of rawValues){
           matched=governedTaxonomyTerms(level).find(term=>governedTermMatches(term,value));
           if(matched)break;
         }
         if(!matched)return;
+
         const context=governedTermContext(matched);
-        Object.entries(context).forEach(([key,value])=>{if(!result[key])result[key]=value;});
+        Object.entries(context).forEach(([key,value])=>{
+          if(['product','funnel','minifunnel','component'].includes(key)&&!resolved[key])resolved[key]=value;
+        });
       });
-      return {...source,...result};
+
+      // Regla cerrada: Home no tiene Funnel y Minifunnel solo existe dentro de Extras.
+      if(normalizeText(resolved.product)==='home'){
+        resolved.funnel='';
+        resolved.minifunnel='';
+      }
+      if(normalizeText(resolved.funnel)!=='extras')resolved.minifunnel='';
+
+      return {...source,...resolved};
     }
     function governedComponentNames(item){
       const raw=isLearningCatalogItem(item)
