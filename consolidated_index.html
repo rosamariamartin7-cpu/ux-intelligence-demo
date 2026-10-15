@@ -5589,9 +5589,10 @@
       const resolved={product:'',funnel:'',minifunnel:'',component:''};
       const levels=['component','minifunnel','funnel','product'];
 
+      // TAXONOMÍA ESTRICTA:
       // La taxonomía gobernada es la única fuente válida para estos cuatro niveles.
-      // Un valor histórico o procedente del Excel que no exista en el canon NO se
-      // promociona a Producto/Funnel/Minifunnel/Componente: queda vacío.
+      // Los valores históricos o procedentes del Excel que no existan en el canon
+      // no se promocionan a Producto/Funnel/Minifunnel/Componente.
       levels.forEach(level=>{
         const rawValues=level==='component'
           ? (isLearningCatalogItem(source)
@@ -5612,14 +5613,23 @@
         });
       });
 
-      // Regla cerrada: Home no tiene Funnel y Minifunnel solo existe dentro de Extras.
       if(normalizeText(resolved.product)==='home'){
         resolved.funnel='';
         resolved.minifunnel='';
       }
       if(normalizeText(resolved.funnel)!=='extras')resolved.minifunnel='';
 
-      return {...source,...resolved};
+      const legacy={};
+      for(const level of ['product','funnel','minifunnel','component']){
+        const raw=String(source[level]||'').trim();
+        const canonical=String(resolved[level]||'').trim();
+        if(raw&&normalizeText(raw)!==normalizeText(canonical)){
+          const key='legacy'+level.charAt(0).toUpperCase()+level.slice(1);
+          legacy[key]=source[key]||raw;
+        }
+      }
+
+      return {...source,...legacy,...resolved};
     }
     function governedComponentNames(item){
       const raw=isLearningCatalogItem(item)
@@ -5643,7 +5653,7 @@
       componentNames:governedComponentNames,
       terms:governedTaxonomyTerms
     };
-    function componentsOf(item){const governed=governedComponentNames(item);if(governed.length)return governed;if(isLearningCatalogItem(item)){const manual=String(item?.component||'').trim();if(manual)return [manual];}return [];}
+    function componentsOf(item){return governedComponentNames(item);}
     function canonicalComponentName(value){
       const raw=String(value||'').trim();
       if(!raw)return '';
@@ -5728,38 +5738,9 @@
         }
       }catch(_){}
 
-      // Fallback de compatibilidad: conserva los datos existentes si el canon aún no ha cargado.
-      try{
-        const records=typeof currentStructuredRecords==='function'?currentStructuredRecords():[];
-        if(records.length){
-          const seen=new Map();
-          records.forEach(row=>{
-            const context={};
-            levels.forEach(level=>{
-              const value=clean(row?.[level]);
-              if(value)context[level]=value;
-            });
-            levels.forEach((level,index)=>{
-              if(!context[level])return;
-              const partial={};
-              levels.slice(0,index+1).forEach(key=>{if(context[key])partial[key]=context[key];});
-              const key=levels.map(name=>normalizeText(partial[name]||'')).join('|');
-              if(!seen.has(key))seen.set(key,partial);
-            });
-          });
-          if(seen.size)return [...seen.values()];
-        }
-      }catch(_){}
-
-      return Object.entries(taxonomy).flatMap(([product,screens])=>[
-        {product},
-        ...Object.entries(screens).flatMap(([screen,components])=>[
-          {product,screen},
-          ...Object.entries(components).flatMap(([component,elements])=>[
-            {product,screen,component},...elements.map(element=>({product,screen,component,element}))
-          ])
-        ])
-      ]);
+      // Sin taxonomía gobernada cargada no inferimos estructura desde datos históricos.
+      // El canon es fuente de verdad; los registros nunca crean términos por sí solos.
+      return [];
     }
 
     const evidenceMeta = {
@@ -6329,27 +6310,18 @@
     function normalizeText(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');}
     function escapeHtml(value){return String(value??'').replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));}
     function compactPath(path){const parts=String(path||'').split(/\s*\/\s*/).map(value=>value.trim()).filter(Boolean),out=[];parts.forEach(value=>{if(!out.length||normalizeText(out[out.length-1])!==normalizeText(value))out.push(value);});return out.join(' / ');} 
-    function compactJourneyValues(item){const raw=[item?.product,item?.funnel,item?.minifunnel,item?.screen,item?.component,item?.element].map(value=>String(value||'').trim()).filter(Boolean),out=[];raw.forEach(value=>{if(!out.length||normalizeText(out[out.length-1])!==normalizeText(value))out.push(value);});return out;}
+    function compactJourneyValues(item){const current=governedTaxonomyRecord(item);return [current.product,current.funnel,current.minifunnel,current.component].map(value=>String(value||'').trim()).filter(Boolean);}
     function sourceHasTransversalScopeMarker(item){
       if(String(item?.documentScopeMode||'').toLowerCase()==='transversal')return true;
       const values=[item?.funnel,item?.minifunnel,item?.screen,item?.component,item?.element].map(value=>normalizeText(value));
       return values.some(value=>value==='multipantalla'||value.includes('multipantalla')||value.includes('transversal'));
     }
     function documentApplicationValues(item){
-      const product=String(item?.product||'').trim();
-      if(sourceHasTransversalScopeMarker(item))return [product,'Transversal'].filter(Boolean);
-      const raw=[product,item?.funnel,item?.minifunnel,item?.screen,item?.component,item?.element].map(value=>String(value||'').trim()).filter(Boolean);
-      const out=[];
-      raw.forEach((value,index)=>{
-        const normalized=normalizeText(value);
-        if(normalized==='multipantalla'||normalized.includes('multipantalla')||normalized.includes('transversal'))return;
-        const previous=out[out.length-1]||'';
-        const previousNormalized=normalizeText(previous);
-        const hasLaterSpecific=raw.slice(index+1).some(next=>String(next||'').trim());
-        if(previousNormalized&&hasLaterSpecific&&normalized.startsWith(previousNormalized+' /'))return;
-        if(!out.length||previousNormalized!==normalized)out.push(value);
-      });
-      return out;
+      const current=governedTaxonomyRecord(item);
+      if(sourceHasTransversalScopeMarker(item))return [current.product||String(item?.product||'').trim(),'Transversal'].filter(Boolean);
+      return [current.product,current.funnel,current.minifunnel,current.component]
+        .map(value=>String(value||'').trim())
+        .filter(Boolean);
     }
     function documentApplicationPath(item){return documentApplicationValues(item).join(' › ');}
     function normalizeDocumentApplicationMetadata(item){
@@ -6364,7 +6336,7 @@
       }
       return changed;
     }
-    function pathOf(item){const raw=typeof taxonomyProject!=='undefined'&&taxonomyProject?.ready?taxonomyPath(item):[item.product,item.funnel,item.minifunnel,componentsOf(item).join(' · '),item.element].filter(Boolean).join(' / ');return compactPath(raw);}
+    function pathOf(item){const current=governedTaxonomyRecord(item);return compactPath([current.product,current.funnel,current.minifunnel,current.component].filter(Boolean).join(' / '));}
     const matches = (item,value) => value==='Todos'||value==='Todas'||normalizeText(item).includes(normalizeText(value));
     const empty = label => `<div class="empty-state">${label==='learnings'?'Todavía no tenemos conocimiento consolidado para este contexto.':`No hay ${label} para esta combinación de filtros.`}</div>`;
 
@@ -10053,7 +10025,10 @@
     const searchPopover=document.getElementById('search-popover');
     const overviewResults=document.getElementById('overview-search-results');
     function currentStructuredRecords(){
-      try{return globalThis.UXSimpleKnowledge?.allRecords?.(sourceItems)||[];}catch(e){return [];}
+      try{
+        const rows=globalThis.UXSimpleKnowledge?.allRecords?.(sourceItems)||[];
+        return rows.map(row=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(row)||row);
+      }catch(e){return [];}
     }
     const searchStopWords=new Set([
       'que','qué','sabemos','saber','del','de','la','las','el','los','un','una','unos','unas',
@@ -10802,7 +10777,7 @@
     }
     if(journeyLevels.has(field)){
       const canonical=dedupe(taxonomyValues(field));
-      return canonical.length?canonical:fromData;
+      return canonical;
     }
     const governed=dedupe(controlledTaxonomyValues(field));
     if(governed.length)return governed;
