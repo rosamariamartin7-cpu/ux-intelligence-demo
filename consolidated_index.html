@@ -10748,17 +10748,63 @@
     return dedupe(source).sort((a,b)=>a.localeCompare(b,'es'));
   }
 
+  function exploreTaxonomyContext(term){
+    try{
+      const all=(taxonomyProject?.state?.terms||[]).filter(item=>{
+        const origin=String(item?.origin||'').trim();
+        const governed=item?.governed===true||!/^excel revisado\s*·/i.test(origin);
+        return item?.status==='canonical'&&governed;
+      });
+      const byId=new Map(all.map(item=>[String(item?.id||''),item]).filter(([id])=>id));
+      const chain=[],seen=new Set();let current=term;
+      while(current){
+        const id=String(current?.id||'');
+        if(id&&seen.has(id))break;
+        if(id)seen.add(id);
+        chain.unshift(current);
+        const pid=String(current?.parentId||'');
+        current=pid?byId.get(pid):null;
+      }
+      const context={};
+      chain.forEach(item=>{
+        const level=String(item?.level||'');
+        const name=String(item?.canonicalName||item?.name||item?.label||'').trim();
+        if(journeyLevels.has(level)&&name)context[level]=name;
+      });
+      return context;
+    }catch(_){return {};}
+  }
+
   function taxonomyValues(field){
     if(!journeyLevels.has(field))return [];
     try{
       if(typeof taxonomyProject==='undefined'||!taxonomyProject?.state?.terms)return [];
-      return taxonomyProject.state.terms
-        .filter(term=>{
-          const origin=String(term?.origin||'').trim();
-          const governed=term?.governed===true||!/^excel revisado\s*·/i.test(origin);
-          return term.level===field&&term.status==='canonical'&&governed;
-        })
-        .map(term=>term.canonicalName);
+      let terms=taxonomyProject.state.terms.filter(term=>{
+        const origin=String(term?.origin||'').trim();
+        const governed=term?.governed===true||!/^excel revisado\s*·/i.test(origin);
+        return term.level===field&&term.status==='canonical'&&governed;
+      });
+
+      const selectedProduct=norm(filters.product||'');
+      const selectedFunnel=norm(filters.funnel||'');
+
+      if(field==='funnel'){
+        if(selectedProduct==='home')return [];
+        if(selectedProduct){
+          terms=terms.filter(term=>norm(exploreTaxonomyContext(term).product||'')===selectedProduct);
+        }
+      }
+
+      if(field==='minifunnel'){
+        if(selectedFunnel!=='extras')return [];
+        terms=terms.filter(term=>{
+          const context=exploreTaxonomyContext(term);
+          if(norm(context.funnel||'')!=='extras')return false;
+          return !selectedProduct||norm(context.product||'')===selectedProduct;
+        });
+      }
+
+      return terms.map(term=>term.canonicalName);
     }catch(_){return [];}
   }
 
@@ -10771,10 +10817,8 @@
 
   function filterOptions(field){
     const fromData=unique(field);
-    if(field==='minifunnel'){
-      const selectedFunnel=norm(filters.funnel||'');
-      if(selectedFunnel && selectedFunnel!=='extras') return [];
-    }
+    if(field==='funnel'&&norm(filters.product||'')==='home')return [];
+    if(field==='minifunnel'&&norm(filters.funnel||'')!=='extras')return [];
     if(journeyLevels.has(field)){
       const canonical=dedupe(taxonomyValues(field));
       return canonical;
@@ -10785,11 +10829,39 @@
     return fromData;
   }
 
+  function hierarchyFilterDisabled(field){
+    if(field==='funnel')return norm(filters.product||'')==='home';
+    if(field==='minifunnel')return norm(filters.funnel||'')!=='extras';
+    return false;
+  }
+
+  function normalizeExploreHierarchyFilters(){
+    if(norm(filters.product||'')==='home'){
+      filters.funnel='';
+      filters.minifunnel='';
+      return;
+    }
+    const validFunnels=dedupe(taxonomyValues('funnel')).map(norm);
+    if(filters.funnel&&!validFunnels.includes(norm(filters.funnel))){
+      filters.funnel='';
+      filters.minifunnel='';
+    }
+    if(norm(filters.funnel||'')!=='extras'){
+      filters.minifunnel='';
+      return;
+    }
+    const validMinifunnels=dedupe(taxonomyValues('minifunnel')).map(norm);
+    if(filters.minifunnel&&!validMinifunnels.includes(norm(filters.minifunnel)))filters.minifunnel='';
+  }
+
   function fillSelect(id,field,label){
     const el=document.getElementById(id); if(!el)return;
     const current=filters[field]||'';
-    el.innerHTML=`<option value="">Todos</option>`+filterOptions(field).map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
-    el.value=current;
+    const options=filterOptions(field);
+    el.innerHTML=`<option value="">Todos</option>`+options.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+    el.disabled=hierarchyFilterDisabled(field);
+    el.value=options.some(value=>norm(value)===norm(current))?current:'';
+    if(el.value!==current)filters[field]='';
   }
 
   function escapeHtml(v){
@@ -11262,7 +11334,9 @@
 
   function refresh(){
     records=normalizedRecords().map(record=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(record)||record);
+    normalizeExploreHierarchyFilters();
     ids.forEach(([field,id])=>fillSelect(id,field,field));
+    try{globalThis.__dsSyncSelects?.();}catch(_){}
     renderUxLineMultiselect();
     apply();
   }
@@ -11273,13 +11347,21 @@
     if(initialized){ refresh(); return; }
     initialized=true;
     records=normalizedRecords().map(record=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(record)||record);
+    normalizeExploreHierarchyFilters();
     ids.forEach(([field,id])=>fillSelect(id,field,field));
+    try{globalThis.__dsSyncSelects?.();}catch(_){}
     renderUxLineMultiselect();
     ids.forEach(([field,id])=>{
       const el=document.getElementById(id); if(!el)return;
       el.addEventListener('change',()=>{
         filters[field]=el.value;
-        if(field==='funnel'){
+        if(field==='product'){
+          filters.funnel='';
+          filters.minifunnel='';
+          fillSelect('uxs-funnel','funnel','funnel');
+          fillSelect('uxs-minifunnel','minifunnel','minifunnel');
+          try{globalThis.__dsSyncSelects?.();}catch(_){}
+        }else if(field==='funnel'){
           filters.minifunnel='';
           fillSelect('uxs-minifunnel','minifunnel','minifunnel');
           try{globalThis.__dsSyncSelects?.();}catch(_){}
@@ -11308,11 +11390,15 @@
       if(remove){
         const field=remove.dataset.uxsRemove;
         filters[field]='';
-        const pair=ids.find(([name])=>name===field);
-        if(pair){
-          const select=document.getElementById(pair[1]);
-          if(select)select.value='';
+        if(field==='product'){
+          filters.funnel='';
+          filters.minifunnel='';
+        }else if(field==='funnel'){
+          filters.minifunnel='';
         }
+        normalizeExploreHierarchyFilters();
+        ids.forEach(([name,id])=>fillSelect(id,name,name));
+        try{globalThis.__dsSyncSelects?.();}catch(_){}
         apply();
         return;
       }
@@ -11327,6 +11413,9 @@
           if(select)select.value='';
         });
         filters.uxLine=[];renderUxLineMultiselect();
+        normalizeExploreHierarchyFilters();
+        ids.forEach(([name,id])=>fillSelect(id,name,name));
+        try{globalThis.__dsSyncSelects?.();}catch(_){}
         const from=document.getElementById('uxs-included-from'),to=document.getElementById('uxs-included-to');
         if(from){from.value='';from.dispatchEvent(new Event('change',{bubbles:true}));}
         if(to){to.value='';to.dispatchEvent(new Event('change',{bubbles:true}));}
