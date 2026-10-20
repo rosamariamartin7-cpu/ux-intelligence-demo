@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="es" data-build="2026-10-15-v6-92-final-hierarchy-fix">
+<html lang="es" data-build="2026-10-20-v6-93-copy-refinement">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#031b4e">
   <title>Air Europa · UX Intelligence Hub</title>
-  <meta name="description" content="Aprendizajes, evidencias, patrones UX y documentos del producto digital de Air Europa.">
+  <meta name="description" content="Conocimiento UX estructurado de Air Europa: learnings, evidencias, fuentes, patrones y trazabilidad para decisiones de producto.">
   <script>if(location.protocol==='file:')location.replace(`http://127.0.0.1:4175/${location.search}${location.hash}`);</script>
   <style id="ux-intel-consolidated-styles">
 :root {
@@ -4730,7 +4730,7 @@
         <div class="global-search">
           <label class="sr-only" for="global-search">Buscar en UX Intel</label>
           <span class="search-icon" aria-hidden="true"></span>
-          <input id="global-search" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-popover" placeholder="Buscar en UX Intel" autocomplete="off">
+          <input id="global-search" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-popover" placeholder="Buscar learnings, registros o fuentes" autocomplete="off">
           <button class="search-clear" type="button" aria-label="Limpiar búsqueda">×</button>
           <div class="search-popover" id="search-popover" role="listbox" aria-label="Resultados de búsqueda"></div>
         </div>
@@ -4752,10 +4752,10 @@
           </div>
 
           <section class="overview-search" aria-labelledby="overview-search-title">
-            <label id="overview-search-title" for="overview-search-input">¿Qué necesitas consultar?</label>
+            <label id="overview-search-title" for="overview-search-input">Consulta el conocimiento disponible</label>
             <div class="overview-search-field">
               <span class="search-icon" aria-hidden="true"></span>
-              <input id="overview-search-input" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="overview-search-results" placeholder="Busca qué sabemos sobre un tema, pantalla, componente o documento" autocomplete="off">
+              <input id="overview-search-input" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="overview-search-results" placeholder="Busca por tema, journey, pantalla, componente o fuente" autocomplete="off">
               <button class="search-clear" type="button" aria-label="Limpiar búsqueda">×</button>
             </div>
             <div class="overview-search-results" id="overview-search-results" role="listbox" aria-label="Resultados contextuales"></div>
@@ -4764,15 +4764,15 @@
           <section class="ux-base-summary" aria-label="Estado de UX Intelligence">
             <button class="ux-base-stat is-learning" type="button" data-panel-jump="learnings">
               <span class="ux-base-stat-icon" aria-hidden="true"><img src="assets/icons/check-done-01.svg" alt=""></span>
-              <span class="ux-base-stat-label">Qué sabemos</span><strong id="ux-base-learnings">—</strong><span>Learnings</span><small>Conocimiento consolidado y reutilizable</small>
+              <span class="ux-base-stat-label">Qué sabemos</span><strong id="ux-base-learnings">—</strong><span>Learnings</span><small>Aprendizajes consolidados con contexto y trazabilidad</small>
             </button>
             <button class="ux-base-stat is-record" type="button" data-panel-jump="explore">
               <span class="ux-base-stat-icon" aria-hidden="true"><img src="assets/icons/rows-01.svg" alt=""></span>
-              <span class="ux-base-stat-label">Conocimiento estructurado</span><strong id="ux-base-insights">—</strong><span>Registros revisados</span><small>Unidades disponibles para explorar y contrastar</small>
+              <span class="ux-base-stat-label">Conocimiento estructurado</span><strong id="ux-base-insights">—</strong><span>Registros revisados</span><small>Evidencias, hallazgos y decisiones disponibles para contraste</small>
             </button>
             <button class="ux-base-stat is-initiative" type="button" data-panel-jump="explore">
               <span class="ux-base-stat-icon" aria-hidden="true"><img src="assets/icons/bar-chart-square-02.svg" alt=""></span>
-              <span class="ux-base-stat-label">Trabajo activo</span><strong id="ux-base-initiatives">—</strong><span>Iniciativas</span><small>Proyectos que ya están alimentando conocimiento</small>
+              <span class="ux-base-stat-label">Trabajo activo</span><strong id="ux-base-initiatives">—</strong><span>Iniciativas</span><small>Líneas de trabajo que incorporan o refuerzan conocimiento</small>
             </button>
             <button class="ux-base-stat is-library" type="button" data-panel-jump="sources">
               <span class="ux-base-stat-icon" aria-hidden="true"><img src="assets/icons/folder.svg" alt=""></span>
@@ -4783,17 +4783,17 @@
           <section class="ux-dashboard-primary ux-dashboard-primary-v31 ux-dashboard-primary-v32" aria-label="Conocimiento prioritario">
             <div class="ux-home-main-column-v31 ux-home-main-column-v32">
               <section class="ux-home-panel ux-home-impact ux-home-impact-v31" id="ux-home-impact-panel" aria-labelledby="ux-home-impact-title">
-                <header class="ux-home-panel-head"><div><h2 id="ux-home-impact-title">Impacto UX</h2><p>Distribución de los learnings consolidados según su impacto potencial en la experiencia.</p></div></header>
+                <header class="ux-home-panel-head"><div><h2 id="ux-home-impact-title">Impacto UX</h2><p>Prioriza los learnings por el impacto potencial que pueden tener sobre la experiencia y el journey.</p></div></header>
                 <div id="ux-home-impact-content"></div>
               </section>
 
               <section class="ux-home-panel ux-home-coverage-panel ux-home-coverage-v31 ux-home-coverage-v32" aria-labelledby="ux-home-coverage-title">
-                <header class="ux-home-panel-head"><div><h2 id="ux-home-coverage-title">Cobertura del conocimiento</h2><p>Dónde tenemos conocimiento estructurado y cuántas fuentes lo sustentan, sin interpretar el volumen como nivel de validación.</p></div></header>
+                <header class="ux-home-panel-head"><div><h2 id="ux-home-coverage-title">Cobertura del conocimiento</h2><p>Muestra dónde se concentra el conocimiento y qué fuentes lo sustentan. El volumen describe cobertura, no nivel de validación.</p></div></header>
                 <div id="ux-home-coverage-list"></div>
               </section>
 
               <section class="ux-home-panel ux-home-learnings-panel ux-home-learnings-v31" aria-labelledby="ux-home-learnings-title">
-                <header class="ux-home-panel-head"><div><h2 id="ux-home-learnings-title">Conocimiento consolidado</h2><p>Learnings ya revisados y reutilizables. Consulta todos desde aquí sin perder el contexto de iniciativa y journey.</p></div><button class="text-button no-wrap" type="button" data-panel-jump="learnings">Ver todos</button></header>
+                <header class="ux-home-panel-head"><div><h2 id="ux-home-learnings-title">Conocimiento consolidado</h2><p>Síntesis revisadas de lo que sabemos, con evidencia, contexto, límites y aplicaciones reutilizables.</p></div><button class="text-button no-wrap" type="button" data-panel-jump="learnings">Ver todos</button></header>
                 <div id="ux-home-learning-list"></div>
               </section>
 
@@ -4801,12 +4801,12 @@
 
             <aside class="ux-home-side-column-v31 ux-home-side-column-v32" aria-label="Preguntas abiertas y cobertura">
               <section class="ux-home-panel ux-home-gaps-panel" aria-labelledby="ux-home-gaps-title">
-                <header class="ux-home-panel-head"><div><h2 id="ux-home-gaps-title">Qué nos falta saber</h2><p>Preguntas prioritarias de los learnings consolidados para orientar próximos análisis, research o experimentación.</p></div><button class="text-button no-wrap" type="button" data-home-all-questions>Ver prioritarias</button></header>
+                <header class="ux-home-panel-head"><div><h2 id="ux-home-gaps-title">Qué nos falta saber</h2><p>Incertidumbres aún abiertas dentro de learnings consolidados para orientar research, análisis o experimentación.</p></div><button class="text-button no-wrap" type="button" data-home-all-questions>Ver prioritarias</button></header>
                 <div id="ux-home-gaps-list"></div>
               </section>
 
               <section class="ux-home-panel ux-home-recent ux-home-recent-v31 ux-home-recent-v32 ux-home-recent-side" aria-labelledby="ux-home-recent-title">
-                <header class="ux-home-panel-head"><div><h2 id="ux-home-recent-title">Últimas incorporaciones</h2><p>Fuentes añadidas recientemente a UX Intelligence.</p></div><button class="text-button no-wrap" type="button" data-panel-jump="sources">Ver documentos</button></header>
+                <header class="ux-home-panel-head"><div><h2 id="ux-home-recent-title">Últimas incorporaciones</h2><p>Nuevas fuentes incorporadas a la base, disponibles para consulta y trazabilidad.</p></div><button class="text-button no-wrap" type="button" data-panel-jump="sources">Ver documentos</button></header>
                 <div id="ux-home-recent-list"></div>
               </section>
 
@@ -4819,15 +4819,15 @@
           <div class="page-head compact-head ux-explore-simple-head">
             <div>
               <div class="eyebrow">Explorar</div>
-              <h1 id="explore-title">Encuentra exactamente lo que necesitas.</h1>
-              <p class="two-line-subtitle"><span>Filtra por contexto y consulta únicamente los registros ya revisados.</span><span>Combina las dimensiones que necesites para acotar el conocimiento sin seguir un recorrido obligatorio.</span></p>
+              <h1 id="explore-title">Explora el conocimiento por contexto.</h1>
+              <p class="two-line-subtitle"><span>Consulta registros revisados y acota por journey, componente, dispositivo, mercado, origen o dimensión UX.</span><span>Combina filtros para comparar evidencia y recuperar conocimiento sin perder su contexto.</span></p>
             </div>
           </div>
 
           <section class="ux-explore-controls" aria-label="Filtros de conocimiento">
             <div class="ux-explore-initiative-filter">
               <label>Iniciativa<select id="uxs-initiative"></select></label>
-              <span class="ux-explore-initiative-note">Proyecto que originó el conocimiento · independiente de la taxonomía de producto</span>
+              <span class="ux-explore-initiative-note">Contexto de trabajo que originó el registro; no forma parte de la jerarquía de producto.</span>
             </div>
             <div class="ux-explore-primary">
               <label>Producto<select id="uxs-product"></select></label>
@@ -4868,7 +4868,7 @@
             <div class="ux-explore-results-head">
               <div>
                 <h2 id="uxs-results-title">Resultados</h2>
-                <p id="uxs-result-context">Conocimiento estructurado disponible en la base.</p>
+                <p id="uxs-result-context">Registros revisados disponibles para consulta, contraste y reutilización.</p>
               </div>
               <strong id="uxs-result-count">0 resultados</strong>
             </div>
@@ -4878,11 +4878,11 @@
         </section>
 
         <section class="panel" id="learnings" aria-labelledby="learnings-title">
-          <div class="page-head compact-head"><div><div class="eyebrow">Learnings</div><h1 id="learnings-title">Qué sabemos.</h1><p class="two-line-subtitle"><span>Aquí reunimos aprendizajes consolidados a partir de varias evidencias, iteraciones o resultados.</span><span>No duplicamos insights individuales: sintetizamos lo que ya sabemos y en qué contexto aplica.</span></p></div></div>
+          <div class="page-head compact-head"><div><div class="eyebrow">Learnings</div><h1 id="learnings-title">Conocimiento consolidado.</h1><p class="two-line-subtitle"><span>Síntesis de aprendizajes sustentados por evidencia, iteraciones y resultados.</span><span>Cada learning conserva contexto, límites, contradicciones y posibles aplicaciones futuras.</span></p></div></div>
           <div class="filter-system" data-filter-group="learning">
             <div class="ux-explore-initiative-filter">
               <label class="filter-field">Iniciativa<select class="filter-select" id="learning-initiative"></select></label>
-              <span class="ux-explore-initiative-note">Proyecto que originó o reforzó el learning · independiente de la taxonomía de producto</span>
+              <span class="ux-explore-initiative-note">Contexto de trabajo que originó o reforzó el learning; no forma parte de la jerarquía de producto.</span>
             </div>
             <div class="primary-filters">
               <label class="filter-field">Producto<select class="filter-select hierarchy-product" id="learning-product"></select></label>
@@ -4905,7 +4905,7 @@
         </section>
 
         <section class="panel" id="evidence" aria-labelledby="evidence-title">
-          <div class="page-head compact-head"><div><div class="eyebrow">Evidencias</div><h1 id="evidence-title">En qué se basa lo que sabemos.</h1><p>Datos, research y análisis en el contexto donde se obtuvieron.</p></div></div>
+          <div class="page-head compact-head"><div><div class="eyebrow">Evidencias</div><h1 id="evidence-title">Evidencia que sustenta el conocimiento.</h1><p>Consulta datos, research, análisis y resultados conservando el contexto en el que se obtuvieron.</p></div></div>
           <div class="filter-system" data-filter-group="evidence">
             <div class="primary-filters">
               <label class="filter-field">Producto<select class="filter-select hierarchy-product" id="evidence-product"></select></label>
@@ -4924,7 +4924,7 @@
         </section>
 
         <section class="panel" id="experiments" aria-labelledby="experiments-title">
-          <div class="page-head compact-head"><div><div class="eyebrow">Test A/B</div><h1 id="experiments-title">Qué hemos testado.</h1><p>Resultados, límites y estado real de cada experimento.</p></div></div>
+          <div class="page-head compact-head"><div><div class="eyebrow">Test A/B</div><h1 id="experiments-title">Experimentación y resultados.</h1><p>Consulta qué se testó, en qué contexto, con qué resultado y qué demuestra —o no demuestra— cada experimento.</p></div></div>
           <div class="filter-system" data-filter-group="experiment">
             <div class="primary-filters">
               <label class="filter-field">Producto<select class="filter-select hierarchy-product" id="experiment-product"></select></label>
@@ -4943,7 +4943,7 @@
         </section>
 
         <section class="panel" id="patterns" aria-labelledby="patterns-title">
-          <div class="page-head compact-head"><div><div class="eyebrow">Patrones</div><h1 id="patterns-title">Qué podemos reutilizar.</h1><p>Ideas de diseño que podemos aplicar, con sus límites.</p></div></div>
+          <div class="page-head compact-head"><div><div class="eyebrow">Patrones</div><h1 id="patterns-title">Patrones UX reutilizables.</h1><p>Principios y soluciones respaldados por aprendizaje acumulado, con el alcance y los límites de aplicación explícitos.</p></div></div>
           <div class="filter-system" data-filter-group="pattern">
             <div class="primary-filters">
               <label class="filter-field">Producto<select class="filter-select hierarchy-product" id="pattern-product"></select></label>
@@ -4962,11 +4962,11 @@
         </section>
 
         <section class="panel" id="sources" aria-labelledby="sources-title">
-          <div class="page-head compact-head"><div><div class="eyebrow">Documentos</div><h1 id="sources-title">Consulta las fuentes que alimentan UX Intelligence.</h1><p class="two-line-subtitle"><span>Los Excel revisados incorporan el conocimiento estructurado que utiliza UX Intelligence.</span><span>Los PDF conservan la fuente original como apoyo documental y trazabilidad.</span></p></div></div>
+          <div class="page-head compact-head"><div><div class="eyebrow">Documentos</div><h1 id="sources-title">Fuentes y trazabilidad.</h1><p class="two-line-subtitle"><span>Consulta los archivos que sustentan el conocimiento de UX Intelligence.</span><span>Los Excel aportan registros estructurados; los PDF conservan la fuente original y su contexto documental.</span></p></div></div>
           <div class="filter-system" data-filter-group="source">
             <div class="ux-explore-initiative-filter">
               <label class="filter-field">Iniciativa<select class="filter-select" id="source-initiative"></select></label>
-              <span class="ux-explore-initiative-note">Proyecto que originó o está vinculado al documento · independiente de la taxonomía de producto</span>
+              <span class="ux-explore-initiative-note">Contexto de trabajo asociado al documento; no forma parte de la jerarquía de producto.</span>
             </div>
             <div class="primary-filters">
               <label class="filter-field">Producto<select class="filter-select hierarchy-product" id="source-product"></select></label>
@@ -4994,9 +4994,9 @@
         <section class="panel" id="taxonomy" aria-labelledby="taxonomy-title">
           <div class="page-head compact-head">
             <div>
-              <div class="eyebrow">Administración de conocimiento</div>
-              <h1 id="taxonomy-title">Taxonomía y lenguaje UX Intel.</h1>
-              <p>Consulta y mantén la estructura y el lenguaje común que utiliza UX Intelligence para organizar el conocimiento.</p>
+              <div class="eyebrow">Gobernanza del conocimiento</div>
+              <h1 id="taxonomy-title">Taxonomía y lenguaje de UX Intelligence.</h1>
+              <p>Define cómo clasificamos el producto y qué vocabulario utilizamos para que el conocimiento sea consistente, comparable y recuperable.</p>
               <div class="taxonomy-view-tabs" role="tablist" aria-label="Vistas de taxonomía">
                 <button class="taxonomy-view-tab active" type="button" role="tab" aria-selected="true" data-taxonomy-view="product">Estructura de producto</button>
                 <button class="taxonomy-view-tab" type="button" role="tab" aria-selected="false" data-taxonomy-view="vocabularies">Vocabularios</button>
@@ -5022,7 +5022,7 @@
             <div class="ux-taxonomy-view-intro">
               <div>
                 <h2>Vocabularios controlados</h2>
-                <p>Valores de referencia que utiliza UX Intelligence para mantener una clasificación consistente.</p>
+                <p>Valores gobernados para clasificar el conocimiento con criterios consistentes y evitar variantes o duplicidades.</p>
               </div>
               <button class="secondary-button" id="taxonomy-vocabulary-create" type="button">+ Crear término</button>
             </div>
@@ -5033,7 +5033,7 @@
             <div class="ux-taxonomy-view-intro">
               <div>
                 <h2>Glosario UX Intel</h2>
-                <p>Definiciones del lenguaje que utiliza la base para distinguir hechos, evidencia, hipótesis, inferencias, oportunidades y conocimiento consolidado.</p>
+                <p>Definiciones que delimitan cómo interpretamos hechos, evidencias, hipótesis, inferencias, oportunidades y learnings consolidados.</p>
               </div>
             </div>
             <div id="taxonomy-glossary"></div>
@@ -6343,7 +6343,7 @@
     }
     function pathOf(item){const current=governedTaxonomyRecord(item);return compactPath([current.product,current.funnel,current.minifunnel,current.component].filter(Boolean).join(' / '));}
     const matches = (item,value) => value==='Todos'||value==='Todas'||normalizeText(item).includes(normalizeText(value));
-    const empty = label => `<div class="empty-state">${label==='learnings'?'Todavía no tenemos conocimiento consolidado para este contexto.':`No hay ${label} para esta combinación de filtros.`}</div>`;
+    const empty = label => `<div class="empty-state">${label==='learnings'?'No hay learnings consolidados para este contexto.':'No hay resultados para esta combinación de filtros.'}</div>`;
 
     const knowledgeTypes=['Hecho','Evidencia interna','Evidencia externa','Hallazgo','Insight del autor','Hipótesis','Inferencia','Oportunidad','Decisión','Experimento','Resultado','Learning consolidado','Patrón'];
     const consolidationOptions=['Crear nuevo learning','Reforzar learning existente','Ampliar learning','Contradice learning','Crear pregunta abierta','Mantener solo como evidencia','Posible patrón','Posible oportunidad','Recomendación de sistema'];
@@ -7099,7 +7099,7 @@
 
     function openHomeQuestions(){
       const questions=homeQuestions();
-      openDrawer('<div class="drawer-kicker">Qué falta saber</div><h2>Preguntas abiertas prioritarias</h2><p class="drawer-lead">Selección de cuestiones todavía abiertas en learnings consolidados. Las preguntas de trabajo de cada análisis permanecen en su contexto original.</p>',
+      openDrawer('<div class="drawer-kicker">Qué falta saber</div><h2>Preguntas abiertas prioritarias</h2><p class="drawer-lead">Cuestiones aún abiertas dentro de learnings consolidados. Orientan próximos análisis, research o experimentación sin mezclar preguntas históricas de las fuentes.</p>',
         `<div class="relation-list">${questions.map(question=>`<div class="relation-row"><div class="relation-copy"><strong>${escapeHtml(question.text)}</strong><span>${escapeHtml(pathOf(question.item))}</span></div><button class="relation-action" type="button" ${question.action}>Ver contexto</button><span></span></div>`).join('')}</div>`);
     }
     document.addEventListener('click',event=>{
@@ -7143,7 +7143,7 @@
       const counts=products.map(product=>({product,count:new Set(items.filter(item=>item.product===product).map(item=>item.id)).size}));
       const total=new Set(items.map(item=>item.id)).size,max=Math.max(1,...counts.map(item=>item.count));
       const unassigned=new Set(items.filter(item=>!products.includes(item.product)).map(item=>item.id)).size;
-      return `<figure class="home-coverage-panel" aria-labelledby="home-coverage-title" aria-describedby="home-coverage-note"><figcaption class="section-head"><span class="home-feature-icon" aria-hidden="true"><span class="home-glyph home-glyph-chart"></span></span><div><h2 id="home-coverage-title">Distribución actual de learnings por producto</h2><p>Compara los learnings registrados actualmente en cada producto.</p></div></figcaption><div class="home-coverage-body"><dl class="home-coverage-total"><div><dt>Learnings registrados</dt><dd>${total}</dd></div></dl><dl class="home-coverage-bars" aria-label="Learnings registrados por producto">${counts.map(({product,count})=>`<div class="home-coverage-row"><dt>${escapeHtml(product)}</dt><dd><span class="home-coverage-track" aria-hidden="true"><span style="width:${count/max*100}%"></span></span><strong>${count}</strong></dd></div>`).join('')}</dl></div><p class="home-coverage-note" id="home-coverage-note">Recuento de la biblioteca actual. No indica validación ni porcentaje de cobertura.${unassigned?` ${unassigned} ${unassigned===1?'learning sin producto representado en el gráfico':'learnings sin producto representado en el gráfico'}.`:''}</p></figure>`;
+      return `<figure class="home-coverage-panel" aria-labelledby="home-coverage-title" aria-describedby="home-coverage-note"><figcaption class="section-head"><span class="home-feature-icon" aria-hidden="true"><span class="home-glyph home-glyph-chart"></span></span><div><h2 id="home-coverage-title">Distribución del conocimiento consolidado por producto</h2><p>Visualiza cómo se reparte el conocimiento actualmente disponible entre productos.</p></div></figcaption><div class="home-coverage-body"><dl class="home-coverage-total"><div><dt>Learnings registrados</dt><dd>${total}</dd></div></dl><dl class="home-coverage-bars" aria-label="Learnings registrados por producto">${counts.map(({product,count})=>`<div class="home-coverage-row"><dt>${escapeHtml(product)}</dt><dd><span class="home-coverage-track" aria-hidden="true"><span style="width:${count/max*100}%"></span></span><strong>${count}</strong></dd></div>`).join('')}</dl></div><p class="home-coverage-note" id="home-coverage-note">El volumen describe presencia de conocimiento en la biblioteca; no equivale a validación ni a un porcentaje de cobertura.${unassigned?` ${unassigned} ${unassigned===1?'learning sin producto representado en el gráfico':'learnings sin producto representado en el gráfico'}.`:''}</p></figure>`;
     }
     const homeDashboardState={recent:0,consolidation:0,gaps:0,areas:0};
     function homePage(items,key,pageSize){
@@ -7201,7 +7201,7 @@
             const impact=String(learning.impactUx||'').trim();
             const impactClassName=impact==='Alto'?'is-high':impact==='Medio'?'is-medium':impact==='Bajo'?'is-low':'';
             return `<button class="ux-home-learning-row" type="button" data-learning="${escapeHtml(learning.id)}"><span class="ux-home-learning-index" aria-hidden="true">${ordinal}</span><span class="ux-home-learning-copy"><span class="ux-home-learning-title">${escapeHtml(editorialCopy(learning.title))}</span><span class="ux-home-learning-meta">${escapeHtml(meta||'Learning consolidado')}</span></span>${impact?`<span class="ux-home-learning-impact ${impactClassName}"><i aria-hidden="true"></i><span>${escapeHtml(impact)}</span></span>`:''}<span class="ux-home-learning-chevron" aria-hidden="true"></span></button>`;
-          }).join('')}</div>${homePagerMarkup('consolidation',learningPage.page,learningPage.pages,learningPage.total)}`:'<p class="ux-home-empty-note">Los learnings consolidados aparecerán aquí cuando estén disponibles.</p>';
+          }).join('')}</div>${homePagerMarkup('consolidation',learningPage.page,learningPage.pages,learningPage.total)}`:'<p class="ux-home-empty-note">No hay learnings consolidados disponibles en este momento.</p>';
         }
 
         // Qué nos falta saber: only consolidated/open questions, not every row-level prompt in the source Excel.
@@ -7215,7 +7215,7 @@
             const isLearning=learnings.some(learning=>learning.id===item.id);
             const action=isLearning?`data-learning="${escapeHtml(item.id)}"`:item.documentId?`data-home-doc="${escapeHtml(item.documentId)}"`:'';
             return `<div class="ux-home-question-row"><strong>${escapeHtml(question.text)}</strong><small>${escapeHtml(meta)}</small>${action?`<button class="view-link" type="button" ${action}>Ver contexto</button>`:''}</div>`;
-          }).join('')}</div>`:'<p class="ux-home-empty-note">No hay preguntas abiertas consolidadas en este momento.</p>';
+          }).join('')}</div>`:'<p class="ux-home-empty-note">No hay incertidumbres prioritarias abiertas en los learnings actuales.</p>';
         }
 
         // Cobertura: product-level summary only. Volume is descriptive, never a score of validation.
@@ -7265,7 +7265,7 @@
             const share=Math.max(8,Math.round(product.records/maxCoverageRecords*100));
             const areaLabels=[...product.areas.values()].sort((a,b)=>b.records-a.records).slice(0,3).map(area=>area.label).join(' · ');
             return `<button class="ux-coverage-list-row" type="button" data-home-area data-product="${escapeHtml(product.product)}" data-funnel="" data-minifunnel="" data-screen="" data-component="" aria-label="Explorar ${escapeHtml(product.product)}: ${product.records} registros, ${product.sources.size} fuentes y ${learningCount} learnings"><span class="ux-coverage-list-icon" aria-hidden="true">${coverageIcon(product.product)}</span><span class="ux-coverage-list-product"><strong>${escapeHtml(product.product)}</strong>${areaLabels?`<small>${escapeHtml(areaLabels)}</small>`:''}</span><span class="ux-coverage-records"><strong>${product.records}</strong><span class="ux-coverage-bar" aria-hidden="true"><i style="width:${share}%"></i></span></span><span class="ux-coverage-number is-sources">${product.sources.size}</span><span class="ux-coverage-number is-learnings">${learningCount}</span><span class="ux-coverage-arrow" aria-hidden="true">→</span></button>`;
-          }).join('')}</div></div>`:'<p class="ux-home-empty-note">La cobertura aparecerá al incorporar conocimiento estructurado.</p>';
+          }).join('')}</div></div>`:'<p class="ux-home-empty-note">La cobertura se mostrará cuando haya registros estructurados disponibles.</p>';
         }
 
         const recent=[...sourceItems].sort((a,b)=>Date.parse(b.ingestedAt||0)-Date.parse(a.ingestedAt||0)).slice(0,4);
@@ -7283,7 +7283,7 @@
           if(!contextParts.length)contextParts.push('Sin clasificar');
           const contextLabel=contextParts.slice(0,2).join(' · ');
           return `<button class="ux-home-recent-row" type="button" data-home-doc="${escapeHtml(item.id)}"><span class="ux-home-file-kind ${item.supportingDocument?'is-pdf':'is-excel'}">${item.supportingDocument?'<img src="assets/file-icons/file-type-icon.png" alt="" aria-hidden="true">':'<img src="assets/file-icons/excel-file-icon.png" alt="" aria-hidden="true">'}</span><span class="ux-home-recent-copy"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(contextLabel)}</small></span><span class="ux-home-recent-arrow" aria-hidden="true">→</span></button>`;
-        }).join('')}</div>`:'<p class="ux-home-empty-note">Todavía no hay documentos incorporados.</p>';
+        }).join('')}</div>`:'<p class="ux-home-empty-note">No hay documentos incorporados todavía.</p>';
 
         const impactValues=learnings.map(item=>String(item.impactUx||'').trim()).filter(value=>['Alto','Medio','Bajo'].includes(value));
         const impactTarget=document.getElementById('ux-home-impact-content');
@@ -7776,7 +7776,7 @@
       const documentItem=activeReviewDocument();
       activeReviewDocumentId=documentItem?.id||PILOT_SOURCE_ID;
       const summary=document.getElementById('review-summary'),metrics=document.getElementById('review-context-metrics'),workspace=document.getElementById('review-workspace'),actions=document.getElementById('review-actions');
-      if(!documentItem){summary.innerHTML='';metrics.innerHTML='';actions.innerHTML='';workspace.innerHTML='<div class="analysis-empty"><h2>No hay documento seleccionado</h2><p>Vuelve a Documentos para elegir una fuente.</p></div>';return;}
+      if(!documentItem){summary.innerHTML='';metrics.innerHTML='';actions.innerHTML='';workspace.innerHTML='<div class="analysis-empty"><h2>No hay documento seleccionado</h2><p>Selecciona una fuente en Documentos para consultar su ficha, conocimiento asociado y trazabilidad.</p></div>';return;}
       const analysis=documentItem.analysis,editable=reviewCanEdit(documentItem);
       document.getElementById('review-title').textContent=documentItem.name;
       document.querySelector('#review .eyebrow').textContent='Ficha del documento';
@@ -7819,7 +7819,7 @@
       metrics.innerHTML=reviewOrientationSummary(orientation,knowledgeChanges);
       const clusterSummaryLine='Revisa las unidades extraídas y comprueba qué decisión tendrá cada una antes de publicar.';
       const technicalCoverage=`<div class="coverage-grid"><section class="coverage-section"><h3>Lectura realizada</h3><ul><li>${analysis.coverage?.pagesRead==null?'Páginas con texto extraíble: no disponible':`${analysis.coverage.pagesRead} páginas con texto extraíble`}</li><li>${findings.length} registros originales conservados</li><li>${interpretation.validOriginals} registros válidos para consolidación</li><li>${interpretation.contextRecords} registros tratados como contexto, no como hallazgo</li><li>${interpretation.tableRows.length} filas de tabla reconstruidas</li><li>${interpretation.units.length} de ${interpretation.units.length} unidades válidas asignadas una sola vez</li><li>${relations.length} relaciones propuestas agrupadas en insights</li></ul></section><section class="coverage-section"><h3>Tipos interpretados</h3><ul>${typeBreakdown||'<li>No se detectaron unidades.</li>'}</ul></section><section class="coverage-section"><h3>Secciones detectadas</h3><ul>${(analysis.sections||[]).map(section=>`<li>${escapeHtml(section)}</li>`).join('')||'<li>No especificadas</li>'}</ul></section><section class="coverage-section"><h3>Descartes del análisis original</h3><ul>${discardBreakdown}</ul></section><section class="coverage-section"><h3>Criterio aplicado</h3><p>Los dispositivos, mercados y métodos se conservan como contexto. Las conclusiones del autor sirven de ancla, pero no se convierten automáticamente en hechos.</p></section><section class="coverage-section"><h3>Contexto detectado</h3><p>${escapeHtml(analysis.metadata.products.join(', ')||(analysis.recovery?'No disponible':''))} / ${escapeHtml(analysis.metadata.screens.join(', ')||(analysis.recovery?'No disponible':''))}<br>${escapeHtml(analysis.metadata.components.join(', ')||(analysis.recovery?'No disponible':''))}<br>Dispositivo: ${escapeHtml(devices.join(', ')||'No especificado')}<br>Mercado: ${escapeHtml(markets.join(', ')||'No especificado')}<br>Fecha: ${escapeHtml(documentDate(documentItem))}</p></section></div>`;
-      workspace.innerHTML=`<div class="analysis-workspace-panel"><div class="review-tabs" role="tablist" aria-label="Contenido de la revisión"><button class="review-tab active" id="review-tab-insights" type="button" role="tab" aria-selected="true" aria-controls="review-pane-insights" tabindex="0" data-review-tab="clusters">Revisión del documento (${clusters.length})</button><button class="review-tab" id="review-tab-records" type="button" role="tab" aria-selected="false" aria-controls="review-pane-records" tabindex="-1" data-review-tab="findings">Registros originales (${findings.length})</button><button class="review-tab" id="review-tab-coverage" type="button" role="tab" aria-selected="false" aria-controls="review-pane-coverage" tabindex="-1" data-review-tab="coverage">Cobertura y trazabilidad</button></div><section class="review-pane active" id="review-pane-insights" role="tabpanel" aria-labelledby="review-tab-insights" aria-hidden="false" data-review-pane="clusters">${analysisModeHeader('Revisión del documento','Revisa los insights y preguntas extraídos antes de publicar.','review')}${publicationState}${decisionFocus}${evolutionProposalMarkup(documentItem)}<div class="cluster-list">${clusterCards}</div></section><section class="review-pane" id="review-pane-records" role="tabpanel" aria-labelledby="review-tab-records" aria-hidden="true" data-review-pane="findings" hidden>${documentRecordsMarkup(auditView)}</section><section class="review-pane" id="review-pane-coverage" role="tabpanel" aria-labelledby="review-tab-coverage" aria-hidden="true" data-review-pane="coverage" hidden>${documentCoverageMarkup(auditView,technicalCoverage)}</section></div>`;
+      workspace.innerHTML=`<div class="analysis-workspace-panel"><div class="review-tabs" role="tablist" aria-label="Contenido de la revisión"><button class="review-tab active" id="review-tab-insights" type="button" role="tab" aria-selected="true" aria-controls="review-pane-insights" tabindex="0" data-review-tab="clusters">Revisión del documento (${clusters.length})</button><button class="review-tab" id="review-tab-records" type="button" role="tab" aria-selected="false" aria-controls="review-pane-records" tabindex="-1" data-review-tab="findings">Registros originales (${findings.length})</button><button class="review-tab" id="review-tab-coverage" type="button" role="tab" aria-selected="false" aria-controls="review-pane-coverage" tabindex="-1" data-review-tab="coverage">Cobertura y trazabilidad</button></div><section class="review-pane active" id="review-pane-insights" role="tabpanel" aria-labelledby="review-tab-insights" aria-hidden="false" data-review-pane="clusters">${analysisModeHeader('Revisión del documento','Valida la síntesis, las relaciones y las preguntas abiertas antes de incorporar cambios a la base.','review')}${publicationState}${decisionFocus}${evolutionProposalMarkup(documentItem)}<div class="cluster-list">${clusterCards}</div></section><section class="review-pane" id="review-pane-records" role="tabpanel" aria-labelledby="review-tab-records" aria-hidden="true" data-review-pane="findings" hidden>${documentRecordsMarkup(auditView)}</section><section class="review-pane" id="review-pane-coverage" role="tabpanel" aria-labelledby="review-tab-coverage" aria-hidden="true" data-review-pane="coverage" hidden>${documentCoverageMarkup(auditView,technicalCoverage)}</section></div>`;
       mountDocumentAuditView(auditView);
       openedInsights.forEach(id=>document.getElementById(id)?.setAttribute('open',''));
     }
@@ -8607,9 +8607,9 @@
       return {used,proposed:learnings.filter(learning=>proposedIds.has(learning.id)&&!used.some(existing=>existing.id===learning.id))};
     }
     function insightRegisterSection(item){
-      if(item.supportingDocument)return `<section class="drawer-section"><h3>Uso en UX Intel</h3><p>Este PDF se conserva como documentación de apoyo para consulta y trazabilidad. No genera registros de conocimiento automáticamente.</p></section>`;
+      if(item.supportingDocument)return `<section class="drawer-section"><h3>Uso en UX Intel</h3><p>Este PDF se conserva como fuente de apoyo para consulta y trazabilidad. No genera conocimiento estructurado hasta que exista una síntesis revisada.</p></section>`;
       const register=item.insightRegister;
-      if(!register)return `<section class="drawer-section"><h3>Síntesis UX</h3><p>No añadida. El documento puede analizarse con document-first-2 a partir de la fuente original.</p><button class="relation-action" type="button" data-add-insight-register="${escapeHtml(item.id)}">Añadir Excel revisado</button></section>`;
+      if(!register)return `<section class="drawer-section"><h3>Síntesis UX</h3><p>Este documento todavía no tiene una síntesis UX estructurada. Añade un Excel revisado para incorporar conocimiento curado.</p><button class="relation-action" type="button" data-add-insight-register="${escapeHtml(item.id)}">Añadir Excel revisado</button></section>`;
       const canPrepare=item.analysis?.documentFirstV2?.mode==='active-new-ingest'||item.analysis?.documentFirstV2?.mode==='insight-register-primary';
       return `<section class="drawer-section"><h3>Síntesis UX</h3><p><strong>${escapeHtml(register.file?.name||'Excel revisado')}</strong> · ${register.rows?.length||0} filas curadas · ${register.reviewedByUx?'Revisado por UX':'Revisión UX no confirmada'}</p><p>Es la capa editorial del mismo documento; no crea otra fuente ni otra Knowledge Base.</p><div class="form-actions"><button class="relation-action" type="button" data-view-insight-register="${escapeHtml(item.id)}">Abrir Excel revisado</button><button class="relation-action" type="button" data-add-insight-register="${escapeHtml(item.id)}">Actualizar Excel revisado</button>${canPrepare?`<button class="action-button" type="button" data-analyze-insight-register="${escapeHtml(item.id)}">Analizar con síntesis UX</button>`:''}</div></section>`;
     }
@@ -10425,14 +10425,14 @@
 
       return [
         ...(learningMatches.length?[{
-          label:'Lo que sabemos',
+          label:'Learnings consolidados',
           kind:'learning',
           items:learningMatches,
           title:item=>item.title,
           meta:item=>`${pathOf(item)||'Sin contexto'} · Impacto UX ${String(item.impactUx||'No informado').toLowerCase()}`
         }]:[]),
         ...(structuredMatches.length?[{
-          label:'Conocimiento relacionado',
+          label:'Registros relacionados',
           kind:'simple-record',
           items:structuredMatches,
           title:item=>item.insight||item.evidence||'Registro UX',
@@ -10459,7 +10459,7 @@
       const groups=searchGroups(query);
       return groups.length
         ? groups.map(group=>`<div class="search-group" role="presentation">${escapeHtml(group.label)}</div>${group.items.map(item=>`<button type="button" role="option" tabindex="-1" class="search-result" data-search-kind="${group.kind}" data-search-id="${escapeHtml(item.id)}"><strong>${escapeHtml(group.title(item))}</strong><span>${escapeHtml(group.meta(item))}</span></button>`).join('')}`).join('')
-        : '<div class="empty-state">No encontramos conocimiento relacionado con esta búsqueda.</div>';
+        : '<div class="empty-state">No hay conocimiento relacionado con esta consulta. Prueba con otro término o contexto.</div>';
     }
 
     function searchOptions(popover){return [...popover.querySelectorAll('[data-search-kind]')];}
@@ -11327,7 +11327,7 @@
     if(!candidates.length)return '';
     return `<section class="drawer-section">
       <h3>Revisión de duplicados</h3>
-      <p>UX Intel revisa automáticamente los duplicados exactos dentro de un contexto compatible. Las similitudes temáticas no se confirman por sí solas. Puedes corregir manualmente una decisión si alguna vez lo necesitas. Ninguna acción borra ni fusiona registros automáticamente.</p>
+      <p>UX Intel detecta duplicados exactos solo dentro de contextos compatibles. Las similitudes temáticas quedan como señales para revisión y nunca fusionan ni eliminan registros automáticamente.</p>
       <div class="relation-list">${candidates.map(match=>{
         const item=match.record;
         const path=compactContextPath(item);
@@ -11397,7 +11397,7 @@
     const list=document.getElementById('uxs-results-list');
     if(!list)return;
     const pagination=document.getElementById('uxs-pagination');
-    if(!filtered.length){list.innerHTML='<div class="uxs-empty">No hay resultados para estos filtros.</div>';if(pagination)pagination.innerHTML='';return;}
+    if(!filtered.length){list.innerHTML='<div class="uxs-empty">No hay registros que cumplan los filtros aplicados.</div>';if(pagination)pagination.innerHTML='';return;}
 
     const totalPages=Math.max(1,Math.ceil(filtered.length/explorePageSize));
     explorePage=Math.min(Math.max(1,explorePage),totalPages);
@@ -11886,7 +11886,7 @@
     bridge.className='ux-taxonomy-knowledge-bridge';
     bridge.innerHTML=`
       <h3>Conocimiento relacionado</h3>
-      <p>${path.length?`Contexto: ${esc(path.join(' › '))}`:'Consulta el conocimiento ya clasificado bajo este término.'}</p>
+      <p>${path.length?`Contexto: ${esc(path.join(' › '))}`:'Consulta el conocimiento estructurado clasificado bajo este término.'}</p>
       <div class="ux-taxonomy-knowledge-metrics">
         <div class="ux-taxonomy-knowledge-metric"><strong>${metrics.records}</strong><span>${metrics.records===1?'registro estructurado':'registros estructurados'}</span></div>
         <div class="ux-taxonomy-knowledge-metric"><strong>${metrics.learnings}</strong><span>${metrics.learnings===1?'learning relacionado':'learnings relacionados'}</span></div>
@@ -11955,7 +11955,7 @@
             useHeading.textContent='Conocimiento relacionado';
             [...block.querySelectorAll('p,span')].forEach(node=>{
               if(normalized(node.textContent).includes('no hay referencias actuales')){
-                node.textContent='Aún no hay conocimiento estructurado vinculado a este término.';
+                node.textContent='Este término todavía no tiene conocimiento estructurado asociado.';
               }
             });
           }
