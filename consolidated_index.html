@@ -4820,7 +4820,7 @@
             <div>
               <div class="eyebrow">Explorar</div>
               <h1 id="explore-title">Explora el conocimiento por contexto.</h1>
-              <p class="two-line-subtitle"><span>Consulta registros revisados y acota por journey, componente, dispositivo, mercado, origen o dimensión UX.</span><span>Combina filtros para comparar evidencia y recuperar conocimiento sin perder su contexto.</span></p>
+              <p class="two-line-subtitle"><span>Consulta registros revisados y acota por journey, componente, dispositivo, mercado, origen o dimensión.</span><span>Combina filtros para comparar evidencia y recuperar conocimiento sin perder su contexto.</span></p>
             </div>
           </div>
 
@@ -4847,7 +4847,7 @@
               <label>Tipo<select id="uxs-type"></select></label>
               <label class="filter-span-2">Impacto UX<select id="uxs-impact"></select></label>
               <div class="filter-span-2 ux-line-filter-field">
-                <span class="ux-line-filter-label">Dimensión UX</span>
+                <span class="ux-line-filter-label">Dimensión</span>
                 <div class="ux-line-multiselect" id="uxs-ux-line" data-ux-line-multiselect>
                   <button class="ux-line-trigger" id="uxs-ux-line-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="uxs-ux-line-menu"><span class="ux-line-trigger-value">Todos</span><span class="ds-select-chevron" aria-hidden="true"></span></button>
                   <div class="ux-line-menu" id="uxs-ux-line-menu" role="listbox" aria-multiselectable="true" hidden></div>
@@ -10581,6 +10581,32 @@
 </script>
 
 
+<style id="ux-v7-solution-style">
+.uxs-solution-block{margin-top:8px;padding:20px;border:1px solid var(--ae-brand-100);border-left:4px solid var(--ae-brand-600);border-radius:var(--radius-md);background:var(--ae-brand-50)}
+.uxs-solution-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.uxs-solution-head strong{color:var(--ae-brand-700);font-size:12px;letter-spacing:.04em}
+.uxs-solution-block h3{margin:0 0 8px;font-size:16px;line-height:1.45}
+.uxs-solution-block h4{margin:16px 0 6px;font-size:13px}
+.uxs-solution-block p{margin:0;color:var(--text-secondary);line-height:1.65}
+.uxs-solution-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.uxs-solution-meta span{display:inline-flex;align-items:center;min-height:28px;padding:4px 9px;border:1px solid var(--border-primary);border-radius:999px;background:#fff;color:var(--text-secondary);font-size:12px}
+.uxs-solution-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.uxs-solution-links a{display:inline-flex;align-items:center;min-height:38px;padding:8px 12px;border:1px solid var(--ae-brand-600);border-radius:var(--radius-sm);color:var(--ae-brand-700);background:#fff;font-weight:650;text-decoration:none}
+.uxs-solution-links a:hover{background:var(--ae-brand-50)}
+.uxs-dimension-list{display:flex;flex-wrap:wrap;gap:8px}
+.uxs-dimension-list span{display:inline-flex;padding:5px 9px;border-radius:999px;background:var(--bg-secondary);color:var(--text-secondary);font-size:12px}
+</style>
+<script id="ux-v7-knowledge-enrichment">
+(function(){
+const D=["Usabilidad","Accesibilidad","Arquitectura de información","Contenido","Interacción","Flujo","Personalización","Diseño visual / UI","Técnica / sistema","Negocio","Datos / medición"],M={"26389986":{"p":"Interacción","d":"Contenido","s":"UX-SUMA-008","r":"Fundamenta"},"49276576":{"p":"Arquitectura de información","d":"Personalización"},"86451825":{"p":"Arquitectura de información","d":"Diseño visual / UI"},"17de03b3":{"p":"Técnica / sistema","d":"Flujo","a":"Amadeus"},"99df44e8":{"p":"Técnica / sistema","d":"Flujo","a":"Amadeus"},"6b75afc8":{"p":"Técnica / sistema","d":"Contenido","s":"UX-SUMA-003","r":"Condiciona","a":"Amadeus"},"fc67d43c":{"p":"Contenido","d":"Personalización","s":"UX-SUMA-003","r":"Fundamenta","a":"Amadeus"},"8faf6bbe":{"p":"Técnica / sistema","d":"Personalización","a":"Amadeus"},"728f7fba":{"p":"Negocio","d":"Personalización","a":"Amadeus"},"9bd5f396":{"p":"Negocio","d":"Personalización","a":"Amadeus"},"a9535ba2":{"p":"Técnica / sistema","d":"Contenido","a":"Amadeus"},"1533f4b1":{"p":"Técnica / sistema","d":"Personalización","a":"Amadeus"},"e622e3bc":{"p":"Arquitectura de información","d":"Personalización","s":"UX-SUMA-010","r":"Fundamenta","a":"Amadeus"},"bae61b9e":{"p":"Técnica / sistema","d":"Contenido","a":"Amadeus"},"58a6f395":{"p":"Negocio","d":"Personalización","s":"UX-SUMA-016","r":"Fundamenta","a":"Amadeus"},"8b5dfb9a":{"p":"Técnica / sistema","d":"Personalización","a":"Amadeus"},"7338935a":{"p":"Técnica / sistema","d":"Interacción","s":"UX-SUMA-015","r":"Fundamenta","a":"Amadeus"},"75a20336":{"p":"Técnica / sistema","d":"Negocio","a":"Amadeus"},"c364cc31":{"p":"Negocio","d":"Personalización"},"fd2d5138":{"p":"Negocio","d":"Personalización"},"bae05b5f":{"p":"Personalización"},"880c5d1b":{"p":"Personalización"},"3d99aa94":{"p":"Usabilidad","d":"Flujo"},"999f3888":{"p":"Arquitectura de información","d":"Diseño visual / UI","s":"UX-SUMA-001","r":"Condiciona"},"3814b9c6":{"p":"Datos / medición"},"136f7ed5":{"p":"Negocio","d":"Personalización"},"696b249c":{"p":"Arquitectura de información","d":"Contenido","s":"UX-SUMA-009","r":"Fundamenta"},"54f2e3e8":{"p":"Negocio","d":"Personalización"},"6d30bedb":{"p":"Negocio","d":"Personalización"},"bb4ef91":{"p":"Usabilidad","d":"Flujo"},"8dde257d":{"p":"Negocio","d":"Personalización"},"b2061cbd":{"p":"Arquitectura de información","d":"Contenido","s":"UX-SUMA-009","r":"Fundamenta"},"9e88e87a":{"p":"Negocio","d":"Personalización"},"be766ccf":{"p":"Negocio","d":"Personalización"},"4c311cd0":{"p":"Contenido","d":"Personalización","s":"UX-SUMA-001","r":"Fundamenta"},"2bebe431":{"p":"Personalización","d":"Arquitectura de información"},"abdcc1c3":{"p":"Personalización","d":"Contenido","s":"UX-SUMA-006","r":"Fundamenta"},"4a16aae":{"p":"Arquitectura de información","d":"Flujo","s":"UX-SUMA-007","r":"Fundamenta"},"d1a2983a":{"p":"Interacción","d":"Personalización"},"e06ab1ee":{"p":"Arquitectura de información","d":"Personalización","s":"UX-SUMA-013","r":"Fundamenta"},"4e332fcb":{"p":"Contenido","d":"Personalización","s":"UX-SUMA-014","r":"Fundamenta"},"e78e3635":{"p":"Interacción","d":"Personalización","s":"UX-SUMA-016","r":"Fundamenta"},"fbc83b5c":{"p":"Negocio"},"b2830d75":{"p":"Usabilidad","d":"Negocio"},"495fe4da":{"p":"Usabilidad","d":"Negocio"},"8a1ebda2":{"p":"Personalización","d":"Usabilidad"},"31122c1a":{"p":"Negocio","d":"Personalización"},"49bd9172":{"p":"Contenido","d":"Arquitectura de información"},"c1b1bbb8":{"p":"Negocio","d":"Personalización","s":"UX-SUMA-010","r":"Fundamenta"},"798aede1":{"p":"Negocio","d":"Personalización"},"97ef4bee":{"p":"Negocio","d":"Personalización"},"e786a152":{"p":"Negocio","d":"Técnica / sistema"},"13ef5c21":{"p":"Técnica / sistema","d":"Contenido"},"ce8d4dbc":{"p":"Flujo","d":"Personalización"},"f815b7bd":{"p":"Arquitectura de información","d":"Personalización","s":"UX-SUMA-004","r":"Fundamenta"},"bb1fe982":{"p":"Contenido","d":"Personalización"},"c8bf888":{"p":"Usabilidad","d":"Personalización"},"f4c7db96":{"p":"Interacción","d":"Personalización","s":"UX-SUMA-014","r":"Fundamenta"},"ffd49b83":{"p":"Interacción","d":"Personalización","s":"UX-SUMA-014","r":"Fundamenta"},"53974b41":{"p":"Arquitectura de información","d":"Personalización"},"6f635b15":{"p":"Negocio","d":"Contenido","s":"UX-SUMA-008","r":"Condiciona"},"cd18e5f9":{"p":"Contenido","d":"Personalización","s":"UX-SUMA-002","r":"Fundamenta"},"af75cb01":{"p":"Técnica / sistema"},"be92edf1":{"p":"Técnica / sistema","d":"Interacción","s":"UX-SUMA-008","r":"Condiciona"},"f85ae57e":{"p":"Contenido","s":"UX-SUMA-008","r":"Fundamenta"},"e270d0f9":{"p":"Contenido","d":"Interacción","s":"UX-SUMA-008","r":"Fundamenta"},"858060c2":{"p":"Contenido","d":"Técnica / sistema","s":"UX-SUMA-008","r":"Iteración previa"},"39f7ee71":{"p":"Interacción","d":"Usabilidad","s":"UX-SUMA-008","r":"Fundamenta"},"2cdd3817":{"p":"Interacción","d":"Usabilidad","s":"UX-SUMA-008","r":"Fundamenta"},"f84c625":{"p":"Interacción","s":"UX-SUMA-008","r":"Matiza"},"77fbb95d":{"p":"Interacción","d":"Contenido","s":"UX-SUMA-008","r":"Fundamenta"},"d49a5303":{"p":"Contenido","d":"Usabilidad","s":"UX-SUMA-011","r":"Fundamenta"},"2a94f3bd":{"p":"Arquitectura de información","d":"Usabilidad","s":"UX-SUMA-011","r":"Fundamenta"},"385c9408":{"p":"Arquitectura de información","d":"Interacción","s":"UX-SUMA-008","r":"Fundamenta"},"e0da1ea0":{"p":"Contenido","d":"Diseño visual / UI","s":"UX-SUMA-011","r":"Fundamenta"},"ce61db62":{"p":"Personalización","d":"Contenido","s":"UX-SUMA-012","r":"Fundamenta"},"b5d9d85a":{"p":"Contenido","d":"Personalización","s":"UX-SUMA-001","r":"Fundamenta"},"952bad03":{"p":"Personalización","d":"Arquitectura de información","s":"UX-SUMA-004","r":"Fundamenta"},"dc1aad32":{"p":"Flujo","d":"Personalización"},"bb12cb6f":{"p":"Personalización","d":"Contenido","s":"UX-SUMA-006","r":"Fundamenta"},"d0700435":{"p":"Contenido","d":"Interacción","s":"UX-SUMA-008","r":"Fundamenta"},"dbf89c2b":{"p":"Usabilidad","d":"Personalización"},"90c1c4e8":{"p":"Interacción","d":"Contenido"},"a169aa9a":{"p":"Interacción","d":"Personalización"},"e7aeb418":{"p":"Arquitectura de información","d":"Personalización","s":"UX-SUMA-013","r":"Fundamenta"},"c286d81":{"p":"Arquitectura de información","d":"Personalización","s":"UX-SUMA-014","r":"Fundamenta"},"4e54f6f2":{"p":"Contenido","d":"Personalización","s":"UX-SUMA-014","r":"Fundamenta"},"db8546ff":{"p":"Contenido","d":"Personalización","s":"UX-SUMA-016","r":"Fundamenta"},"3169e9a7":{"p":"Contenido","d":"Personalización","s":"UX-SUMA-014","r":"Fundamenta"},"c0d0d37":{"p":"Flujo","d":"Personalización"},"bb0b2389":{"p":"Técnica / sistema","d":"Personalización"},"d15265c9":{"p":"Flujo","d":"Personalización"},"379db585":{"p":"Contenido","d":"Personalización","s":"UX-SUMA-001","r":"Fundamenta"},"47d27aa3":{"p":"Contenido","d":"Personalización","s":"UX-SUMA-002","r":"Fundamenta"},"811a04a8":{"p":"Arquitectura de información","d":"Personalización","s":"UX-SUMA-003","r":"Fundamenta"},"4754669c":{"p":"Personalización","d":"Arquitectura de información","s":"UX-SUMA-005","r":"Fundamenta"},"532d1b64":{"p":"Personalización","d":"Contenido","s":"UX-SUMA-006","r":"Fundamenta"},"e9910d65":{"p":"Usabilidad","d":"Personalización"},"6e626b26":{"p":"Personalización","s":"UX-SUMA-012","r":"Fundamenta"},"64195b2e":{"p":"Personalización","d":"Contenido"},"6749ca62":{"p":"Contenido","d":"Personalización","s":"UX-SUMA-014","r":"Fundamenta"},"5885d52b":{"p":"Personalización","d":"Negocio"},"7bb1a3a8":{"p":"Negocio","d":"Personalización"},"9f315685":{"p":"Flujo","d":"Personalización"},"c3a23878":{"p":"Contenido","d":"Personalización","s":"UX-SUMA-014","r":"Fundamenta"}},S={"UX-SUMA-003":{"t":"Recordar dentro de Fare Families el porcentaje adicional de Millas SUMA que acumula el usuario según su nivel, sin detallar los extras incluidos por estatus.","f":"Se integra un mensaje breve dentro de la propia Fare Family para hacer visible el valor SUMA en el momento de comparar tarifas. Como Amadeus no ofrece una cifra exacta estable, se utiliza el porcentaje fijo por nivel; se evita detallar extras incluidos para no distorsionar la elección de tarifa.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-82760&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-010":{"t":"Mostrar en el detalle desplegado del vuelo un mensaje breve que informe al usuario SUMA de que puede añadir gratuitamente una maleta adicional en bodega.","f":"El mensaje se integra inline junto al detalle de servicios del vuelo para anticipar un beneficio relevante sin interrumpir la revisión. La proximidad al equipaje facilita comprender qué ventaja tendrá disponible más adelante en Extras.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-83388&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-016":{"t":"Mostrar el nivel SUMA debajo del nombre de cada pasajero identificado en todos los minifunnels y componentes de Extras una vez haya seleccionado un servicio.","f":"Se mantiene visible el nivel junto al nombre para reforzar la asociación persona–beneficio en un contexto multipasajero. Aplicar el patrón de forma transversal en Extras mejora consistencia y ayuda a entender a quién corresponde cada servicio o ventaja SUMA.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2494-110013&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-015":{"t":"Indicar en Priority Boarding que no es necesario añadir manualmente el servicio cuando ya está incluido por el nivel SUMA.","f":"La solución evita conducir al usuario a un minifunnel que actualmente puede mostrar un precio para un beneficio ya incluido. Se prioriza un mensaje preventivo en la tarjeta para reducir confusión y compras indebidas mientras persista la incoherencia de Amadeus.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-83416&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-001":{"t":"Incentivar el login mediante una capa contextual situada bajo «Iniciar sesión» en el Header de Home.","f":"El acceso al login ya es visible, pero comunica su valor de forma genérica. Se propone una capa contextual breve junto al propio acceso para explicar el beneficio en el punto de acción sin competir con el buscador, que concentra la tarea principal de Home.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-83842&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-009":{"t":"Reubicar el componente de canje de Millas al inicio de la pantalla para hacerlo visible desde el primer momento, sin necesidad de un banner de acceso.","f":"La solución prioriza la encontrabilidad haciendo visible directamente el componente de Millas antes del detalle de vuelos. Al estar expuesto desde el inicio, no necesita un CTA-ancla ni activar el toggle por defecto.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2454-97255&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-006":{"t":"Mostrar en el panel de upsell de tarifa un mensaje breve con el porcentaje adicional de Millas SUMA que acumula el usuario según su nivel.","f":"Se integra el mensaje dentro del propio upsell para reforzar SUMA sin añadir otra capa de interacción. Se muestra el porcentaje fijo de acumulación y se omiten extras incluidos para no reducir el atractivo de la mejora de tarifa.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-83802&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-007":{"t":"Añadir un acceso contextual al canje de Millas que lleve directamente al slider y lo muestre ya activado.","f":"Se utiliza un bloque breve con CTA como ancla para mejorar la encontrabilidad del canje sin mover el componente principal. Al llegar al slider ya activado se reduce un paso y se refuerza la relación entre la acción y el uso de Millas.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-84634&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-013":{"t":"Añadir en Extras un banner superior que resuma los beneficios incluidos por el nivel SUMA del usuario, con variantes de presentación según necesidad.","f":"El banner resume los beneficios SUMA sin competir con los extras de la pantalla. Puede resolverse como desplegable, resumen visible o mensaje simple; en reservas con niveles distintos usa un mensaje general y deja el detalle por pasajero para el minifunnel.","l":"Variante desplegable: https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-83416&t=jklDh4vL7rnXhNpt-1\nVariante resumen: https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2538-126437&t=jklDh4vL7rnXhNpt-1\nVariante mensaje simple: https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-83677&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-014":{"t":"Mostrar dentro de cada componente de extra un mensaje que indique cuándo ese servicio está incluido gratuitamente por el nivel SUMA del usuario.","f":"El mensaje se integra en el propio extra para explicar el beneficio justo en el punto de decisión y evitar que un servicio incluido se interprete como un coste adicional. El patrón mantiene visible el origen SUMA sin añadir pasos ni capas extra.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-83416&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-004":{"t":"Añadir un mensaje informativo asociado al componente de Fare Families para recordar la acumulación por nivel SUMA y anticipar que algunos extras podrán estar incluidos más adelante.","f":"Se utiliza un mensaje inline asociado al componente para mantener continuidad con SUMA sin sobrecargar cada tarifa. Anticipa valor futuro de forma breve y puede situarse encima o debajo del desplegable sin cambiar la intención de la solución.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-82842&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-008":{"t":"Rediseñar el slider de Millas para facilitar la selección del tramo de canje y mostrar, tras la selección, únicamente la información relativa a Millas.","f":"El componente concentra la decisión de canje y permite elegir solo los tramos válidos que devuelve Amadeus, evitando valores no permitidos. Tras la selección muestra información de Millas y saldo restante; precio, ahorro y total se reservan para el footer.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-83400&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-002":{"t":"Incentivar el registro en SUMA mediante una pieza promocional integrada en Home, con acceso directo al formulario oficial de registro.","f":"La propuesta hace visible el valor de SUMA a usuarios no registrados sin convertir la captación en la tarea principal de Home. La pieza promocional permite comunicar beneficios concretos y ofrecer una vía directa de alta manteniendo el buscador como foco principal; el formato visual concreto sigue siendo una propuesta UX no validada.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-84214&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-011":{"t":"Actualizar el footer tras aplicar Millas para mostrar precio final, precio anterior tachado y ahorro obtenido.","f":"Se concentra en el footer toda la información económica resultante del canje para separar claramente Millas y precio. Mostrar total final, precio anterior y ahorro en el cierre de la pantalla hace visible el valor económico justo antes de continuar.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-83400&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-012":{"t":"Mostrar el nivel SUMA del usuario logado justo debajo de su nombre en la pantalla de Pasajeros.","f":"Se integra el nivel junto a la identidad del pasajero para mantener continuidad con la sesión y hacer visible el estatus sin añadir otro bloque. La proximidad nombre–nivel refuerza la asociación entre persona y beneficios, especialmente en reservas multipasajero.","l":"https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-84648&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"},"UX-SUMA-005":{"t":"Incorporar en Fare Families un banner inspiracional con beneficios asociados al nivel SUMA, contemplando distintas variantes de formato y ubicación.","f":"El banner hace visible el valor del estatus con un contenido secundario y diferencial, sin alterar la comparación principal de tarifas. Se excluyen asientos, equipaje y Priority Boarding para evitar que esos beneficios puedan favorecer artificialmente tarifas más baratas.","l":"Variante lateral: https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-83285&t=jklDh4vL7rnXhNpt-1\nVariante horizontal: https://www.figma.com/design/oPM6bAtRWvJMDeZsjxGMz6/Frequent-Flyers-UX-in-Booking?node-id=2197-83188&t=jklDh4vL7rnXhNpt-1","e":"Propuesta UX"}};
+const LEGACY={"Accesibilidad":["Accesibilidad"],"Arquitectura de información":["Arquitectura de información"],"Contenido y copy":["Contenido"],"Encontrabilidad":["Arquitectura de información"],"Feedback y estado":["Interacción"],"Flujo y secuenciación":["Flujo"],"Fricción y eficiencia":["Usabilidad"],"Personalización":["Personalización"]};
+const clean=v=>String(v??'').trim();
+function hash(value){let h=2166136261,text=clean(value).toLocaleLowerCase('es');for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return(h>>>0).toString(16);}
+function legacy(value){const out=[];String(value||'').split(/\s*[·;|]\s*/).map(clean).filter(Boolean).forEach(part=>(LEGACY[part]||[]).forEach(v=>{if(v&&!out.includes(v))out.push(v);}));return out.slice(0,2);}
+function enrich(record){const hit=M[hash(record?.insight)]||{},sol=S[hit.s]||{};let primary=clean(hit.p)||clean(record?.dimensionPrimary),secondary=clean(hit.d)||clean(record?.dimensionSecondary);if(!primary){const fallback=legacy(record?.uxLine);primary=fallback[0]||'';secondary=secondary||fallback[1]||'';}const solutionId=clean(hit.s)||clean(record?.solutionId);return{...record,platformSystem:clean(hit.a)||clean(record?.platformSystem),dimensionPrimary:primary,dimensionSecondary:secondary,dimensions:[...new Set([primary,secondary].filter(Boolean))],solutionId,uxSolution:clean(sol.t)||clean(record?.uxSolution),solutionRationale:clean(sol.f)||clean(record?.solutionRationale),figmaLink:clean(sol.l)||clean(record?.figmaLink),solutionStatus:clean(sol.e)||clean(record?.solutionStatus),solutionRelation:clean(hit.r)||clean(record?.solutionRelation)};}
+globalThis.UXKnowledgeEnrichment={dimensions:D,enrich};
+})();
+</script>
 <script id="ux-explore-simple-script">
 (function(){
   const ids = [
@@ -10600,7 +10626,7 @@
     origin:['UX Research','Test de usuarios','Quantum Metric','A/B Test','CRO','Auditoría UX','Heurística','Benchmark','Desk research','Data','Negocio','CSAT'],
     recordType:['Hecho','Evidencia interna','Evidencia externa','Hipótesis','Inferencia','Oportunidad','Restricción','Decisión'],
     impactUx:['Alto','Medio','Bajo'],
-    uxLine:['Accesibilidad','Arquitectura de información','Claridad y comprensión','Consistencia','Contenido y copy','Control y autonomía','Encontrabilidad','Feedback y estado','Flujo y secuenciación','Fricción y eficiencia','Jerarquía visual','Navegación','Orientación y ayuda','Personalización']
+    uxLine:["Usabilidad","Accesibilidad","Arquitectura de información","Contenido","Interacción","Flujo","Personalización","Diseño visual / UI","Técnica / sistema","Negocio","Datos / medición"]
   };
   const journeyLevels=new Set(['product','funnel','minifunnel','component']);
 
@@ -10855,7 +10881,13 @@
     return out;
   }
   function deriveRegion(market){const value=clean(market);if(!value)return '';return regionByMarket.get(norm(value))||(/multimercado|no especificado/i.test(value)?'No especificado':'');}
-  function decorateRecord(record){const uxLines=normalizeUxLines(record.uxLines?.length?record.uxLines:record.uxLine);const origins=normalizeOrigins(record.origins?.length?record.origins:record.origin);const market=clean(record.market);return {...record,market,region:clean(record.region)||deriveRegion(market),origins,origin:origins.join(' · '),uxLines,uxLine:uxLines.join(' · ')};}
+  function decorateRecord(record){
+    const uxLines=normalizeUxLines(record.uxLines?.length?record.uxLines:record.uxLine);
+    const origins=normalizeOrigins(record.origins?.length?record.origins:record.origin);
+    const market=clean(record.market);
+    const base={...record,market,region:clean(record.region)||deriveRegion(market),origins,origin:origins.join(' · '),uxLines,uxLine:uxLines.join(' · ')};
+    return globalThis.UXKnowledgeEnrichment?.enrich?.(base)||base;
+  }
   const first=(obj,names)=>{
     for(const name of names){ if(obj && clean(obj[name])) return clean(obj[name]); }
     return '';
@@ -10906,6 +10938,14 @@
           recommendation:row.recommendation||'',
           openQuestion:row.openQuestion||'',
           uxLine:row.uxLine||'',
+          dimensionPrimary:row.dimensionPrimary||row.extraFields?.['Dimensión principal']||'',
+          dimensionSecondary:row.dimensionSecondary||row.extraFields?.['Dimensión secundaria']||'',
+          solutionId:row.solutionId||row.extraFields?.['ID solución UX']||'',
+          uxSolution:row.uxSolution||row.extraFields?.['Solución UX propuesta']||'',
+          solutionRationale:row.solutionRationale||row.extraFields?.['Fundamento de la propuesta UX']||'',
+          figmaLink:row.figmaLink||row.extraFields?.['Enlace Figma']||'',
+          solutionStatus:row.solutionStatus||row.extraFields?.['Estado de la solución']||'',
+          solutionRelation:row.solutionRelation||row.extraFields?.['Relación con la solución']||'',
           source:row.source||'',
           notes:row.observations||'',
           impactUx:row.impactUx||'',
@@ -10950,6 +10990,14 @@
           recommendation:first(row,['Recomendación / oportunidad','Recomendacion / oportunidad','recomendación / oportunidad','recomendacion / oportunidad']),
           openQuestion:first(row,['Pregunta abierta','pregunta abierta']),
           uxLine:first(row,['Dimensión UX','Dimension UX','dimensión ux','dimension ux','Línea UX','Linea UX','línea ux','linea ux','Línea UX / agrupación','Linea UX / agrupacion','línea ux / agrupación','linea ux / agrupacion']),
+          dimensionPrimary:first(row,['Dimensión principal','Dimension principal','dimensión principal','dimension principal']),
+          dimensionSecondary:first(row,['Dimensión secundaria','Dimension secundaria','dimensión secundaria','dimension secundaria']),
+          solutionId:first(row,['ID solución UX','Id solución UX','ID solucion UX','solutionId']),
+          uxSolution:first(row,['Solución UX propuesta','Solucion UX propuesta','uxSolution']),
+          solutionRationale:first(row,['Fundamento de la propuesta UX','Fundamento propuesta UX','solutionRationale']),
+          figmaLink:first(row,['Enlace Figma','Figma','figmaLink']),
+          solutionStatus:first(row,['Estado de la solución','Estado de la solucion','solutionStatus']),
+          solutionRelation:first(row,['Relación con la solución','Relacion con la solucion','solutionRelation']),
           source:first(row,['Fuente','fuente','source']) || doc.name || '',
           notes:first(row,['Observaciones','observaciones','Comentario UX','Comentario']),
           impactUx:first(row,['Impacto UX','impacto ux','impactUx','impacto']),
@@ -10981,7 +11029,7 @@
 
   function unique(field){
     const source=field==='uxLine'
-      ? records.flatMap(r=>r.uxLines||[])
+      ? records.flatMap(r=>r.dimensions||[])
       : field==='origin'
         ? records.flatMap(r=>r.origins||[])
         : field==='initiative'
@@ -11122,7 +11170,7 @@
         return norm(r[field])===norm(filters[field]);
       });
       const selectedLines=Array.isArray(filters.uxLine)?filters.uxLine:[];
-      const lineMatch=!selectedLines.length||selectedLines.some(selected=>(r.uxLines||[]).some(line=>norm(line)===norm(selected)));
+      const lineMatch=!selectedLines.length||selectedLines.some(selected=>(r.dimensions||[]).some(line=>norm(line)===norm(selected)));
       return standardMatch&&lineMatch&&exploreInclusionMatch(r.ingestedAt,includedFrom,includedTo);
     });
     filtered=exploreSortByInclusion(filtered,sort);
@@ -11406,6 +11454,7 @@
     list.innerHTML=pageRecords.map(r=>{
       const dup=duplicateCount(r);
       const transversal=isTransversalRecord(r);
+      const dimensionLabel=[r.dimensionPrimary,r.dimensionSecondary].filter(Boolean).join(' · ');
       return `<article class="uxs-result${transversal?' is-transversal':''}" data-uxs-id="${escapeHtml(r.id)}" tabindex="0">
         <div class="uxs-result-main">
           <div class="uxs-result-labels">
@@ -11414,9 +11463,9 @@
           </div>
           <h3>${escapeHtml(r.insight)}</h3>
           ${r.implication?`<p class="uxs-result-evidence">${escapeHtml(r.implication)}</p>`:''}
-          ${(r.impactUx||r.uxLine)?`<div class="uxs-result-meta-row">
+          ${(r.impactUx||dimensionLabel)?`<div class="uxs-result-meta-row">
             ${r.impactUx?`<span class="uxs-result-impact ${impactClass(r.impactUx)}"><strong>Impacto UX</strong><em>${escapeHtml(r.impactUx)}</em></span>`:''}
-            ${r.uxLine?`<span class="uxs-result-line-meta"><strong>Dimensión UX</strong><span>${escapeHtml(r.uxLine)}</span></span>`:''}
+            ${dimensionLabel?`<span class="uxs-result-line-meta"><strong>Dimensión</strong><span>${escapeHtml(dimensionLabel)}</span></span>`:''}
           </div>`:''}
         </div>
         <div class="uxs-result-side">
@@ -11426,6 +11475,16 @@
       </article>`;
     }).join('');
     if(pagination)pagination.innerHTML=paginationMarkup({page:explorePage,total:filtered.length,size:explorePageSize,label:'resultados',target:'explore',controls:'uxs-results-list'});
+  }
+
+  function figmaLinksMarkup(value){
+    const lines=String(value||'').split(/\n+/).map(clean).filter(Boolean);
+    return lines.map((line,index)=>{
+      const match=line.match(/https?:\/\/[^\s]+/);
+      if(!match)return '';
+      const label=clean(line.slice(0,match.index).replace(/:\s*$/,''))||(lines.length>1?`Abrir variante ${index+1} en Figma`:'Abrir diseño en Figma');
+      return `<a href="${escapeHtml(match[0])}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
+    }).filter(Boolean).join('');
   }
 
   function openDetail(id){
@@ -11441,15 +11500,28 @@
       clean(r.device)?`<div><span>Dispositivo</span><strong>${escapeHtml(r.device)}</strong></div>`:'',
       clean(r.market)?`<div><span>Mercado</span><strong>${escapeHtml(r.market)}</strong></div>`:'',
       clean(r.region)?`<div><span>Región</span><strong>${escapeHtml(r.region)}</strong></div>`:'',
-      clean(r.origin)?`<div><span>Origen</span><strong>${escapeHtml(r.origin)}</strong></div>`:''
+      clean(r.origin)?`<div><span>Origen</span><strong>${escapeHtml(r.origin)}</strong></div>`:'',
+      clean(r.platformSystem)?`<div><span>Sistema / plataforma</span><strong>${escapeHtml(r.platformSystem)}</strong></div>`:''
     ].filter(Boolean).join('');
     const header=`<div class="drawer-kicker"><span class="uxs-result-type ${recordTypeClass(r.recordType)}">${escapeHtml(r.recordType||'Insight')}</span>${transversal?'<span class="uxs-scope-tag">Transversal</span>':''}${duplicateHeaderBadge(r)}</div><h2>${escapeHtml(r.insight)}</h2>${meta?`<div class="insight-drawer-meta">${meta}</div>`:''}`;
     const sourceFile=r.sourceFile||r.docName||r.source||'';
+    const solutionLinks=figmaLinksMarkup(r.figmaLink);
+    const solutionMarkup=r.solutionId?`<section class="drawer-section uxs-solution-block">
+      <div class="uxs-solution-head"><strong>${escapeHtml(r.solutionId)}</strong><span>Propuesta UX asociada</span></div>
+      <h3>${escapeHtml(r.uxSolution||'Propuesta UX')}</h3>
+      ${r.solutionRationale?`<h4>Fundamento de la propuesta UX</h4><p>${escapeHtml(r.solutionRationale)}</p>`:''}
+      <div class="uxs-solution-meta">
+        ${r.solutionStatus?`<span>Estado · ${escapeHtml(r.solutionStatus)}</span>`:''}
+        ${r.solutionRelation?`<span>Relación · ${escapeHtml(r.solutionRelation)}</span>`:''}
+      </div>
+      ${solutionLinks?`<div class="uxs-solution-links">${solutionLinks}</div>`:''}
+    </section>`:'';
     const body=`${r.impactUx?`<section class="drawer-section drawer-section-impact"><h3>Impacto UX</h3><p><span class="status-badge ${impactClass(r.impactUx)}">${escapeHtml(r.impactUx)}</span></p></section>`:''}${r.evidence?`<section class="drawer-section drawer-section-primary"><h3>Evidencia clave</h3><p>${escapeHtml(r.evidence)}</p></section>`:''}
       ${r.implication?`<section class="drawer-section"><h3>Lectura UX</h3><p>${escapeHtml(r.implication)}</p></section>`:''}
       ${r.recommendation?`<section class="drawer-section"><h3>Recomendación / oportunidad</h3><p>${escapeHtml(r.recommendation)}</p></section>`:''}
       ${r.openQuestion?`<section class="drawer-section"><h3>Pregunta abierta</h3><p>${escapeHtml(r.openQuestion)}</p></section>`:''}
-      ${r.uxLine?`<section class="drawer-section"><h3>Dimensión UX</h3><p>${escapeHtml(r.uxLine)}</p></section>`:''}
+      ${(r.dimensionPrimary||r.dimensionSecondary)?`<section class="drawer-section"><h3>Dimensión</h3><div class="uxs-dimension-list">${r.dimensionPrimary?`<span>Principal · ${escapeHtml(r.dimensionPrimary)}</span>`:''}${r.dimensionSecondary?`<span>Secundaria · ${escapeHtml(r.dimensionSecondary)}</span>`:''}</div></section>`:''}
+      ${solutionMarkup}
       ${r.notes?`<section class="drawer-section"><h3>Observaciones</h3><p>${escapeHtml(r.notes)}</p></section>`:''}
       ${sourceFile?`<section class="drawer-section"><h3>Archivo fuente</h3><p>${escapeHtml(sourceFile)}</p></section>`:''}
       ${duplicateReviewMarkup(r)}
@@ -11512,7 +11584,9 @@
       ['Iniciativa','initiative'],['Producto','product'],['Funnel','funnel'],['Minifunnel','minifunnel'],['Componente','component'],
       ['Tipo','recordType'],['Insight / hallazgo','insight'],['Evidencia','evidence'],['Lectura UX','implication'],
       ['Recomendación / oportunidad','recommendation'],['Pregunta abierta','openQuestion'],['Origen','origin'],
-      ['Dispositivo','device'],['Mercado','market'],['Región','region'],['Impacto UX','impactUx'],['Dimensión UX','uxLine'],['Observaciones','notes']
+      ['Dispositivo','device'],['Mercado','market'],['Región','region'],['Impacto UX','impactUx'],['Dimensión UX','uxLine'],['Observaciones','notes'],
+      ['Sistema / plataforma','platformSystem'],['Dimensión principal','dimensionPrimary'],['Dimensión secundaria','dimensionSecondary'],
+      ['ID solución UX','solutionId'],['Solución UX propuesta','uxSolution'],['Fundamento de la propuesta UX','solutionRationale'],['Enlace Figma','figmaLink'],['Estado de la solución','solutionStatus'],['Relación con la solución','solutionRelation']
     ];
     downloadFilteredCsv(cols,'UX_Intelligence_resultados_filtrados.csv');
   }
@@ -11529,7 +11603,9 @@
     const cols=[
       ['Iniciativa','initiative'],['Producto','product'],['Funnel','funnel'],['Minifunnel','minifunnel'],['Componente','component'],
       ['Dispositivo','device'],['Insight / hallazgo','insight'],['Evidencia','evidence'],
-      ['Posible respuesta UX','recommendation'],['Impacto UX','impactUx'],['Origen','origin']
+      ['Posible respuesta UX','recommendation'],['Impacto UX','impactUx'],['Origen','origin'],
+      ['Sistema / plataforma','platformSystem'],['Dimensión principal','dimensionPrimary'],['Dimensión secundaria','dimensionSecondary'],
+      ['ID solución UX','solutionId'],['Solución UX propuesta','uxSolution'],['Fundamento de la propuesta UX','solutionRationale'],['Enlace Figma','figmaLink'],['Estado de la solución','solutionStatus'],['Relación con la solución','solutionRelation']
     ];
     downloadFilteredCsv(
       cols,
@@ -11544,7 +11620,7 @@
     const root=document.getElementById('uxs-ux-line'),menu=document.getElementById('uxs-ux-line-menu'),trigger=document.getElementById('uxs-ux-line-trigger');
     if(!root||!menu||!trigger)return;
     const options=filterOptions('uxLine'),selected=Array.isArray(filters.uxLine)?filters.uxLine:[];
-    menu.innerHTML=options.length?options.map(value=>{const checked=selected.some(item=>norm(item)===norm(value));return `<label class="ux-line-option" role="option" aria-selected="${checked}"><input type="checkbox" value="${escapeHtml(value)}" ${checked?'checked':''}><span>${escapeHtml(value)}</span></label>`;}).join(''):'<p class="ux-line-empty">Sin dimensiones UX disponibles</p>';
+    menu.innerHTML=options.length?options.map(value=>{const checked=selected.some(item=>norm(item)===norm(value));return `<label class="ux-line-option" role="option" aria-selected="${checked}"><input type="checkbox" value="${escapeHtml(value)}" ${checked?'checked':''}><span>${escapeHtml(value)}</span></label>`;}).join(''):'<p class="ux-line-empty">Sin dimensiones disponibles</p>';
     const value=trigger.querySelector('.ux-line-trigger-value');
     if(value)value.textContent=!selected.length?'Todos':selected.length===1?selected[0]:`${selected[0]} +${selected.length-1}`;
   }
