@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-build="2026-10-26-v6-165-public-taxonomy-canonical">
+<html lang="es" data-build="2026-10-26-v6-166-public-taxonomy-renderer">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -5352,6 +5352,39 @@
 }
 </style>
 
+
+<style id="ux-public-taxonomy-renderer-css">
+#taxonomy .taxonomy-layout{display:grid!important;grid-template-columns:minmax(300px,360px) minmax(0,1fr)!important;gap:16px!important;align-items:start!important;margin-top:16px!important}
+#taxonomy .taxonomy-tree,#taxonomy .taxonomy-detail{min-height:180px!important;border:1px solid var(--border-secondary)!important;border-radius:12px!important;background:#fff!important;box-shadow:var(--shadow-xs)!important}
+#taxonomy .taxonomy-tree{padding:8px!important;overflow:auto!important}
+#taxonomy .taxonomy-detail{padding:24px!important}
+.ux-public-taxonomy-row{width:100%;display:flex;align-items:center;min-height:34px;padding:6px 9px;border:0;border-radius:7px;background:transparent;color:var(--text-primary);text-align:left;cursor:pointer;font-size:12px;line-height:1.35}
+.ux-public-taxonomy-row:hover{background:#f6f8fb}
+.ux-public-taxonomy-row.is-active{background:#eef4ff;color:#175cd3;font-weight:700}
+.ux-public-taxonomy-row[data-level="product"]{font-weight:760;font-size:12.5px}
+.ux-public-taxonomy-row[data-level="funnel"]{font-weight:700}
+.ux-public-taxonomy-row[data-level="minifunnel"]{font-weight:650}
+.ux-public-taxonomy-kicker{color:#175cd3;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.ux-public-taxonomy-titleline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 20px}
+.ux-public-taxonomy-titleline h2{margin:0;font-size:24px;line-height:1.2;letter-spacing:-.025em}
+.ux-public-taxonomy-badge{display:inline-flex;align-items:center;min-height:22px;padding:2px 8px;border-radius:999px;background:#f2f4f7;color:#475467;font-size:10px;font-weight:700}
+.ux-public-taxonomy-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;margin:0 0 18px;padding-bottom:18px;border-bottom:1px solid var(--border-secondary)}
+.ux-public-taxonomy-meta>div{padding:12px 0;border-bottom:1px solid #f2f4f7}
+.ux-public-taxonomy-meta span{display:block;color:var(--text-muted);font-size:10px;margin-bottom:4px}
+.ux-public-taxonomy-meta strong{display:block;font-size:12px;font-weight:650;overflow-wrap:anywhere}
+.ux-public-taxonomy-section{padding-top:4px}
+.ux-public-taxonomy-section h3{margin:0 0 6px;font-size:12px}
+.ux-public-taxonomy-section p{margin:0;color:var(--text-secondary);font-size:12px;line-height:1.55}
+.ux-public-taxonomy-usage{margin-top:16px;padding:12px 14px;border:1px solid var(--border-secondary);border-radius:9px;background:#fafafa;color:var(--text-secondary);font-size:11px}
+.ux-public-vocab-grid,.ux-public-glossary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+.ux-public-vocab-card,.ux-public-glossary-card{padding:16px;border:1px solid var(--border-secondary);border-radius:10px;background:#fff;box-shadow:var(--shadow-xs)}
+.ux-public-vocab-card h3,.ux-public-glossary-card h3{margin:0 0 10px;font-size:13px}
+.ux-public-vocab-tags{display:flex;flex-wrap:wrap;gap:6px}
+.ux-public-vocab-tags span{display:inline-flex;align-items:center;padding:4px 8px;border:1px solid var(--border-secondary);border-radius:999px;background:#fafafa;font-size:10px;color:var(--text-secondary)}
+.ux-public-glossary-card .ux-public-glossary-cat{display:block;color:#175cd3;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.ux-public-glossary-card p{margin:0;color:var(--text-secondary);font-size:11px;line-height:1.5}
+@media(max-width:900px){#taxonomy .taxonomy-layout{grid-template-columns:minmax(0,1fr)!important}.ux-public-taxonomy-meta,.ux-public-vocab-grid,.ux-public-glossary-grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
   <div class="app-shell">
@@ -16755,6 +16788,139 @@
   function init(){[200,700,1500,2800].forEach(ms=>setTimeout(apply,ms));}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
   window.addEventListener('load',()=>setTimeout(apply,1000),{once:true});
+})();
+</script>
+
+<script id="ux-public-taxonomy-renderer">
+(function(){
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  const raw=[
+    ['product-home','product','Home','',[]],
+    ['component-home-header','component','Header','product-home',[]],
+    ['component-home-buscador','component','Buscador','product-home',[]],
+    ['component-home-banner-promocional','component','Banner promocional','product-home',[]],
+    ['component-home-avisos','component','Avisos','product-home',[]],
+    ['component-home-accesos-rapidos','component','Accesos rápidos','product-home',['Accesos rapidos']],
+    ['component-home-calendario','component','Calendario','product-home',[]],
+    ['component-home-hero-contenido-comercial','component','Hero / contenido comercial','product-home',['Hero','Contenido comercial']],
+    ['component-home-claim','component','Claim','product-home',['H1 principal','Claim principal']],
+    ['product-booking','product','Booking','',[]],
+    ['funnel-booking-availability','funnel','Availability','product-booking',[]],
+    ['component-availability-fare-families','component','Fare Families','funnel-booking-availability',[]],
+    ['component-availability-upsell-panel','component','Upsell Panel','funnel-booking-availability',[]],
+    ['funnel-booking-shopping-cart','funnel','Shopping Cart','product-booking',[]],
+    ['component-shopping-cart-slider-millas','component','Slider de Millas','funnel-booking-shopping-cart',[]],
+    ['component-shopping-cart-footer','component','Footer','funnel-booking-shopping-cart',['Footer Millas','Footer de Millas']],
+    ['funnel-booking-passengers','funnel','Passengers','product-booking',[]],
+    ['component-passengers-card-confirmacion-suma','component','Card confirmación pasajero SUMA','funnel-booking-passengers',['Card confirmacion pasajero SUMA']],
+    ['component-passengers-card-datos','component','Card Datos del pasajero','funnel-booking-passengers',[]],
+    ['component-passengers-card-suma','component','Card pasajero SUMA','funnel-booking-passengers',[]],
+    ['funnel-booking-extras','funnel','Extras','product-booking',[]],
+    ['component-extras-cards','component','Cards de extras','funnel-booking-extras',[]],
+    ['component-extras-detalle-vuelo','component','Detalle del vuelo','funnel-booking-extras',[]],
+    ['component-extras-card-asiento','component','Card Asiento','funnel-booking-extras',[]],
+    ['component-extras-card-equipaje','component','Card Equipaje','funnel-booking-extras',[]],
+    ['component-extras-card-priority','component','Card Priority Boarding','funnel-booking-extras',[]],
+    ['component-extras-card-wifi','component','Card Wi-Fi','funnel-booking-extras',['Card Wifi']],
+    ['component-extras-card-menu','component','Card Menú a bordo','funnel-booking-extras',['Card Menu a bordo']],
+    ['component-extras-card-mascotas','component','Card Mascotas','funnel-booking-extras',[]],
+    ['minifunnel-extras-asientos','minifunnel','Asientos','funnel-booking-extras',[]],
+    ['component-asientos-selector','component','Selector por pasajero','minifunnel-extras-asientos',['Selección por pasajero','Seleccion por pasajero']],
+    ['minifunnel-extras-equipaje','minifunnel','Equipaje','funnel-booking-extras',[]],
+    ['component-equipaje-selector','component','Selector por pasajero','minifunnel-extras-equipaje',['Selección por pasajero','Seleccion por pasajero']],
+    ['minifunnel-extras-priority','minifunnel','Priority Boarding','funnel-booking-extras',[]],
+    ['component-priority-selector','component','Selector por pasajero','minifunnel-extras-priority',['Selección por pasajero','Seleccion por pasajero']],
+    ['minifunnel-extras-wifi','minifunnel','Wi-Fi','funnel-booking-extras',['Wifi']],
+    ['component-wifi-selector','component','Selector por pasajero','minifunnel-extras-wifi',['Selección por pasajero','Seleccion por pasajero']],
+    ['minifunnel-extras-menu','minifunnel','Menú a bordo','funnel-booking-extras',['Menu a bordo']],
+    ['component-menu-selector','component','Selector por pasajero','minifunnel-extras-menu',['Selección por pasajero','Seleccion por pasajero']],
+    ['minifunnel-extras-mascotas','minifunnel','Mascotas','funnel-booking-extras',['Mascota','Pets']],
+    ['component-mascotas-selector','component','Selector por pasajero','minifunnel-extras-mascotas',['Selección por pasajero','Seleccion por pasajero']],
+    ['minifunnel-extras-equipaje-deportivo','minifunnel','Equipaje deportivo','funnel-booking-extras',['Equipajes deportivos']],
+    ['component-equipaje-deportivo-selector','component','Selector por pasajero','minifunnel-extras-equipaje-deportivo',['Selección por pasajero','Seleccion por pasajero']],
+    ['funnel-booking-payment','funnel','Payment','product-booking',[]],
+    ['funnel-booking-transversal','funnel','Transversal','product-booking',[]],
+    ['component-transversal-login','component','Login / autenticación','funnel-booking-transversal',['Login','Autenticación','Login / autenticacion']]
+  ];
+  const T=raw.map(([id,level,name,parentId,aliases])=>({id,level,name,parentId,aliases}));
+  const byId=new Map(T.map(t=>[t.id,t]));
+  const children=new Map();
+  T.forEach(t=>{const p=t.parentId||'';if(!children.has(p))children.set(p,[]);children.get(p).push(t)});
+  const labels={product:'Producto',funnel:'Funnel',minifunnel:'Minifunnel',component:'Componente'};
+  let selected='product-home';
+
+  function chain(term){const out=[];let t=term;while(t){out.unshift(t);t=t.parentId?byId.get(t.parentId):null}return out}
+  function usage(term){
+    try{
+      const ctx={};chain(term).forEach(t=>ctx[t.level]=t.name);
+      const rows=typeof publicDemoRows!=='undefined'&&Array.isArray(publicDemoRows)?publicDemoRows:[];
+      return rows.filter(r=>{
+        if(ctx.product&&norm(r.product)!==norm(ctx.product))return false;
+        if(ctx.funnel&&norm(r.funnel)!==norm(ctx.funnel))return false;
+        if(ctx.minifunnel&&norm(r.minifunnel)!==norm(ctx.minifunnel))return false;
+        if(ctx.component){
+          const values=[r.component,...(Array.isArray(r.components)?r.components:[])].filter(Boolean);
+          if(!values.some(v=>norm(v)===norm(ctx.component)))return false
+        }
+        return true
+      }).length
+    }catch(_){return 0}
+  }
+  function renderTree(){
+    const root=document.getElementById('taxonomy-tree');if(!root)return;
+    let html='';
+    const walk=(parent,depth)=>{
+      (children.get(parent)||[]).forEach(t=>{
+        html+='<button type="button" class="ux-public-taxonomy-row'+(selected===t.id?' is-active':'')+'" data-public-taxonomy-id="'+esc(t.id)+'" data-level="'+esc(t.level)+'" style="padding-left:'+(9+depth*16)+'px">'+esc(t.name)+'</button>';
+        walk(t.id,depth+1)
+      })
+    };
+    walk('',0);root.innerHTML=html
+  }
+  function renderDetail(){
+    const detail=document.getElementById('taxonomy-detail');if(!detail)return;
+    const t=byId.get(selected)||T[0], parent=t.parentId?byId.get(t.parentId):null, aliases=(t.aliases||[]).filter(Boolean), count=usage(t);
+    detail.innerHTML=
+      '<div class="ux-public-taxonomy-kicker">'+esc(labels[t.level]||t.level)+'</div>'+
+      '<div class="ux-public-taxonomy-titleline"><h2>'+esc(t.name)+'</h2><span class="ux-public-taxonomy-badge">Canónico</span></div>'+
+      '<div class="ux-public-taxonomy-meta">'+
+        '<div><span>Nivel</span><strong>'+esc(labels[t.level]||t.level)+'</strong></div>'+
+        '<div><span>Depende de</span><strong>'+(parent?esc(parent.name):'Raíz')+'</strong></div>'+
+        '<div><span>Origen</span><strong>UX Intel</strong></div>'+
+        '<div><span>ID estable</span><strong>'+esc(t.id)+'</strong></div>'+
+      '</div>'+
+      '<div class="ux-public-taxonomy-section"><h3>Alias</h3><p>'+(aliases.length?aliases.map(esc).join(' · '):'No tiene alias.')+'</p></div>'+
+      '<div class="ux-public-taxonomy-usage"><strong>Uso actual</strong><br>'+(count?esc(count)+' registros estructurados coinciden con este contexto.':'No hay referencias actuales por coincidencia canónica fiable.')+'</div>'
+  }
+  function renderProduct(){renderTree();renderDetail()}
+  function renderVocabs(){
+    const root=document.getElementById('taxonomy-controlled');if(!root)return;
+    let data={};try{data=(typeof publicTaxonomyState!=='undefined'&&publicTaxonomyState.controlledVocabularies)||{}}catch(_){}
+    root.innerHTML='<div class="ux-public-vocab-grid">'+Object.entries(data).map(([g,vals])=>'<article class="ux-public-vocab-card"><h3>'+esc(g)+'</h3><div class="ux-public-vocab-tags">'+(vals||[]).map(v=>'<span>'+esc(v)+'</span>').join('')+'</div></article>').join('')+'</div>'
+  }
+  function renderGlossary(){
+    const panel=document.querySelector('[data-taxonomy-panel="glossary"]');if(!panel)return;
+    let root=panel.querySelector('.taxonomy-glossary')||panel.querySelector('#taxonomy-glossary');
+    if(!root){root=document.createElement('div');root.className='taxonomy-glossary';panel.appendChild(root)}
+    let items=[];try{items=(typeof publicTaxonomyState!=='undefined'&&publicTaxonomyState.glossaryTerms)||[]}catch(_){}
+    root.innerHTML='<div class="ux-public-glossary-grid">'+items.map(item=>'<article class="ux-public-glossary-card"><span class="ux-public-glossary-cat">'+esc(item.category||'Glosario')+'</span><h3>'+esc(item.term||item.name||'')+'</h3><p>'+esc(item.definition||'')+'</p></article>').join('')+'</div>'
+  }
+  function activate(view){
+    document.querySelectorAll('#taxonomy [data-taxonomy-view]').forEach(b=>{const on=b.dataset.taxonomyView===view;b.classList.toggle('active',on);b.setAttribute('aria-selected',on?'true':'false')});
+    document.querySelectorAll('#taxonomy [data-taxonomy-panel]').forEach(p=>{p.hidden=p.dataset.taxonomyPanel!==view});
+    if(view==='product')renderProduct();else if(view==='vocabularies')renderVocabs();else if(view==='glossary')renderGlossary()
+  }
+  function init(){
+    renderProduct();renderVocabs();renderGlossary();
+    document.addEventListener('click',e=>{
+      const row=e.target.closest('[data-public-taxonomy-id]');if(row){selected=row.dataset.publicTaxonomyId;renderProduct();return}
+      const tab=e.target.closest('#taxonomy [data-taxonomy-view]');if(tab){e.preventDefault();activate(tab.dataset.taxonomyView)}
+    });
+    [250,800,1600,3200].forEach(ms=>setTimeout(()=>{const p=document.getElementById('taxonomy-view-product');if(p&&!p.hidden)renderProduct()},ms))
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+  window.addEventListener('load',()=>setTimeout(init,500),{once:true})
 })();
 </script>
 </body>
