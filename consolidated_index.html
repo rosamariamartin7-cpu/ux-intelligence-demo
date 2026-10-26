@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-build="2026-10-26-v6-181-suma-initiative-only">
+<html lang="es" data-build="2026-10-26-v6-182-taxonomy-restored">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7213,6 +7213,7 @@ text:"Pedir o recuperar la identificación dentro del booking tiene sentido cuan
           if(typeof taxonomyProject!=="undefined"&&taxonomyProject){
             taxonomyProject.state=JSON.parse(JSON.stringify(publicTaxonomyState));
             if("revision" in taxonomyProject)taxonomyProject.revision="public-demo-v153";
+            taxonomyProject.ready=true;
           }
         }catch(_){}
       };
@@ -15388,7 +15389,7 @@ if(!source)return;
           level,
           canonicalName:name,
           name,
-          parentId:parent?termId(parent):'',
+          parentId:parent?termId(parent):null,
           status:'canonical',
           governed:true,
           aliases:[...aliases],
