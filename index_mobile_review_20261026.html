@@ -5128,7 +5128,7 @@
 
 <style id="ux-mobile-review-20261026">
 /* UX Intelligence · revisión responsive 2026-10-26
-   Ajustes acotados a mobile. Desktop permanece sin cambios. */
+   Capa final mobile: corrige conflictos de cascada sin alterar desktop. */
 
 @media (max-width:820px){
   .main,
@@ -5138,16 +5138,20 @@
     max-width:100%;
   }
 
-  /* El buscador global no debe heredar en mobile el ancho estrecho
-     disponible entre menú y acciones de ingesta. */
+  /* El buscador global necesita más ancho que el hueco que queda entre
+     menú y acciones de ingesta en un header de 320-430 px. */
   .global-search .search-popover{
     position:fixed;
+    z-index:50;
     top:calc(64px + env(safe-area-inset-top));
     right:max(12px,env(safe-area-inset-right));
     left:max(12px,env(safe-area-inset-left));
     width:auto;
     max-height:calc(100dvh - 88px - env(safe-area-inset-bottom));
     overflow:auto;
+  }
+  body.menu-open .global-search .search-popover{
+    display:none!important;
   }
   .search-result strong,
   .search-result span{
@@ -5156,7 +5160,57 @@
 }
 
 @media (max-width:700px){
-  /* Explorar: la acción queda siempre anclada a la derecha exista o no
+  /* Salvaguarda final de filtros: una columna y acciones a ancho completo. */
+  .primary-filters,
+  .primary-filters:has(.conditional-filter:not([hidden])),
+  .secondary-filters,
+  .ux-explore-primary,
+  .ux-explore-secondary,
+  #sources .primary-filters{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .filter-toolbar,
+  .ux-explore-toolbar{
+    align-items:stretch!important;
+    flex-direction:column!important;
+  }
+  .filter-toolbar .more-filter-button,
+  .filter-toolbar .secondary-button,
+  .filter-toolbar .action-button,
+  .ux-explore-toolbar .more-filter-button,
+  .ux-explore-toolbar #uxs-export,
+  .ux-explore-toolbar #uxs-export-cro{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    margin:0!important;
+  }
+
+  /* Tablas: el patrón mobile real es card, nunca una tabla desktop encogida. */
+  .table-shell{
+    overflow:visible!important;
+  }
+  .data-table{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+  }
+  .data-table thead{
+    display:none!important;
+  }
+  .data-table,
+  .data-table tbody,
+  .data-table tr,
+  .data-table td{
+    width:100%!important;
+  }
+  .data-table td{
+    max-width:100%!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere;
+  }
+
+  /* Explorar: "Ver detalle" queda anclado a la derecha exista o no
      la etiqueta "Diseño relacionado". */
   #explore .uxs-result-side{
     justify-content:flex-start!important;
@@ -5171,7 +5225,7 @@
     max-width:100%;
   }
 
-  /* Los filtros activos pueden contener valores largos sin ensanchar la página. */
+  /* Valores de filtros largos no deben ensanchar la página. */
   #explore .uxs-active-filters .uxs-filter-chip{
     max-width:100%;
     white-space:normal;
@@ -5186,7 +5240,7 @@
     max-width:100%!important;
   }
 
-  /* Solución relacionada: ID y título deben poder convivir sin overflow. */
+  /* Solución relacionada: título e ID deben reordenarse sin overflow. */
   .ux-solution-topline{
     align-items:flex-start;
     flex-wrap:wrap;
@@ -5201,7 +5255,14 @@
 }
 
 @media (max-width:390px){
-  /* En 320-390 px priorizamos lectura sobre mantener título e ID en la misma línea. */
+  /* En 320-390 px los labels de tabla pasan encima del valor. */
+  .data-table td,
+  #learnings .learning-table td{
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:3px!important;
+  }
+
+  /* En el drawer priorizamos lectura sobre mantener título e ID en línea. */
   .ux-solution-topline{
     flex-direction:column;
     gap:8px;
