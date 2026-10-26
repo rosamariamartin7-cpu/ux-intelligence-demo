@@ -12412,14 +12412,58 @@
     try{return taxonomyControlledValues(label);}catch(_){return [];}
   }
 
+  function journeyRecordValueMatches(record,field,value){
+    const target=norm(value||'');
+    if(!target)return true;
+    if(field==='component')return recordComponentNames(record).some(name=>norm(name)===target);
+    return norm(record?.[field]||'')===target;
+  }
+
+  function recordMatchesJourneyParents(record,field){
+    const product=filters.product||'';
+    const funnel=filters.funnel||'';
+    const minifunnel=filters.minifunnel||'';
+
+    if(field!=='product'&&product&&!journeyRecordValueMatches(record,'product',product))return false;
+    if(!['product','funnel'].includes(field)&&funnel&&!journeyRecordValueMatches(record,'funnel',funnel))return false;
+
+    if(field==='component'){
+      if(minifunnel){
+        if(!journeyRecordValueMatches(record,'minifunnel',minifunnel))return false;
+      }else if(funnel){
+        // Sin minifunnel seleccionado, el componente pertenece directamente al funnel.
+        // No mezclamos aquí componentes internos de los minifunnels.
+        if(clean(record?.minifunnel))return false;
+      }
+    }
+    return true;
+  }
+
+  function observedJourneyValues(field){
+    const values=[];
+    records.forEach(record=>{
+      if(!recordMatchesJourneyParents(record,field))return;
+      if(field==='component'){
+        recordComponentNames(record).forEach(value=>{if(value)values.push(value);});
+      }else{
+        const value=clean(record?.[field]);
+        if(value)values.push(value);
+      }
+    });
+    return dedupe(values);
+  }
+
   function filterOptions(field){
     const fromData=unique(field);
     if(field==='funnel'&&norm(filters.product||'')==='home')return [];
     if(field==='minifunnel'&&!norm(filters.funnel||''))return [];
     if(journeyLevels.has(field)){
-      // Nunca convertir valores observados en datos/Excel en vocabulario canónico.
-      // Si el canon no está disponible todavía, el filtro espera al canon.
-      return dedupe(taxonomyValues(field));
+      // Explorar usa solo términos canónicos, pero no muestra opciones sin resultados.
+      // La Taxonomía sigue siendo la fuente completa de verdad; aquí enseñamos únicamente
+      // los términos que tienen registros dentro del contexto jerárquico seleccionado.
+      const canonical=dedupe(taxonomyValues(field));
+      const observed=new Set(observedJourneyValues(field).map(norm));
+      return canonical.filter(value=>observed.has(norm(value)));
     }
     const governed=dedupe(controlledTaxonomyValues(field));
     if(governed.length)return governed;
