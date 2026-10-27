@@ -1,0 +1,1000 @@
+#explore .ux-explore-secondary{grid-template-columns:1fr;}
+  #explore .ux-explore-secondary .filter-span-full{grid-column:1;}
+}
+
+
+/* v6-133 · Semántica final de Impacto UX. Esta regla debe ganar en toda la app. */
+.status-badge.impact-high,
+#explore .uxs-result-impact.impact-high em{
+  color:#b42318 !important;
+  background:#fef3f2 !important;
+  border-color:#fecdca !important;
+}
+.status-badge.impact-medium,
+#explore .uxs-result-impact.impact-medium em{
+  color:#b54708 !important;
+  background:#fffaeb !important;
+  border-color:#fedf89 !important;
+}
+.status-badge.impact-low,
+#explore .uxs-result-impact.impact-low em{
+  color:#475467 !important;
+  background:#f2f4f7 !important;
+  border-color:#d0d5dd !important;
+}
+
+
+/* v6-134 · Home usa la misma semántica y la misma fuente de registros que Explorar */
+#overview .ux-impact-stack .is-high,
+#overview .ux-impact-legend i.is-high,
+#overview .ux-home-learning-impact.is-high i{background:#d92d20 !important;}
+#overview .ux-impact-stack .is-medium,
+#overview .ux-impact-legend i.is-medium,
+#overview .ux-home-learning-impact.is-medium i{background:#f79009 !important;}
+#overview .ux-impact-stack .is-low,
+#overview .ux-impact-legend i.is-low,
+#overview .ux-home-learning-impact.is-low i{background:#667085 !important;}
+
+
+/* v6-135 · Cobertura Home: solo productos canónicos; deuda de clasificación aparte */
+#overview .ux-home-coverage-quality-note{
+  margin:10px 2px 0;
+  color:var(--text-muted);
+  font-size:11px;
+  line-height:1.45;
+}
+#overview .ux-home-coverage-quality-note strong{
+  color:var(--text-secondary);
+  font-weight:700;
+}
+
+
+/* v6-140 · Contexto legible en cobertura */
+#overview .ux-coverage-context-label{
+  color:var(--text-secondary);
+  font-weight:650;
+}
+#overview .ux-coverage-list-icon svg{
+  width:22px;
+  height:22px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+#overview .ux-coverage-list-icon svg path{
+  fill:currentColor;
+  stroke:none;
+}
+
+
+/* v6-143 · Contexto destacado en Learnings */
+#learnings .learning-context-meta{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  max-width:100%;
+  margin-top:7px;
+  padding:3px 8px;
+  border:1px solid #d6e4ff;
+  border-radius:999px;
+  background:#f4f7ff;
+  color:#175cd3;
+  font-size:11px;
+  line-height:16px;
+  font-weight:650;
+  white-space:normal;
+}
+
+
+/* v6-145 · Consistencia de jerarquía y vocabularios */
+.ux-taxonomy-canonical-path small{
+  font:inherit;
+  color:var(--text-muted);
+  font-weight:500;
+}
+#learnings .secondary-filters,
+#sources .secondary-filters{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+@media(max-width:900px){
+  #learnings .secondary-filters,
+  #sources .secondary-filters{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:640px){
+  #learnings .secondary-filters,
+  #sources .secondary-filters{grid-template-columns:1fr;}
+}
+
+
+/* v6-146 · Iconos oficiales del UI Kit de Air Europa */
+#overview .ux-coverage-list-icon .ux-coverage-official-icon{
+  display:block;
+  width:24px;
+  height:24px;
+  object-fit:contain;
+}
+
+</style>
+  <link rel="stylesheet" href="review-clarity.css">
+  <link rel="stylesheet" href="review-workspace.css">
+  <link rel="stylesheet" href="pagination.css">
+  <link rel="stylesheet" href="home-composition.css">
+  <link rel="stylesheet" href="taxonomy.css">
+  <link rel="stylesheet" href="knowledge-workspace.css">
+
+
+
+<style id="ux-mobile-review-20261026">
+/* UX Intelligence · revisión responsive 2026-10-26
+   Capa final mobile: corrige conflictos de cascada sin alterar desktop. */
+
+@media (max-width:820px){
+  .main,
+  .content,
+  .panel{
+    min-width:0;
+    max-width:100%;
+  }
+
+  /* El buscador global necesita más ancho que el hueco que queda entre
+     menú y acciones de ingesta en un header de 320-430 px. */
+  .global-search .search-popover{
+    position:fixed;
+    z-index:50;
+    top:calc(64px + env(safe-area-inset-top));
+    right:max(12px,env(safe-area-inset-right));
+    left:max(12px,env(safe-area-inset-left));
+    width:auto;
+    max-height:calc(100dvh - 88px - env(safe-area-inset-bottom));
+    overflow:auto;
+  }
+  body.menu-open .global-search .search-popover{
+    display:none!important;
+  }
+  .search-result strong,
+  .search-result span{
+    overflow-wrap:anywhere;
+  }
+}
+
+@media (max-width:700px){
+  /* Salvaguarda final de filtros: una columna y acciones a ancho completo. */
+  .primary-filters,
+  .primary-filters:has(.conditional-filter:not([hidden])),
+  .secondary-filters,
+  .ux-explore-primary,
+  .ux-explore-secondary,
+  #sources .primary-filters{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .filter-toolbar,
+  .ux-explore-toolbar{
+    align-items:stretch!important;
+    flex-direction:column!important;
+  }
+  .filter-toolbar .more-filter-button,
+  .filter-toolbar .secondary-button,
+  .filter-toolbar .action-button,
+  .ux-explore-toolbar .more-filter-button,
+  .ux-explore-toolbar #uxs-export,
+  .ux-explore-toolbar #uxs-export-cro{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    margin:0!important;
+  }
+
+  /* Tablas: el patrón mobile real es card, nunca una tabla desktop encogida. */
+  .table-shell{
+    overflow:visible!important;
+  }
+  .data-table{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+  }
+  .data-table thead{
+    display:none!important;
+  }
+  .data-table,
+  .data-table tbody,
+  .data-table tr,
+  .data-table td{
+    width:100%!important;
+  }
+  .data-table td{
+    max-width:100%!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere;
+  }
+
+  /* Explorar: "Ver detalle" queda anclado a la derecha exista o no
+     la etiqueta "Diseño relacionado". */
+  #explore .uxs-result-side{
+    justify-content:flex-start!important;
+  }
+  #explore .uxs-result-side .view-link{
+    flex:0 0 auto;
+    margin-left:auto!important;
+  }
+  #explore .uxs-result-side .uxs-solution-badge,
+  #explore .uxs-result-side .uxs-duplicate{
+    flex:0 1 auto;
+    max-width:100%;
+  }
+
+  /* Valores de filtros largos no deben ensanchar la página. */
+  #explore .uxs-active-filters .uxs-filter-chip{
+    max-width:100%;
+    white-space:normal;
+    text-align:left;
+    overflow-wrap:anywhere;
+  }
+
+  /* Una regla posterior imponía 420 px y anulaba la card mobile de Learnings. */
+  #learnings .learning-table td[data-label="Learning"]{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+  }
+
+  /* Solución relacionada: título e ID deben reordenarse sin overflow. */
+  .ux-solution-topline{
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+  .ux-solution-topline h3{
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+  .ux-solution-id{
+    max-width:100%;
+  }
+}
+
+@media (max-width:390px){
+  /* En 320-390 px los labels de tabla pasan encima del valor. */
+  .data-table td,
+  #learnings .learning-table td{
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:3px!important;
+  }
+
+  /* En el drawer priorizamos lectura sobre mantener título e ID en línea. */
+  .ux-solution-topline{
+    flex-direction:column;
+    gap:8px;
+  }
+  #explore .uxs-result-side .uxs-solution-badge,
+  #explore .uxs-result-side .uxs-duplicate{
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+}
+</style>
+
+
+<style id="ux-coverage-initiative-v6179">
+#overview .ux-home-coverage-v32 .ux-coverage-list-row.is-initiative .ux-coverage-list-icon{
+  color:var(--ae-brand-700);
+  background:var(--ae-brand-50);
+}
+</style>
+
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="primary-navigation" aria-label="Navegación principal">
+      <div class="brand">
+        <div class="brand-mark"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAAA0CAYAAAA3xE5OAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAARqADAAQAAAABAAAANAAAAADtN7O3AAAF+klEQVRoBdWbgXHbRhBFLU8KYAe5VGCmAsMVWB2IqkBMBaIrkFIB1YHkCsBUIKWCYyqQOlDeV3gUQNwBuwCpmezMn8Pt7f6/tziAFD0++3Rke319raCcgy+7ccYYQLItF8IT+Hl2drZhnGwFXWnLXhqQ7l/gCe0t4+mMombgGjwDr0USFmOqI68CN2CMLmmv96Aao92bA2kAa3AMi5CEXsHdInFqSA2OZWuI0umylFCOgegKjL1TpGYt4p2XVFk7dkOaRUg7lLQH/UoGNTilVc1CENKjenNKwR13nXTP0oVlJDkQp2SNVtOL7wH8s0vQkf0KiieDNeV84+X4hKbi7kEAQ7Yh4G+wBbIAvu9GBpNdontnilSQCgSeR6cmvioJsLYEfRZZtD6uK2LV8KyxpnWr7U9NlqzphFGPj7Upils080vXxHkKJrxjEU/fydtLE3fbyS47wj6xdEGumhLLHK0VxQ2T7sSInbWyfZNHp5ZOvNUWpX7s/TBFI5viwj7ReEGO8rwWSTil1upzX/2I37BuKWBLnF6WGr22dSakF7M3TzLWnFmxMTRlAdESWGxsU8RdfGkWhH+MvAEFurw725jdMb3Op3S8f0wsNHQYy44HtG7Ly0db0ansGo1ZA4utu9l2DwJ6sXss2Nm7kQhZP1mrTjbJnmJDh8DhQGvh6MrUm2D9VHrWFnKPkl64Frub+AhJ46tFaBfzwxGbC61yzozvoePj7lWOOxg6BE4HWtGoN+m0qCyjluoJnW3gvAcWO0ahnptQdYp1ONjQtWVTxCw6tDiDMVlhVYfA6YBjLSKDRSd1Kxz+C4OGQlatxDRhYa1Vg00qtKFn/YQYfTrZy4VhPwrJN0XFshgVYbDRhTaacm7QSSHnKc8zknydCHpG3ZxFkZdFz/M+qtCmOHprYLVZM3foGlL9Ybo2kD8SE3r5jERJq5+sV+m/RYhiIhsYHw10+xC49J7UhvtMp2S1T+q7IHCILAm9ffnp4xpag8hzOrvfKQoC8F4AbbrPahZDgaLl/kygjuq85S1PnspL5hWrlggH9VQ/0JfSOzADOXvBqb/pvlm/lP5CQpVjKvj0e+pU++4g6G0MDang0odBACXbsHBpbUgi0Z8E8zQxjOr8VDuK3u6U1BQTCgWpVtcpafLoxHxpOgautwPrvcs69gQIVtPmWgZHwHEP5q2F9mTD1H1KmhRqzKRCm2SG677N5NI7jSFIj06JR/FqyEOOzOPToxQcCblCHekurU/O98KfFPLbMZqiDXlPjKcJudiQc070bcm/pCGbiTytdJ2YWcvz/5rolPx+7KaoBWqMxz60ibsXba6+Lc5vNGQJpj7eOf63Rym7UHB+aGMKNeiUbE7VkKSpE+PpeEiJHzTOD3VoiP6lwFPzIYVp7m3MrybWcpB3Q7My1fQVHlX9QB5zj6z3HVNNLMfbmPlEvWI6zbhi8REEoO9GbSPgHngstBnsM0R0hzwW7ey2SMRLv9csWwwE3nkqJXbVIjBOyNPPDTXwWmWUGAxDWL/XxEIB+sni/dFlsiwEltzPgxU0AiQGbkpkBv9tg270JTpXQJsv2apFTpTnh6NE2j52Lcb3CcEL0FdM4usblR/eWX1XygU16LNVh5Vo3VFv8b3Fwmcppq/Qw7W6U/iAAwLt6xoM7a3blMRNcg28Fkk4TxwamadivFyW+JumVum6UcNQQ7S+KPG8+QlYWiorxET8NXgEFosEVWCo8ByXchcgNDek+c6/ZrTwRuLmTY7sNUFjHifS3BbJeNsU48qd3U5QA2LbZZrVRL3VkG3GoZPgqYUOVXVHwCzp6hpE8JF2m/TNI9WdqlDd2WWuEPx6BCxHn7BJFsmucjWYfCSrUJEcy2qIQp8463Nwyubcw78/qX219K5pIyCCKVY8JTlxhNScOEUwkyu+Kqc32gehmlMDr6khK+C+Q+RI8w5MtRqCxejNWxIlACQ0ZDUBS+BuyGEdcKhB4noEVlPsLagO+cbOzyyJCGrD8x3S5rfMBf0XuhfGo1tDN0AuJJOe8AS2p9D/Fwi+wTyBnbEWAAAAAElFTkSuQmCC" alt="Air Europa"></div>
+        <div class="brand-copy"><strong>UX Intel</strong><span>Air Europa</span></div>
+      </div>
+      <nav class="nav-section" aria-label="Secciones de UX Intel">
+        <div class="nav-group-label">Trabajar</div>
+        <button class="nav-button active" type="button" aria-current="page" data-panel="overview"><span class="nav-icon"><img src="assets/icons/bar-chart-square-02.svg" alt=""></span>Resumen</button>
+        <button class="nav-button" type="button" data-panel="explore"><span class="nav-icon"><img src="assets/icons/rows-01.svg" alt=""></span>Explorar</button>
+        <button class="nav-button" type="button" data-panel="learnings"><span class="nav-icon"><img src="assets/icons/check-done-01.svg" alt=""></span>Learnings<span class="nav-count">0</span></button>
+        <hr class="nav-divider">
+        <div class="nav-group-label">Gestionar</div>
+        <button class="nav-button" type="button" data-panel="sources"><span class="nav-icon"><img src="assets/icons/folder.svg" alt=""></span>Documentos<span class="nav-count">0</span></button>
+        <button class="nav-button" type="button" data-panel="taxonomy"><span class="nav-icon"><img src="assets/icons/message-chat-circle.svg" alt=""></span>Taxonomía</button>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="user-row">
+        <div class="avatar">UX</div>
+        <div class="user-meta"><strong>Equipo Producto Digital</strong><span>Espacio interno</span></div>
+      </div>
+    </aside>
+    <button class="sidebar-backdrop" type="button" tabindex="-1" aria-hidden="true" aria-label="Cerrar menú"></button>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="mobile-menu" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="primary-navigation">☰</button>
+        <div class="breadcrumb">Air Europa / <strong id="breadcrumb-current">Resumen</strong></div>
+        <div class="global-search">
+          <label class="sr-only" for="global-search">Buscar en UX Intel</label>
+          <span class="search-icon" aria-hidden="true"></span>
+          <input id="global-search" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-popover" placeholder="Buscar learnings, registros o fuentes" autocomplete="off">
+          <button class="search-clear" type="button" aria-label="Limpiar búsqueda">×</button>
+          <div class="search-popover" id="search-popover" role="listbox" aria-label="Resultados de búsqueda"></div>
+        </div>
+        <span class="storage-save-status" id="storage-save-status" role="status" aria-live="polite" hidden>Cambios sin guardar</span>
+        <button class="secondary-button topbar-cta" id="add-document" type="button"><img class="button-icon" src="assets/icons/folder.svg" alt="">Añadir PDF</button>
+        <button class="action-button topbar-cta" id="add-evidence" type="button"><img class="button-icon" src="assets/icons/rows-01.svg" alt="">Subir Excel</button>
+        <input class="sr-only" id="document-upload" type="file" aria-label="Seleccionar PDF" accept=".pdf,application/pdf">
+        <input class="sr-only" id="insight-register-upload" type="file" aria-label="Seleccionar Excel revisado" accept=".xlsx,.csv,.tsv">
+      </header>
+
+      <div class="content">
+        <section class="panel active" id="overview" aria-labelledby="overview-title">
+          <div class="page-head compact-head simple-base-head">
+            <div>
+              <div class="eyebrow">Resumen</div>
+              <h1 id="overview-title">Diseña con lo que ya sabemos.</h1>
+              <p class="overview-intro-spacer" aria-hidden="true"></p>
+            </div>
+          </div>
+
+          <section class="overview-search" aria-labelledby="overview-search-title">
+            <label id="overview-search-title" for="overview-search-input">Consulta el conocimiento disponible</label>
+            <div class="overview-search-field">
+              <span class="search-icon" aria-hidden="true"></span>
+              <input id="overview-search-input" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="overview-search-results" placeholder="Busca por tema, journey, componente o fuente" autocomplete="off">
+              <button class="search-clear" type="button" aria-label="Limpiar búsqueda">×</button>
+            </div>
+            <div class="overview-search-results" id="overview-search-results" role="listbox" aria-label="Resultados contextuales"></div>
+          </section>
+
+          <section class="ux-base-summary" aria-label="Estado de UX Intelligence">
+            <button class="ux-base-stat is-learning" type="button" data-panel-jump="learnings">
+              <span class="ux-base-stat-icon" aria-hidden="true"><img src="assets/icons/check-done-01.svg" alt=""></span>
+              <span class="ux-base-stat-label">Qué sabemos</span><strong id="ux-base-learnings">—</strong><span>Learnings</span><small>Aprendizajes consolidados con contexto y trazabilidad</small>
+            </button>
+            <button class="ux-base-stat is-record" type="button" data-panel-jump="explore">
+              <span class="ux-base-stat-icon" aria-hidden="true"><img src="assets/icons/rows-01.svg" alt=""></span>
+              <span class="ux-base-stat-label">Conocimiento estructurado</span><strong id="ux-base-insights">—</strong><span>Registros revisados</span><small>Evidencias, hallazgos y decisiones disponibles para contraste</small>
+            </button>
+            <button class="ux-base-stat is-initiative" type="button" data-panel-jump="explore">
+              <span class="ux-base-stat-icon" aria-hidden="true"><img src="assets/icons/bar-chart-square-02.svg" alt=""></span>
+              <span class="ux-base-stat-label">Trabajo activo</span><strong id="ux-base-initiatives">—</strong><span>Iniciativas</span><small>Líneas de trabajo que incorporan o refuerzan conocimiento</small>
+            </button>
+            <button class="ux-base-stat is-library" type="button" data-panel-jump="sources">
+              <span class="ux-base-stat-icon" aria-hidden="true"><img src="assets/icons/folder.svg" alt=""></span>
+              <span class="ux-base-stat-label">Biblioteca</span><strong id="ux-base-documents">—</strong><span>Documentos</span><small id="ux-base-document-split">—</small>
+            </button>
+          </section>
+
+          <section class="ux-dashboard-primary ux-dashboard-primary-v31 ux-dashboard-primary-v32" aria-label="Conocimiento prioritario">
+            <div class="ux-home-main-column-v31 ux-home-main-column-v32">
+              <section class="ux-home-panel ux-home-impact ux-home-impact-v31" id="ux-home-impact-panel" aria-labelledby="ux-home-impact-title">
+                <header class="ux-home-panel-head"><div><h2 id="ux-home-impact-title">Impacto UX</h2><p>Distribución del conocimiento estructurado según la consecuencia que puede tener sobre la experiencia y el journey.</p></div></header>
+                <div id="ux-home-impact-content"></div>
+              </section>
+
+              <section class="ux-home-panel ux-home-coverage-panel ux-home-coverage-v31 ux-home-coverage-v32" aria-labelledby="ux-home-coverage-title">
+                <header class="ux-home-panel-head"><div><h2 id="ux-home-coverage-title">Cobertura del conocimiento</h2><p>Muestra dónde se concentra el conocimiento y qué fuentes lo sustentan. El volumen describe cobertura, no nivel de validación.</p></div></header>
+                <div id="ux-home-coverage-list"></div>
+              </section>
+
+              <section class="ux-home-panel ux-home-learnings-panel ux-home-learnings-v31" aria-labelledby="ux-home-learnings-title">
+                <header class="ux-home-panel-head"><div><h2 id="ux-home-learnings-title">Conocimiento consolidado</h2><p>Síntesis revisadas de lo que sabemos, con evidencia, contexto, límites y aplicaciones reutilizables.</p></div><button class="text-button no-wrap" type="button" data-panel-jump="learnings">Ver todos</button></header>
+                <div id="ux-home-learning-list"></div>
+              </section>
+
+            </div>
+
+            <aside class="ux-home-side-column-v31 ux-home-side-column-v32" aria-label="Preguntas abiertas y cobertura">
+              <section class="ux-home-panel ux-home-gaps-panel" aria-labelledby="ux-home-gaps-title">
+                <header class="ux-home-panel-head"><div><h2 id="ux-home-gaps-title">Qué nos falta saber</h2><p>Incertidumbres aún abiertas dentro de learnings consolidados para orientar research, análisis o experimentación.</p></div><button class="text-button no-wrap" type="button" data-home-all-questions>Ver prioritarias</button></header>
+                <div id="ux-home-gaps-list"></div>
+              </section>
+
+              <section class="ux-home-panel ux-home-recent ux-home-recent-v31 ux-home-recent-v32 ux-home-recent-side" aria-labelledby="ux-home-recent-title">
+                <header class="ux-home-panel-head"><div><h2 id="ux-home-recent-title">Últimas incorporaciones</h2><p>Nuevas fuentes incorporadas a la base, disponibles para consulta y trazabilidad.</p></div><button class="text-button no-wrap" type="button" data-panel-jump="sources">Ver documentos</button></header>
+                <div id="ux-home-recent-list"></div>
+              </section>
+
+            </aside>
+          </section>
+
+        </section>
+
+        <section class="panel" id="explore" aria-labelledby="explore-title">
+          <div class="page-head compact-head ux-explore-simple-head">
+            <div>
+              <div class="eyebrow">Explorar</div>
+              <h1 id="explore-title">Explora el conocimiento por contexto.</h1>
+              <p class="two-line-subtitle"><span>Consulta registros revisados y acota por journey, componente, dispositivo, mercado, tipo de análisis o dimensión.</span><span>Combina filtros para comparar evidencia y recuperar conocimiento sin perder su contexto.</span></p>
+            </div>
+          </div>
+
+          <section class="ux-explore-controls" aria-label="Filtros de conocimiento">
+            <div class="ux-explore-initiative-filter">
+              <label>Iniciativa<select id="uxs-initiative"></select></label>
+              <span class="ux-explore-initiative-note">Contexto de trabajo que originó el registro; no forma parte de la jerarquía de producto.</span>
+            </div>
+            <div class="ux-explore-primary">
+              <label>Producto<select id="uxs-product"></select></label>
+              <label>Funnel<select id="uxs-funnel"></select></label>
+              <label>Minifunnel<select id="uxs-minifunnel"></select></label>
+              <label>Componente<select id="uxs-component"></select></label></div>
+
+            <div class="ux-explore-secondary" id="uxs-secondary" hidden>
+              <label>Ordenar por<select id="uxs-sort" data-filter-sort><option value="newest">Más recientes</option><option value="oldest">Más antiguos</option></select></label>
+              <label>Incorporado desde<input class="filter-date-input" id="uxs-included-from" type="date"></label>
+              <label>Incorporado hasta<input class="filter-date-input" id="uxs-included-to" type="date"></label>
+              <label>Dispositivo<select id="uxs-device"></select></label>
+              <label>Mercado<select id="uxs-market"></select></label>
+              <label>Región<select id="uxs-region"></select></label>
+              <label>Tipo de análisis<select id="uxs-origin"></select></label>
+              <label>Tipo de registro<select id="uxs-type"></select></label>
+              <label>Impacto UX<select id="uxs-impact"></select></label>
+              <div class="filter-span-full ux-line-filter-field">
+                <span class="ux-line-filter-label">Dimensión UX</span>
+                <div class="ux-line-multiselect" id="uxs-ux-line" data-ux-line-multiselect>
+                  <button class="ux-line-trigger" id="uxs-ux-line-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="uxs-ux-line-menu"><span class="ux-line-trigger-value">Todos</span><span class="ds-select-chevron" aria-hidden="true"></span></button>
+                  <div class="ux-line-menu" id="uxs-ux-line-menu" role="listbox" aria-multiselectable="true" hidden></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="filter-toolbar ux-explore-toolbar">
+              <button class="more-filter-button" type="button" id="uxs-more-filters" aria-expanded="false" aria-controls="uxs-secondary">Más filtros</button>
+              <button class="secondary-button" type="button" id="uxs-export">Descargar base completa (CSV)</button>
+              <button class="action-button" type="button" id="uxs-export-cro">Exportar CRO (XLSX)</button>
+            </div>
+
+            <div class="uxs-active-filters" id="uxs-active-filters" hidden></div>
+          </section>
+
+          <section class="ux-explore-results" aria-labelledby="uxs-results-title">
+            <div class="ux-explore-results-head">
+              <div>
+                <h2 id="uxs-results-title">Resultados</h2>
+                <p id="uxs-result-context">Registros revisados disponibles para consulta, contraste y reutilización.</p>
+              </div>
+              <strong id="uxs-result-count">0 resultados</strong>
+            </div>
+            <div id="uxs-results-list"></div>
+            <div id="uxs-pagination"></div>
+          </section>
+        </section>
+
+        <section class="panel" id="learnings" aria-labelledby="learnings-title">
+          <div class="page-head compact-head"><div><div class="eyebrow">Learnings</div><h1 id="learnings-title">Explora el conocimiento consolidado.</h1><p class="two-line-subtitle"><span>Síntesis de aprendizajes sustentados por evidencia, iteraciones y resultados.</span><span>Cada learning conserva contexto, límites, contradicciones y posibles aplicaciones futuras.</span></p></div></div>
+          <div class="filter-system" data-filter-group="learning">
+            <div class="ux-explore-initiative-filter">
+              <label class="filter-field">Iniciativa<select class="filter-select" id="learning-initiative"></select></label>
+              <span class="ux-explore-initiative-note">Contexto de trabajo que originó o reforzó el learning; no forma parte de la jerarquía de producto.</span>
+            </div>
+            <div class="primary-filters">
+              <label class="filter-field">Producto<select class="filter-select hierarchy-product" data-hierarchy-level="product" id="learning-product"></select></label>
+              <label class="filter-field">Funnel<select class="filter-select hierarchy-funnel" data-hierarchy-level="funnel" id="learning-funnel"></select></label>
+              <label class="filter-field">Componente<select class="filter-select hierarchy-component" data-hierarchy-level="component" id="learning-component"></select></label>
+              <label class="filter-field">Impacto UX<select class="filter-select" id="learning-impact"></select></label>
+            </div>
+            <div class="secondary-filters" id="learning-secondary-filters" hidden>
+              <label class="filter-field">Minifunnel<select class="filter-select hierarchy-minifunnel" data-hierarchy-level="minifunnel" id="learning-minifunnel"></select></label>
+              <label class="filter-field">Dispositivo<select class="filter-select" id="learning-device"></select></label>
+              <label class="filter-field">Mercado<select class="filter-select" id="learning-market"></select></label>
+              <label class="filter-field">Ordenar por<select class="filter-select" id="learning-sort" data-filter-sort><option value="newest">Más recientes</option><option value="oldest">Más antiguos</option></select></label>
+              <label class="filter-field">Incorporado desde<input class="filter-date-input" id="learning-included-from" type="date"></label>
+              <label class="filter-field">Incorporado hasta<input class="filter-date-input" id="learning-included-to" type="date"></label>
+            </div>
+            <div class="filter-toolbar">
+              <button class="more-filter-button" type="button" aria-expanded="false" aria-controls="learning-secondary-filters">Más filtros</button>
+              <span class="filter-result" id="learning-result"></span>
+            </div>
+          </div>
+          <div class="table-shell"><table class="data-table learning-table"><thead><tr><th>Learning</th><th>Componente</th><th>Impacto UX</th><th><span class="sr-only">Acción</span></th></tr></thead><tbody id="learning-list"></tbody></table></div>
+        </section>
+
+        <section class="panel" id="evidence" aria-labelledby="evidence-title">
+          <div class="page-head compact-head"><div><div class="eyebrow">Evidencias</div><h1 id="evidence-title">Evidencia que sustenta el conocimiento.</h1><p>Consulta datos, research, análisis y resultados conservando el contexto en el que se obtuvieron.</p></div></div>
+          <div class="filter-system" data-filter-group="evidence">
+            <div class="primary-filters">
+              <label class="filter-field">Producto<select class="filter-select hierarchy-product" data-hierarchy-level="product" id="evidence-product"></select></label>
+              <label class="filter-field">Componente<select class="filter-select hierarchy-component" data-hierarchy-level="component" id="evidence-component"></select></label>
+              <label class="filter-field">Dispositivo<select class="filter-select" id="evidence-device"><option value="Todos">Todos</option><option value="Desktop">Desktop</option><option value="Mobile">Mobile</option><option value="Desktop + mobile">Desktop + mobile</option><option value="No especificado">No especificado</option></select></label>
+              <label class="filter-field">Tipo<select class="filter-select" id="evidence-kind"><option value="Todos">Todos</option></select></label>
+              <button class="more-filter-button" type="button" aria-expanded="false" aria-controls="evidence-secondary-filters">Más filtros</button>
+              <span class="filter-result" id="evidence-result"></span>
+            </div>
+            <div class="secondary-filters" id="evidence-secondary-filters" hidden>
+              <label class="filter-field">Iniciativa<select class="filter-select" id="evidence-initiative"></select></label>
+              <label class="filter-field">Confianza<select class="filter-select" id="evidence-confidence"><option value="Todas">Todos</option><option value="Alta">Alta</option><option value="Media">Media</option><option value="Baja">Baja</option></select></label>
+            </div>
+          </div>
+          <div class="table-shell"><table class="data-table evidence-table"><colgroup><col class="evidence-title-col"><col class="evidence-component-col"><col class="evidence-contribution-col"><col class="evidence-confidence-col"><col class="evidence-action-col"></colgroup><thead><tr><th>Evidencia</th><th>Componente</th><th>Qué aporta</th><th>Confianza</th><th><span class="sr-only">Acción</span></th></tr></thead><tbody id="evidence-table"></tbody></table></div>
+        </section>
+
+        <section class="panel" id="experiments" aria-labelledby="experiments-title">
+          <div class="page-head compact-head"><div><div class="eyebrow">Test A/B</div><h1 id="experiments-title">Experimentación y resultados.</h1><p>Consulta qué se testó, en qué contexto, con qué resultado y qué demuestra —o no demuestra— cada experimento.</p></div></div>
+          <div class="filter-system" data-filter-group="experiment">
+            <div class="primary-filters">
+              <label class="filter-field">Producto<select class="filter-select hierarchy-product" data-hierarchy-level="product" id="experiment-product"></select></label>
+              <label class="filter-field">Componente<select class="filter-select hierarchy-component" data-hierarchy-level="component" id="experiment-component"></select></label>
+              <label class="filter-field">Dispositivo<select class="filter-select" id="experiment-device"><option value="Todos">Todos</option><option value="Desktop">Desktop</option><option value="Mobile">Mobile</option><option value="Desktop + mobile">Desktop + mobile</option><option value="No especificado">No especificado</option></select></label>
+              <label class="filter-field">Resultado<select class="filter-select" id="experiment-outcome"><option value="Todos">Todos</option><option value="Positivo">Positivo</option><option value="Neutral">Neutral</option><option value="Negativo">Negativo</option><option value="Mixto">Mixto</option></select></label>
+              <button class="more-filter-button" type="button" aria-expanded="false" aria-controls="experiment-secondary-filters">Más filtros</button>
+              <span class="filter-result" id="experiment-result"></span>
+            </div>
+            <div class="secondary-filters" id="experiment-secondary-filters" hidden>
+              <label class="filter-field">Iniciativa<select class="filter-select" id="experiment-initiative"></select></label>
+              <label class="filter-field">Implementación<select class="filter-select" id="experiment-pro"><option value="Todos">Todos</option><option value="En PRO">En PRO</option><option value="Pendiente">Pendiente</option><option value="En desarrollo">En desarrollo</option><option value="No implementado">No implementado</option><option value="Desconocido">Desconocido</option></select></label>
+            </div>
+          </div>
+          <div class="table-shell"><table class="data-table"><thead><tr><th>Test A/B</th><th>Producto</th><th>Componente</th><th>Dispositivo</th><th>Resultado</th><th><span class="sr-only">Acción</span></th></tr></thead><tbody id="experiment-table"></tbody></table></div>
+        </section>
+
+        <section class="panel" id="patterns" aria-labelledby="patterns-title">
+          <div class="page-head compact-head"><div><div class="eyebrow">Patrones</div><h1 id="patterns-title">Patrones UX reutilizables.</h1><p>Principios y soluciones respaldados por aprendizaje acumulado, con el alcance y los límites de aplicación explícitos.</p></div></div>
+          <div class="filter-system" data-filter-group="pattern">
+            <div class="primary-filters">
+              <label class="filter-field">Producto<select class="filter-select hierarchy-product" data-hierarchy-level="product" id="pattern-product"></select></label>
+              <label class="filter-field">Componente<select class="filter-select hierarchy-component" data-hierarchy-level="component" id="pattern-component"></select></label>
+              <label class="filter-field">Dispositivo<select class="filter-select" id="pattern-device"><option value="Todos">Todos</option><option value="Desktop">Desktop</option><option value="Mobile">Mobile</option><option value="Desktop + mobile">Desktop + mobile</option><option value="No especificado">No especificado</option></select></label>
+              <label class="filter-field">Confianza<select class="filter-select" id="pattern-confidence"><option value="Todas">Todos</option><option value="Alta">Alta</option><option value="Media">Media</option><option value="Baja">Baja</option></select></label>
+              <button class="more-filter-button" type="button" aria-expanded="false" aria-controls="pattern-secondary-filters">Más filtros</button>
+              <span class="filter-result" id="pattern-result"></span>
+            </div>
+            <div class="secondary-filters" id="pattern-secondary-filters" hidden>
+              <label class="filter-field">Iniciativa<select class="filter-select" id="pattern-initiative"></select></label>
+              <label class="filter-field">Estado<select class="filter-select" id="pattern-status"><option value="Todos">Todos</option><option value="Testado">Testado</option><option value="Recomendado">Recomendado</option><option value="Oportunidad">Oportunidad</option><option value="Conservar y medir">Conservar y medir</option></select></label>
+            </div>
+          </div>
+          <div class="table-shell"><table class="data-table pattern-table"><thead><tr><th>Patrón</th><th>Producto</th><th>Componente</th><th>Dispositivo</th><th>Confianza</th><th><span class="sr-only">Acción</span></th></tr></thead><tbody id="pattern-list"></tbody></table></div>
+        </section>
+
+        <section class="panel" id="sources" aria-labelledby="sources-title">
+          <div class="page-head compact-head"><div><div class="eyebrow">Documentos</div><h1 id="sources-title">Explora las fuentes del conocimiento.</h1><p class="two-line-subtitle"><span>Consulta los archivos que sustentan el conocimiento de UX Intelligence.</span><span>Los Excel aportan registros estructurados; los PDF conservan la fuente original y su contexto documental.</span></p></div></div>
+          <div class="filter-system" data-filter-group="source">
+            <div class="ux-explore-initiative-filter">
+              <label class="filter-field">Iniciativa<select class="filter-select" id="source-initiative"></select></label>
+              <span class="ux-explore-initiative-note">Contexto de trabajo asociado al documento; no forma parte de la jerarquía de producto.</span>
+            </div>
+            <div class="primary-filters">
+              <label class="filter-field">Producto<select class="filter-select hierarchy-product" data-hierarchy-level="product" id="source-product"></select></label>
+              <label class="filter-field">Funnel<select class="filter-select hierarchy-funnel" data-hierarchy-level="funnel" id="source-funnel"></select></label>
+              <label class="filter-field">Tipo de análisis<select class="filter-select" id="source-type"></select></label>
+            </div>
+            <div class="secondary-filters" id="source-secondary-filters" hidden>
+              <label class="filter-field">Minifunnel<select class="filter-select hierarchy-minifunnel" data-hierarchy-level="minifunnel" id="source-minifunnel"></select></label>
+              <label class="filter-field">Componente<select class="filter-select hierarchy-component" data-hierarchy-level="component" id="source-component"></select></label>
+              <label class="filter-field">Ordenar por<select class="filter-select" id="source-sort" data-filter-sort><option value="newest">Más recientes</option><option value="oldest">Más antiguos</option></select></label>
+              <label class="filter-field">Incorporado desde<input class="filter-date-input" id="source-included-from" type="date"></label>
+              <label class="filter-field">Incorporado hasta<input class="filter-date-input" id="source-included-to" type="date"></label>
+              <label class="filter-field">Fecha del documento<select class="filter-select" id="source-date"></select></label>
+            </div>
+            <div class="filter-toolbar">
+              <button class="more-filter-button" type="button" aria-expanded="false" aria-controls="source-secondary-filters">Más filtros</button>
+              <button class="text-button" id="export-workspace" type="button">Exportar backup</button>
+              <button class="text-button" id="import-workspace" type="button">Importar backup</button>
+              <input class="sr-only" id="import-workspace-input" type="file" accept=".json,application/json" aria-label="Seleccionar backup JSON de UX Intelligence">
+              <span class="filter-result" id="source-result"></span>
+            </div>
+          </div>
+          <div class="initiative-summary" id="initiative-summary" hidden></div>
+          <div class="table-shell"><table class="data-table document-table"><thead><tr><th>Documento</th><th>Tipo de análisis</th><th>Iniciativa</th><th>Dónde aplica</th><th>Fecha</th><th><span class="sr-only">Acciones</span></th></tr></thead><tbody id="source-table"></tbody></table></div>
+        </section>
+
+        <section class="panel" id="taxonomy" aria-labelledby="taxonomy-title">
+          <div class="page-head compact-head">
+            <div>
+              <div class="eyebrow">Gobernanza del conocimiento</div>
+              <h1 id="taxonomy-title">Taxonomía y lenguaje de UX Intelligence.</h1>
+              <p>Define cómo clasificamos el producto y qué vocabulario utilizamos para que el conocimiento sea consistente, comparable y recuperable.</p>
+              <div class="taxonomy-view-tabs" role="tablist" aria-label="Vistas de taxonomía">
+                <button class="taxonomy-view-tab active" type="button" role="tab" aria-selected="true" data-taxonomy-view="product">Estructura de producto</button>
+                <button class="taxonomy-view-tab" type="button" role="tab" aria-selected="false" data-taxonomy-view="vocabularies">Vocabularios</button>
+                <button class="taxonomy-view-tab" type="button" role="tab" aria-selected="false" data-taxonomy-view="glossary">Glosario UX Intel</button>
+              </div>
+            </div>
+          </div>
+
+          <section id="taxonomy-view-product" class="ux-taxonomy-view" data-taxonomy-panel="product">
+            <div class="ux-taxonomy-canonical-path" aria-label="Jerarquía canónica">
+              <span>Producto</span><i aria-hidden="true">→</i>
+              <span>Funnel</span><i aria-hidden="true">→</i>
+              <span>Minifunnel</span><i aria-hidden="true">→</i>
+              <span>Componente</span>
+            </div>
+            <div class="taxonomy-layout">
+              <nav class="taxonomy-tree" id="taxonomy-tree" aria-label="Árbol de taxonomía"></nav>
+              <article class="taxonomy-detail" id="taxonomy-detail"></article>
+            </div>
+          </section>
+
+          <section id="taxonomy-view-vocabularies" class="ux-taxonomy-view" data-taxonomy-panel="vocabularies" hidden>
+            <div class="ux-taxonomy-view-intro">
+              <div>
+                <h2>Vocabularios controlados</h2>
+                <p>Valores gobernados para clasificar el conocimiento con criterios consistentes y evitar variantes o duplicidades.</p>
+              </div>
+              <button class="secondary-button" id="taxonomy-vocabulary-create" type="button">+ Crear término</button>
+            </div>
+            <section class="taxonomy-controlled" id="taxonomy-controlled" aria-label="Vocabularios controlados"></section>
+
+            <section class="ux-impact-criteria" aria-labelledby="ux-impact-criteria-title">
+              <div class="ux-impact-criteria-head">
+                <div>
+                  <span class="eyebrow">Criterio de clasificación</span>
+                  <h3 id="ux-impact-criteria-title">Cómo medimos Impacto UX</h3>
+                  <p>Impacto UX mide la consecuencia sobre la experiencia del usuario en su contexto real. No equivale a volumen de tráfico, importancia estratégica ni potencial CRO.</p>
+                </div>
+              </div>
+
+              <div class="ux-impact-criteria-grid">
+                <article>
+                  <span class="status-badge impact-high">Alto</span>
+                  <p>Puede comprometer una tarea o decisión importante: abandono, error, coste inesperado, pérdida de un beneficio, asociación incorrecta de datos o dificultad seria para acceder a una tarea crítica. También aplica cuando se oculta información clave para valorar una compra o un beneficio personal relevante.</p>
+                </article>
+                <article>
+                  <span class="status-badge impact-medium">Medio</span>
+                  <p>Genera fricción, dudas o esfuerzo relevante, pero el usuario puede continuar o recuperarse. Incluye mejoras de claridad, jerarquía, encontrabilidad o control y oportunidades que mejoran una experiencia que ya funciona razonablemente bien.</p>
+                </article>
+                <article>
+                  <span class="status-badge impact-low">Bajo</span>
+                  <p>Aporta contexto, apoyo o un refinamiento menor. La ausencia de la mejora tiene poca consecuencia sobre la tarea y no cambia de forma relevante la comprensión, el control o la capacidad de completar el journey.</p>
+                </article>
+              </div>
+
+              <div class="ux-impact-context-rules">
+                <h4>Cómo lo aplicamos en Air Europa</h4>
+                <ul>
+                  <li><strong>Buscador:</strong> hoy funciona bien. Los refinamientos visuales o de UI son normalmente Medio o Bajo; suben a Alto solo cuando hay evidencia de abandono, error o dificultad para completar la búsqueda.</li>
+                  <li><strong>Header:</strong> no medimos éxito por interacción. El impacto aumenta cuando afecta a la encontrabilidad de autogestión o de tareas críticas como Check-in o Gestionar reserva.</li>
+                  <li><strong>SUMA / Fare Families:</strong> la ausencia de información sobre beneficios puede tener impacto Alto cuando dificulta entender el valor, comparar opciones o tomar una decisión de compra informada.</li>
+                  <li><strong>CRO:</strong> alcance, tráfico y potencial de conversión se valoran aparte. Un hallazgo puede tener Impacto UX Medio y, aun así, ser una oportunidad CRO muy relevante por su volumen.</li>
+                </ul>
+              </div>
+            </section>
+          </section>
+
+          <section class="taxonomy-glossary ux-taxonomy-view" id="taxonomy-view-glossary" data-taxonomy-panel="glossary" hidden>
+            <div class="ux-taxonomy-view-intro">
+              <div>
+                <h2>Glosario UX Intel</h2>
+                <p>Definiciones que delimitan cómo interpretamos hechos, evidencias, hipótesis, inferencias, oportunidades y learnings consolidados.</p>
+              </div>
+            </div>
+            <div id="taxonomy-glossary"></div>
+          </section>
+        </section>
+
+        <section class="panel" id="review" aria-labelledby="review-title">
+          <header class="review-context-header">
+            <div class="review-context-main">
+              <div class="review-context-copy">
+                <div class="review-context-nav"><button class="text-button review-back" type="button" data-panel-jump="sources"><span aria-hidden="true">←</span><span>Volver a Documentos</span></button></div>
+                <span class="eyebrow">Ficha del documento</span>
+                <h1 id="review-title">Ficha del documento</h1>
+                <div class="review-context-meta" id="review-summary"></div>
+              </div>
+              <div class="review-actions" id="review-actions"></div>
+            </div>
+            <div class="review-context-metrics" id="review-context-metrics"></div>
+          </header>
+          <div id="review-workspace"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"><strong></strong><span></span></div>
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  <aside class="drawer detail-drawer" id="detail-drawer" role="dialog" aria-modal="true" aria-label="Detalle" aria-hidden="true" inert></aside>
+  <div class="modal-backdrop" id="delete-modal" hidden>
+    <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+      <button class="modal-close" type="button" aria-label="Cerrar">×</button>
+      <h2 id="delete-title">Eliminar documento</h2>
+      <p id="delete-copy"></p>
+      <div class="modal-actions"><button class="secondary-button" type="button" data-delete-cancel>Cancelar</button><button class="danger-button" type="button" data-delete-confirm>Eliminar</button></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="taxonomy-manager-v2-modal" hidden>
+    <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="taxonomy-manager-v2-title">
+      <button class="modal-close" type="button" aria-label="Cerrar" data-taxonomy-manager-v2-close>×</button>
+      <header class="taxonomy-manager-v2-head">
+        <h2 id="taxonomy-manager-v2-title">Gestionar términos</h2>
+        <p id="taxonomy-manager-v2-copy"></p>
+      </header>
+      <div class="taxonomy-manager-v2-search" id="taxonomy-manager-v2-toolbar">
+        <label class="taxonomy-manager-v2-field" id="taxonomy-manager-v2-level-field">
+          <span>Nivel</span>
+          <select id="taxonomy-manager-v2-level">
+            <option value="product">Producto</option>
+            <option value="funnel">Funnel</option>
+            <option value="minifunnel">Minifunnel</option>
+            <option value="component">Componente</option>
+          </select>
+        </label>
+        <label class="taxonomy-manager-v2-field">
+          <span>Buscar</span>
+          <input id="taxonomy-manager-v2-search" type="search" placeholder="Buscar término" autocomplete="off">
+        </label>
+      </div>
+      <div class="taxonomy-manager-v2-list" id="taxonomy-manager-v2-list"></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="taxonomy-manager-v2-edit" hidden>
+    <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="taxonomy-manager-v2-edit-title">
+      <button class="modal-close" type="button" aria-label="Cerrar" data-taxonomy-manager-v2-edit-close>×</button>
+      <h2 id="taxonomy-manager-v2-edit-title">Editar término</h2>
+      <p>El término mantiene su ID. El nombre anterior se conserva como alias para reconocer datos históricos y futuras importaciones.</p>
+      <div id="taxonomy-manager-v2-edit-meta"></div>
+      <label class="taxonomy-manager-v2-modal-field">
+        <span>Nombre</span>
+        <input id="taxonomy-manager-v2-edit-input" type="text" autocomplete="off">
+      </label>
+      <div class="modal-actions">
+        <button class="secondary-button" type="button" data-taxonomy-manager-v2-edit-close>Cancelar</button>
+        <button class="action-button" type="button" id="taxonomy-manager-v2-edit-action">Guardar cambios</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="taxonomy-manager-v2-merge" hidden>
+    <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="taxonomy-manager-v2-merge-title">
+      <button class="modal-close" type="button" aria-label="Cerrar" data-taxonomy-manager-v2-merge-close>×</button>
+      <h2 id="taxonomy-manager-v2-merge-title">Fusionar término</h2>
+      <p>El término de origen dejará de existir como término activo. Sus aliases, usos y dependencias pasarán al término que elijas.</p>
+      <div id="taxonomy-manager-v2-merge-meta"></div>
+      <label class="taxonomy-manager-v2-modal-field">
+        <span>Fusionar con</span>
+        <select id="taxonomy-manager-v2-merge-target"></select>
+      </label>
+      <p class="taxonomy-manager-v2-note">Si ambas ramas contienen un hijo con el mismo nombre, UX Intel los unifica automáticamente en lugar de duplicarlos.</p>
+      <div class="modal-actions">
+        <button class="secondary-button" type="button" data-taxonomy-manager-v2-merge-close>Cancelar</button>
+        <button class="action-button" type="button" id="taxonomy-manager-v2-merge-action">Fusionar</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="taxonomy-manager-v2-confirm" hidden>
+    <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="taxonomy-manager-v2-confirm-title">
+      <button class="modal-close" type="button" aria-label="Cerrar" data-taxonomy-manager-v2-confirm-close>×</button>
+      <h2 id="taxonomy-manager-v2-confirm-title">Eliminar término</h2>
+      <p id="taxonomy-manager-v2-confirm-copy"></p>
+      <div id="taxonomy-manager-v2-meta"></div>
+      <div class="modal-actions">
+        <button class="secondary-button" type="button" data-taxonomy-manager-v2-confirm-close>Cancelar</button>
+        <button class="danger-button" type="button" id="taxonomy-manager-v2-confirm-action">Eliminar</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="taxonomy-vocabulary-create-modal" hidden>
+    <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="taxonomy-vocabulary-create-title">
+      <button class="modal-close" type="button" aria-label="Cerrar" data-vocabulary-create-close>×</button>
+      <h2 id="taxonomy-vocabulary-create-title">Crear término</h2>
+      <p>Selecciona el vocabulario donde quieres añadir el nuevo término.</p>
+      <label class="form-field" style="margin-top:18px;">
+        <span>Vocabulario</span>
+        <select id="taxonomy-vocabulary-create-select">
+          <option value="">Seleccionar vocabulario</option>
+        </select>
+      </label>
+      <div class="modal-actions">
+        <button class="secondary-button" type="button" data-vocabulary-create-close>Cancelar</button>
+        <button class="action-button" type="button" id="taxonomy-vocabulary-create-confirm" disabled>Continuar</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="import-workspace-modal" hidden>
+    <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="import-workspace-title">
+      <button class="modal-close" id="import-workspace-close" type="button" aria-label="Cerrar">×</button>
+      <h2 id="import-workspace-title">Importar backup</h2>
+      <p id="import-workspace-copy"></p>
+      <div class="workspace-import-diff" id="import-workspace-diff" aria-live="polite"></div>
+      <div class="modal-actions"><button class="secondary-button" id="import-workspace-cancel" type="button">Cancelar</button><button class="action-button" id="import-workspace-confirm" type="button">Importar</button></div>
+    </section>
+  </div>
+
+  <script src="knowledge-model.js"></script>
+  <script src="taxonomy.js"></script>
+  <script src="workspace.js"></script>
+  <script src="analysis-editing.js"></script>
+  <script src="analysis-recovery.js"></script>
+  <script src="document-analysis.js"></script>
+  <script src="document-analysis-v2.js"></script>
+  <script src="insight-register.js"></script>
+  <script src="pagination.js"></script>
+  <script src="review-audit.js"></script>
+  <script src="simple-kb-data.js"></script>
+  <script src="simple-knowledge.js"></script>
+  <script>
+    const answers = {
+      know: [
+        ["El buscador es la prioridad del above the fold y la principal puerta hacia Booking.","QM + auditoría + benchmark · Home → Disponibilidad","Alta"],
+        ["Mobile necesita una lógica propia, no una compresión de desktop.","Research + heurística + A/B Header mobile","Alta"],
+        ["La arquitectura del Header mejora la encontrabilidad del autoservicio.","A/B mobile y desktop + research previo","Alta"],
+        ["El calendario es un punto de decisión crítico, no un campo secundario.","QM: 1,17M desktop / 681,76K mobile","Media"],
+        ["Los banners aportan valor comercial, pero deben ser una capa de apoyo.","QM · búsquedas, llegadas a Dispo y PNR","Media"]
+      ],
+      unknown: [
+        ["Si reforzar visualmente el buscador recuperará el -1,69% observado en desktop.","Requiere una nueva iteración A/B del conjunto","Abierta"],
+        ["Qué parte del abandono mobile ocurre por el buscador y cuál después de salir de Home.","QM no reconstruye siempre la sesión interrumpida","Abierta"],
+        ["Si los resultados se mantienen por mercado, ruta, segmento y recurrencia.","La evidencia reciente se concentra en ES/ES","Abierta"],
+        ["Si la mejora de clics de autoservicio reduce esfuerzo, llamadas o CES.","Faltan métricas posteriores a la interacción","Abierta"],
+        ["Qué solución completa del nuevo buscador supera al control.","Las propuestas de mayor alcance todavía deben testarse","Abierta"]
+      ],
+      avoid: [
+        ["Dar el mismo peso visual a Vuelos y a productos de uso muy inferior.","El dato no cuestiona su valor comercial, solo su prioridad inicial","Media"],
+        ["Interpretar desktop y mobile como un único contexto.","El A/B produjo efectos distintos sobre Buscar","Alta"],
+        ["Atribuir la caída de Buscar solo al Header.","Banner, SUMA y aviso también cambiaban el equilibrio visual","Alta"],
+        ["Dar por implementado lo recomendado o testado.","Los informes no confirman el estado de producción","Alta"]
+      ],
+      design: [
+        ["Una jerarquía conjunta de Header + Buscador + avisos + promoción.","Propuesta respaldada; validación integral pendiente","Media"],
+        ["Buscador mobile secuencial con CTA dominante y edición rápida.","Incorpora QM, heurística, benchmark y desk research","Media"],
+        ["Calendario como herramienta de decisión con flexibilidad de fechas.","Oportunidad sólida; funcionalidad concreta por validar","Media"],
+        ["Shortcuts de Check-in y Gestiona tu reserva, visibles pero secundarios.","A/B Header + datos de autogestión","Alta"]
+      ]
+    };
+
+    const defaultBuscadorLearnings = [
+      {
+        id:"L-BUS-01",initiative:"Buscador",initiatives:["Buscador"],area:"Buscador",impactUx:"Medio",validity:"Vigente",
+        product:"Home",screen:"Home",component:"Buscador",element:"",device:"Desktop + mobile",market:"No especificado",
+        title:"El buscador debe ser lo primero que se entienda en Home",
+        text:"En el primer impacto de Home, buscar un vuelo debe ser la tarea más clara. Autoservicio, promoción y avisos pueden seguir visibles, pero con una jerarquía secundaria.",
+        know:"Auditoría, Quantum Metric, benchmark y desk research coinciden en que el buscador concentra la interacción principal y es la puerta de entrada al booking.",
+        forEvidence:["Auditoría UX: reconoce el buscador como entrada principal y detecta exceso de carga visual.","Desk research: prioriza la búsqueda inicial y la acción principal.","Análisis heurístico/QM y Datos QM: los campos y CTA del buscador concentran los mayores volúmenes de interacción.","Benchmark y análisis conductual: refuerzan la necesidad de una jerarquía clara alrededor de la tarea principal."],
+        contrary:["Home también responde a necesidades de autoservicio, promoción y comunicación operativa."],
+        noProof:["No demuestra que eliminar banners, accesos rápidos o avisos mejore la conversión.","No determina una composición visual concreta del primer impacto."],
+        open:["¿Qué jerarquía concreta mejora el paso a Disponibilidad sin perjudicar el autoservicio ni la comunicación relevante?"],
+        applications:["Home","Buscador","Jerarquía del primer impacto","Composición responsive"],
+        sourceNames:["BUSCADOR_02_Auditoria_UX","BUSCADOR_03_Desk_Research","BUSCADOR_04_Analisis_Heuristico_QM","BUSCADOR_05_Analisis_Conductual","BUSCADOR_06_Benchmark","BUSCADOR_07_Datos_QM"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      },
+      {
+        id:"L-BUS-02",initiative:"Buscador",initiatives:["Buscador"],area:"Buscador",impactUx:"Medio",validity:"Vigente",
+        product:"Home",screen:"Home",component:"Buscador",element:"",device:"Desktop + mobile",market:"No especificado",
+        title:"Simplificar el buscador es ordenar mejor, no quitar opciones",
+        text:"Los campos esenciales deben verse primero y las opciones secundarias aparecer cuando hacen falta, sin perder encontrabilidad.",
+        know:"La evidencia revisada muestra que cuando demasiadas decisiones tienen el mismo peso aumenta la carga visual. La oportunidad está en priorizar, agrupar y mostrar progresivamente.",
+        forEvidence:["Auditoría UX: desktop concentra demasiadas decisiones en el mismo nivel visual y mobile amplifica el peso de capas secundarias.","Desk research: recomienda progressive disclosure y priorización de la tarea principal.","Análisis conductual: relaciona jerarquía y reducción de opciones simultáneas con menor carga cognitiva.","Benchmark: muestra patrones de entrada inicial simplificada y construcción progresiva en mobile."],
+        contrary:["Algunas opciones secundarias tienen uso y valor real, por lo que ocultarlas sin criterio puede empeorar encontrabilidad o control."],
+        noProof:["No valida ocultar una funcionalidad concreta.","No establece un único orden correcto para todas las decisiones del buscador."],
+        open:["¿Qué opciones deben estar visibles desde el inicio y cuáles pueden aparecer bajo demanda en cada dispositivo?"],
+        applications:["Arquitectura del buscador","Progressive disclosure","Opciones secundarias","Responsive"],
+        sourceNames:["BUSCADOR_02_Auditoria_UX","BUSCADOR_03_Desk_Research","BUSCADOR_05_Analisis_Conductual","BUSCADOR_06_Benchmark"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      },
+      {
+        id:"L-BUS-03",initiative:"Buscador",initiatives:["Buscador"],area:"Buscador",impactUx:"Alto",validity:"Vigente",
+        product:"Home",screen:"Home",component:"Buscador",element:"",device:"Mobile",market:"No especificado",
+        title:"El buscador mobile necesita una lógica propia",
+        text:"En mobile no basta con encoger desktop: hay menos espacio, más densidad y más necesidad de guiar, revisar y corregir la búsqueda.",
+        know:"Auditoría, benchmark, desk research y Quantum Metric apuntan a una construcción más progresiva en mobile. Los datos también muestran un comportamiento de avance distinto al de desktop.",
+        forEvidence:["Auditoría UX: mobile amplifica el peso de elementos secundarios y capas previas a la búsqueda.","Desk research y benchmark: recomiendan una interacción propia para mobile y construcción progresiva de la búsqueda.","Análisis heurístico/QM y análisis conductual: identifican necesidades específicas de jerarquía, edición y control.","Datos QM: mobile genera más búsquedas y presenta mayor abandono entre búsqueda y Disponibilidad en el periodo analizado."],
+        contrary:["El diferencial de abandono no permite atribuir la causa al buscador por sí solo."],
+        noProof:["No valida un flujo automático paso a paso concreto.","No demuestra que una única secuencia funcione igual para todos los mercados, segmentos o tipos de viaje."],
+        open:["¿Qué secuencia reduce esfuerzo en mobile sin dificultar revisar, corregir o volver atrás?"],
+        applications:["Buscador mobile","Secuenciación","Edición y revisión","Responsive"],
+        sourceNames:["BUSCADOR_02_Auditoria_UX","BUSCADOR_03_Desk_Research","BUSCADOR_04_Analisis_Heuristico_QM","BUSCADOR_05_Analisis_Conductual","BUSCADOR_06_Benchmark","BUSCADOR_07_Datos_QM"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      },
+      {
+        id:"L-BUS-04",initiative:"Buscador",initiatives:["Buscador"],area:"Buscador",impactUx:"Medio",validity:"Vigente",
+        product:"Home",screen:"Home",component:"Buscador",element:"Calendario",device:"Desktop + mobile",market:"No especificado",
+        title:"El calendario debe ayudar a decidir, no solo a elegir fechas",
+        text:"Fechas es uno de los puntos con más interacción del buscador. El calendario debe facilitar comparar, modificar y entender la selección sin obligar a empezar de nuevo.",
+        know:"La evidencia revisada confirma que el calendario forma parte de la decisión de viaje y no es un campo secundario.",
+        forEvidence:["Desk research: plantea el calendario como herramienta de decisión y flexibilidad.","Análisis heurístico/QM y Datos QM: las fechas concentran una parte relevante de la interacción del buscador.","Benchmark: compara patrones de calendario, precios y flexibilidad en referentes del sector."],
+        contrary:["Una interacción elevada puede responder a la complejidad normal de elegir fechas y no necesariamente a fricción."],
+        noProof:["No demuestra que mostrar precios mejore conversión.","No valida una solución concreta de calendario ni su viabilidad técnica."],
+        open:["¿Qué ayudas de decisión aportan valor antes de Disponibilidad sin añadir complejidad ni problemas técnicos?"],
+        applications:["Calendario","Edición de fechas","Flexibilidad","Buscador mobile y desktop"],
+        sourceNames:["BUSCADOR_03_Desk_Research","BUSCADOR_04_Analisis_Heuristico_QM","BUSCADOR_06_Benchmark","BUSCADOR_07_Datos_QM"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      },
+      {
+        id:"L-BUS-05",initiative:"Buscador",initiatives:["Buscador"],area:"Buscador",impactUx:"Medio",validity:"Vigente",
+        product:"Home",screen:"Home",component:"Buscador",element:"CTA Buscar vuelos",device:"Desktop + mobile",market:"No especificado",
+        title:"Buscar vuelos debe seguir siendo el CTA principal",
+        text:"El CTA de búsqueda debe destacar claramente frente a opciones secundarias, promociones y otros elementos del primer impacto.",
+        know:"Las fuentes revisadas sitúan Buscar vuelos como la acción que cierra la configuración y hace avanzar al usuario hacia resultados.",
+        forEvidence:["Auditoría UX: identifica la necesidad de una llamada principal clara.","Análisis heurístico/QM: Buscar vuelos concentra un volumen elevado de interacción.","Análisis conductual: vincula saliencia visual y claridad de acción con menor competencia decisional.","Benchmark: confirma el papel dominante del CTA de búsqueda en los referentes analizados."],
+        contrary:["El corpus no incluye un experimento que aísle exclusivamente el tratamiento visual del CTA."],
+        noProof:["No demuestra que un color, posición, tamaño o copy concreto produzca mejora por sí solo."],
+        open:["¿Qué tratamiento del CTA mejora el avance dentro del buscador completo?"],
+        applications:["CTA Buscar vuelos","Jerarquía de acciones","Sistema de botones","Home"],
+        sourceNames:["BUSCADOR_02_Auditoria_UX","BUSCADOR_04_Analisis_Heuristico_QM","BUSCADOR_05_Analisis_Conductual","BUSCADOR_06_Benchmark"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      },
+      {
+        id:"L-BUS-06",initiative:"Buscador",initiatives:["Buscador"],area:"Buscador",impactUx:"Medio",validity:"Vigente",
+        product:"Home",screen:"Home",component:"Accesos rápidos",element:"",device:"Desktop + mobile",market:"No especificado",
+        title:"El autoservicio debe ser fácil de encontrar sin competir con Buscar vuelos",
+        text:"Check-in, Gestionar reserva e Información de vuelos son tareas importantes en Home, pero deben tener una jerarquía secundaria respecto a la búsqueda.",
+        know:"Los datos y el research confirman que estas tareas tienen uso real. El reto no es ocultarlas, sino hacerlas accesibles sin restar claridad a la intención principal.",
+        forEvidence:["Auditoría UX: recomienda conservar accesos de autoservicio con menor peso visual.","Análisis heurístico/QM: identifica uso relevante de accesos operativos.","Benchmark: mantiene self-service próximo a Home pero subordinado a la búsqueda.","Datos QM: Check-in, Gestiona tu reserva e información de vuelo reciben interacción en desktop y mobile."],
+        contrary:["El volumen de interacción varía por dispositivo y no mide el éxito posterior de la tarea."],
+        noProof:["No demuestra reducción de llamadas, menor esfuerzo o mejora de CES.","No determina una ubicación exacta para cada acceso."],
+        open:["¿Qué ubicación y jerarquía mantienen estas tareas visibles sin competir con Buscar vuelos?","¿Qué ocurre después del clic y cuánto esfuerzo ahorran realmente?"],
+        applications:["Accesos rápidos","Header","Check-in","Gestiona tu reserva","Información de vuelo"],
+        sourceNames:["BUSCADOR_02_Auditoria_UX","BUSCADOR_04_Analisis_Heuristico_QM","BUSCADOR_06_Benchmark","BUSCADOR_07_Datos_QM"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      },
+      {
+        id:"L-BUS-07",initiative:"Buscador",initiatives:["Buscador"],area:"Buscador",impactUx:"Medio",validity:"Vigente",
+        product:"Home",screen:"Home",component:"Buscador",element:"Última búsqueda",device:"Desktop + mobile",market:"No especificado",
+        title:"La última búsqueda reduce esfuerzo si el usuario puede revisarla y editarla",
+        text:"Recuperar una búsqueda anterior puede ahorrar pasos, siempre que quede claro qué datos se han recuperado y sea fácil cambiarlos o borrarlos.",
+        know:"Auditoría y benchmark respaldan la última búsqueda como un patrón útil de continuidad, especialmente cuando el usuario mantiene el control.",
+        forEvidence:["Auditoría UX: identifica la recuperación de la última búsqueda como funcionalidad positiva que conviene conservar.","Desk research: respalda continuidad y reducción de repetición en tareas recurrentes.","Benchmark: detecta el patrón de últimas búsquedas y destaca control y editabilidad."],
+        contrary:["No hay en los Excel una medición interna aislada de uso, error o impacto en conversión de esta funcionalidad."],
+        noProof:["No demuestra que deba activarse igual para todos los usuarios, dispositivos o contextos."],
+        open:["¿Cuántos usuarios recuperan una búsqueda y cuánto editan antes de continuar?","¿Qué reglas de persistencia y privacidad necesita este patrón?"],
+        applications:["Última búsqueda","Continuidad","Edición","Personalización"],
+        sourceNames:["BUSCADOR_02_Auditoria_UX","BUSCADOR_03_Desk_Research","BUSCADOR_06_Benchmark"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      },
+      {
+        id:"L-BUS-08",initiative:"Buscador",initiatives:["Buscador"],area:"Buscador",impactUx:"Medio",validity:"Vigente",
+        product:"Home",screen:"Home",component:"Banner promocional",element:"",device:"Desktop + mobile",market:"No especificado",
+        title:"Promociones, avisos y ayuda no deberían competir siempre con el buscador",
+        text:"Cada capa tiene una función distinta. Su peso debe cambiar según el contexto, la urgencia y el valor para el usuario.",
+        know:"La evidencia revisada muestra que banners, avisos y ayudas pueden aportar valor, pero necesitan reglas de prioridad distintas para no saturar el primer impacto.",
+        forEvidence:["Auditoría UX: identifica el peso del banner y la necesidad de mantener ayuda y avisos sin desplazar la búsqueda.","Análisis heurístico/QM: señala competencia entre promoción, avisos y tarea principal.","Benchmark: trata promoción y soporte como capas secundarias o contextuales.","Datos QM: los banners generan interacción y avance posterior hacia búsqueda, Disponibilidad y reserva en el periodo analizado."],
+        contrary:["El rendimiento y peso relativo de promoción varían por dispositivo y periodo."],
+        noProof:["No demuestra que el formato o posición actuales sean óptimos.","No permite equiparar una campaña comercial, un aviso operativo y una ayuda contextual."],
+        open:["¿Qué reglas de prioridad, caducidad y peso visual necesita cada tipo de contenido?","¿Cómo medimos si ayudan o interfieren con la búsqueda principal?"],
+        applications:["Banner promocional","Avisos","Ayuda contextual","Sistema de prioridades de Home"],
+        sourceNames:["BUSCADOR_02_Auditoria_UX","BUSCADOR_04_Analisis_Heuristico_QM","BUSCADOR_06_Benchmark","BUSCADOR_07_Datos_QM"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      }
+    ];
+
+
+    const defaultHeaderLearnings = [
+      {
+        id:"L-HEAD-01",initiative:"Header",initiatives:["Header"],area:"Header",impactUx:"Medio",
+        product:"Home",screen:"Home",component:"Header",element:"",device:"Desktop + mobile",market:"No especificado",
+        title:"Los nombres del Header deben decir claramente qué encontrará el usuario",
+        text:"La navegación funciona mejor cuando sus etiquetas hablan de tareas y contenidos reconocibles, evitando categorías ambiguas.",
+        know:"Research y análisis de Header muestran que Gestionar reserva y Check-in se entienden bien, mientras que etiquetas más genéricas como «Antes de volar» orientan peor y pueden empujar al usuario hacia Ayuda.",
+        forEvidence:["Test con usuarios: «Gestionar reserva» funciona como etiqueta comprensible, Check-in necesita acceso propio y «Antes de volar» no orienta bien hacia contenidos críticos.","Test con usuarios: Ayuda funciona también como vía de rescate cuando el usuario no identifica dónde resolver su necesidad.","Benchmark y desk research: la navegación debe alinearse con la intención del usuario y utilizar una primera capa clara y orientada a tareas.","Auditoría heurística: el naming actual no siempre permite anticipar correctamente el contenido."],
+        contrary:["Algunas etiquetas actuales sí se comprenden y una vía de rescate como Ayuda sigue siendo necesaria aunque mejore la arquitectura."],
+        noProof:["No valida un wording concreto para todos los mercados o idiomas.","No demuestra que cambiar únicamente el naming mejore conversión o éxito de tarea si la agrupación y la jerarquía siguen siendo confusas."],
+        open:["¿Qué nombres funcionan mejor por mercado e idioma sin perder consistencia global?","¿Qué necesidades llegan a Ayuda porque la navegación principal no las hace fáciles de encontrar?"],
+        applications:["Header","Naming de navegación","Arquitectura de información","Ayuda","Accesibilidad cognitiva"],
+        sourceNames:["Test con usuarios","Benchmark","Desk research","Auditoría heurística"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      },
+      {
+        id:"L-HEAD-02",initiative:"Header",initiatives:["Header"],area:"Header",impactUx:"Medio",
+        product:"Home",screen:"Home",component:"Header",element:"",device:"Desktop + mobile",market:"No especificado",
+        title:"Un Header no es más simple por tener menos opciones",
+        text:"La clave está en organizar bien: separar navegación, tareas operativas y utilidades, y dar a cada cosa la prioridad adecuada.",
+        know:"La evidencia muestra que la complejidad aparece sobre todo cuando se mezclan tipos de contenido y demasiadas opciones comparten el mismo nivel.",
+        forEvidence:["Auditoría heurística: la simplicidad visible oculta una arquitectura más compleja y la agrupación mezcla categorías, tareas y utilidades.","Desk research: la primera capa debe ser breve, clara y priorizada, diferenciando navegación principal y utilidades.","Benchmark: la complejidad se gestiona mejor con jerarquía, modularidad y aparición progresiva que acumulando opciones equivalentes.","Test con usuarios: las necesidades operativas del pasajero deben ganar prioridad frente a una organización puramente temática."],
+        contrary:["Negocio, SEO, SUMA, ofertas y otras necesidades estratégicas pueden exigir presencia en la arquitectura aunque no sean la prioridad UX principal."],
+        noProof:["No determina un número óptimo universal de opciones de primer nivel.","No valida eliminar enlaces o funcionalidades por el mero hecho de reducir volumen."],
+        open:["¿Qué tareas deben estar en primer nivel y cuáles pueden pasar a una segunda capa según el dispositivo?","¿Cómo integramos necesidades de negocio y SEO sin empeorar la jerarquía de tareas?"],
+        applications:["Header","Arquitectura de información","Jerarquía","Navegación principal vs utilidades","Progressive disclosure"],
+        sourceNames:["Auditoría heurística","Desk research","Benchmark","Test con usuarios"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      },
+      {
+        id:"L-HEAD-03",initiative:"Header",initiatives:["Header"],area:"Header",impactUx:"Medio",
+        product:"Home",screen:"Home",component:"Header",element:"",device:"Desktop + mobile",market:"No especificado",
+        title:"El Header no funciona igual en mobile, desktop y todos los mercados",
+        text:"Podemos mantener una arquitectura común, pero la prioridad y el comportamiento deben adaptarse al contexto.",
+        know:"Los datos y tests muestran diferencias por dispositivo y mercado. Mobile amplifica algunas fricciones y los resultados de una solución no deben extrapolarse automáticamente a desktop.",
+        forEvidence:["Análisis y recogida de inputs: el comportamiento del Header cambia entre mercados.","Auditoría heurística: una misma arquitectura no responde igual de bien a todos los contextos y mobile amplifica fricciones ya presentes en desktop.","Los resultados de experimentación incluidos en la iniciativa muestran comportamientos diferentes entre desktop y mobile."],
+        contrary:["La documentación disponible no cuantifica todavía qué diferencias justifican una arquitectura distinta por mercado o contexto."],
+        noProof:["No demuestra que cada mercado necesite un Header diferente.","No permite definir todavía reglas de segmentación por mercado, página o perfil de usuario."],
+        open:["¿Qué diferencias por mercado son suficientemente importantes como para cambiar la prioridad o la arquitectura?","¿Qué partes del Header deben mantenerse globales y cuáles pueden adaptarse al contexto?"],
+        applications:["Header","Responsive","Mercados","Contextualización","Gobernanza de navegación"],
+        sourceNames:["Análisis y recogida de inputs","Auditoría heurística","Resultados test A/B mobile","Resultados test A/B desktop"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      }
