@@ -1,0 +1,435 @@
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="minifunnel"]::before{
+    background:var(--tax-minifunnel-fg);
+  }
+
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="component"]{
+    color:var(--tax-component-fg);
+  }
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="component"]::before{
+    background:var(--tax-component-fg);
+  }
+
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="product"].active,
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="product"][aria-current="true"],
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="product"][aria-selected="true"]{
+    background:var(--tax-product-bg);
+    box-shadow:inset 0 0 0 1px var(--tax-product-border);
+  }
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="funnel"].active,
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="funnel"][aria-current="true"],
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="funnel"][aria-selected="true"]{
+    background:var(--tax-funnel-bg);
+    box-shadow:inset 0 0 0 1px var(--tax-funnel-border);
+  }
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="minifunnel"].active,
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="minifunnel"][aria-current="true"],
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="minifunnel"][aria-selected="true"]{
+    background:var(--tax-minifunnel-bg);
+    box-shadow:inset 0 0 0 1px var(--tax-minifunnel-border);
+  }
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="component"].active,
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="component"][aria-current="true"],
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="component"][aria-selected="true"]{
+    background:var(--tax-component-bg);
+    box-shadow:inset 0 0 0 1px var(--tax-component-border);
+  }
+
+  /* Mantener legibilidad cuando el nodo seleccionado ya recibe estilos del sistema. */
+  #taxonomy [data-taxonomy-term][data-taxonomy-level]{
+    padding-left:max(12px, calc(var(--taxonomy-indent, 0px) + 12px));
+  }
+
+  @media (max-width:780px){
+    #taxonomy [data-taxonomy-term][data-taxonomy-level]::before{
+      height:16px;
+    }
+  }
+</style>
+
+<script id="ux-taxonomy-level-colors-script-v6166">
+(function(){
+  function clean(value){return String(value??'').trim();}
+
+  function taxonomyTerms(){
+    try{
+      return Array.isArray(taxonomyProject?.state?.terms) ? taxonomyProject.state.terms : [];
+    }catch(_){
+      return [];
+    }
+  }
+
+  function termId(term){
+    return clean(term?.id || term?.termId || term?.key);
+  }
+
+  function levelOf(term){
+    const level=clean(term?.level).toLowerCase();
+    return ['product','funnel','minifunnel','component'].includes(level) ? level : '';
+  }
+
+  function applyLevelColors(){
+    const terms=taxonomyTerms();
+    if(!terms.length)return;
+
+    const byId=new Map(
+      terms.map(term=>[termId(term),term]).filter(([id])=>id)
+    );
+
+    document.querySelectorAll('#taxonomy [data-taxonomy-term]').forEach(node=>{
+      const term=byId.get(clean(node.dataset.taxonomyTerm));
+      const level=levelOf(term);
+      if(level)node.dataset.taxonomyLevel=level;
+      else delete node.dataset.taxonomyLevel;
+    });
+  }
+
+  let queued=false;
+  function schedule(){
+    if(queued)return;
+    queued=true;
+    requestAnimationFrame(()=>{
+      queued=false;
+      applyLevelColors();
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    schedule();
+    setTimeout(schedule,250);
+    setTimeout(schedule,900);
+
+    const tree=document.getElementById('taxonomy-tree');
+    if(tree){
+      new MutationObserver(schedule).observe(tree,{childList:true,subtree:true});
+    }
+  });
+
+  document.addEventListener('click',event=>{
+    if(event.target.closest('#taxonomy [data-taxonomy-term],#taxonomy [data-taxonomy-view],[data-taxonomy-manager-v2]')){
+      setTimeout(schedule,0);
+      setTimeout(schedule,120);
+    }
+  });
+})();
+</script>
+
+
+<style id="ux-taxonomy-level-indent-v6167">
+  /* Jerarquía visual: color + sangría. No modifica la estructura ni los datos. */
+  #taxonomy [data-taxonomy-term][data-taxonomy-level]{
+    box-sizing:border-box;
+    width:auto;
+    max-width:100%;
+  }
+
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="product"]{
+    margin-left:0!important;
+    width:100%;
+  }
+
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="funnel"]{
+    margin-left:14px!important;
+    width:calc(100% - 14px);
+  }
+
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="minifunnel"]{
+    margin-left:28px!important;
+    width:calc(100% - 28px);
+  }
+
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="component"]{
+    margin-left:42px!important;
+    width:calc(100% - 42px);
+  }
+
+  /* Mantener un padding interno uniforme. La profundidad la expresa la sangría exterior. */
+  #taxonomy [data-taxonomy-term][data-taxonomy-level]{
+    padding-left:12px!important;
+  }
+
+  @media(max-width:780px){
+    #taxonomy [data-taxonomy-term][data-taxonomy-level="funnel"]{
+      margin-left:10px!important;
+      width:calc(100% - 10px);
+    }
+    #taxonomy [data-taxonomy-term][data-taxonomy-level="minifunnel"]{
+      margin-left:20px!important;
+      width:calc(100% - 20px);
+    }
+    #taxonomy [data-taxonomy-term][data-taxonomy-level="component"]{
+      margin-left:30px!important;
+      width:calc(100% - 30px);
+    }
+  }
+</style>
+
+
+<style id="ux-taxonomy-neutral-text-v6168">
+  /* El color identifica el nivel mediante la barra y la leyenda, no mediante el texto. */
+  #taxonomy [data-taxonomy-term][data-taxonomy-level]{
+    color:var(--text-primary)!important;
+  }
+
+  #taxonomy [data-taxonomy-term][data-taxonomy-level]:hover{
+    color:var(--text-primary)!important;
+  }
+
+  #taxonomy [data-taxonomy-term][data-taxonomy-level].active,
+  #taxonomy [data-taxonomy-term][data-taxonomy-level][aria-current="true"],
+  #taxonomy [data-taxonomy-term][data-taxonomy-level][aria-selected="true"]{
+    color:var(--text-primary)!important;
+  }
+</style>
+
+
+<script id="ux-home-component-naming-migration-v6171">
+(function(){
+  const norm=value=>String(value??'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+  function canonical(value){
+    const key=norm(value);
+    if(['hero','hero banner','hero / contenido comercial'].includes(key))return 'Hero Banner';
+    if(key==='contenido comercial')return 'Claim';
+    return String(value??'').trim();
+  }
+  function update(item){
+    if(!item||typeof item!=='object'||norm(item.product)!=='home')return false;
+    let changed=false;
+    const next=canonical(item.component);
+    if(next&&next!==String(item.component??'').trim()){item.component=next;changed=true;}
+    if(Array.isArray(item.components)){
+      const values=[];
+      item.components.forEach(value=>{
+        const mapped=canonical(value);
+        if(mapped&&!values.some(existing=>norm(existing)===norm(mapped)))values.push(mapped);
+      });
+      if(JSON.stringify(values)!==JSON.stringify(item.components)){item.components=values;changed=true;}
+    }
+    return changed;
+  }
+  function apply(){
+    let changed=false;
+    const touch=item=>{if(update(item))changed=true;};
+    try{(publicDemoRows||[]).forEach(touch);}catch(_){}
+    try{(sourceItems||[]).forEach(doc=>{touch(doc);(doc?.insightRegister?.rows||[]).forEach(touch);});}catch(_){}
+    try{(knowledgeUnits||[]).forEach(touch);}catch(_){}
+    try{(learningState||[]).forEach(touch);}catch(_){}
+    try{globalThis.UXSimpleKnowledge?.currentNormalizedRecords?.().forEach(touch);}catch(_){}
+    if(changed){
+      try{safeStorageWrite?.({project:false});}catch(_){}
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(apply,0));
+  else setTimeout(apply,0);
+  window.addEventListener('load',()=>setTimeout(apply,500),{once:true});
+})();
+</script>
+
+
+<script id="ux-suma-learning-initiative-v6176">
+(function(){
+  const IDS=new Set(['L-SUMA-01','L-SUMA-02','L-SUMA-03']);
+  const CANON='SUMA Frequent Flyer';
+
+  function repair(){
+    let changed=false;
+    try{
+      (learnings||[]).forEach(item=>{
+        if(!IDS.has(String(item?.id||'')))return;
+        if(item.initiative!==CANON){
+          item.initiative=CANON;
+          changed=true;
+        }
+        const current=Array.isArray(item.initiatives)?item.initiatives:[];
+        if(current.length!==1||current[0]!==CANON){
+          item.initiatives=[CANON];
+          changed=true;
+        }
+      });
+    }catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:false});}catch(_){}
+      try{renderOverview?.();}catch(_){}
+      try{renderLearnings?.();}catch(_){}
+    }
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(repair,0),{once:true});
+  }else{
+    setTimeout(repair,0);
+  }
+  window.addEventListener('load',()=>setTimeout(repair,350),{once:true});
+})();
+</script>
+
+
+<script id="ux-learning-context-canon-v6177">
+(function(){
+  const REV='2026-10-26-learning-context-v1';
+
+  const BY_ID={
+    'L-BUS-01':{initiative:'Buscador',product:'Home',funnel:'',minifunnel:'',component:'Buscador'},
+    'L-BUS-02':{initiative:'Buscador',product:'Home',funnel:'',minifunnel:'',component:'Buscador'},
+    'L-BUS-03':{initiative:'Buscador',product:'Home',funnel:'',minifunnel:'',component:'Buscador'},
+    'L-BUS-04':{initiative:'Buscador',product:'Home',funnel:'',minifunnel:'',component:'Buscador'},
+    'L-BUS-05':{initiative:'Buscador',product:'Home',funnel:'',minifunnel:'',component:'Buscador'},
+    'L-BUS-06':{initiative:'Buscador',product:'Home',funnel:'',minifunnel:'',component:'Accesos rápidos'},
+    'L-BUS-07':{initiative:'Buscador',product:'Home',funnel:'',minifunnel:'',component:'Buscador'},
+    'L-BUS-08':{initiative:'Buscador',product:'Home',funnel:'',minifunnel:'',component:'Banner promocional'},
+    'L-HEAD-01':{initiative:'Header',product:'Home',funnel:'',minifunnel:'',component:'Header'},
+    'L-HEAD-02':{initiative:'Header',product:'Home',funnel:'',minifunnel:'',component:'Header'},
+    'L-HEAD-03':{initiative:'Header',product:'Home',funnel:'',minifunnel:'',component:'Header'},
+    'L-SUMA-01':{initiative:'SUMA Frequent Flyer',product:'Booking',funnel:'Transversal',minifunnel:'',component:'Login / autenticación'},
+    'L-SUMA-02':{initiative:'SUMA Frequent Flyer',product:'Booking',funnel:'Availability',minifunnel:'',component:'Fare Families'},
+    'L-SUMA-03':{initiative:'SUMA Frequent Flyer',product:'Booking',funnel:'Transversal',minifunnel:'',component:''}
+  };
+
+  function norm(value){
+    return String(value??'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+  }
+
+  function contextFor(item){
+    const known=BY_ID[String(item?.id||'')];
+    if(known)return known;
+
+    const title=norm(item?.title);
+    const component=norm(item?.component);
+
+    // Learning histórico derivado de Cash & Miles / slider.
+    if(
+      title==='no queda claro que representa la cifra de millas' ||
+      title.includes('millas')&&component==='slider de millas' ||
+      component==='slider de millas'
+    ){
+      return {
+        initiative:'SUMA Frequent Flyer',
+        product:'Booking',
+        funnel:'Shopping Cart',
+        minifunnel:'',
+        component:'Slider de Millas'
+      };
+    }
+
+    // Learning histórico derivado de recuperación de perfil en Paxes.
+    if(
+      title==='si el usuario ya esta logado en suma aprovechemos los datos que ya tenemos' ||
+      title==='si el usuario ya esta identificado aprovechemos los datos que ya tenemos' ||
+      title.includes('aprovechemos los datos que ya tenemos') ||
+      title.includes('ahorrar pasos')&&title.includes('datos')
+    ){
+      return {
+        initiative:'SUMA Frequent Flyer',
+        product:'Booking',
+        funnel:'Passengers',
+        minifunnel:'',
+        component:'Card Datos del pasajero'
+      };
+    }
+
+    return null;
+  }
+
+  function applyContext(item,ctx){
+    if(!ctx)return false;
+    let changed=false;
+    for(const key of ['product','funnel','minifunnel','component']){
+      const wanted=ctx[key]??'';
+      if(String(item?.[key]??'')!==wanted){
+        item[key]=wanted;
+        changed=true;
+      }
+    }
+    if(item.initiative!==ctx.initiative){
+      item.initiative=ctx.initiative;
+      changed=true;
+    }
+    const current=Array.isArray(item.initiatives)?item.initiatives:[];
+    // No borramos iniciativas secundarias válidas de Buscador/Header.
+    // Para SUMA unificamos el naming antiguo "Usuarios SUMA".
+    if(ctx.initiative==='SUMA Frequent Flyer'){
+      const next=[...new Set(current.map(v=>norm(v)==='usuarios suma'?'SUMA Frequent Flyer':v).filter(Boolean))];
+      if(!next.some(v=>norm(v)===norm('SUMA Frequent Flyer')))next.unshift('SUMA Frequent Flyer');
+      if(JSON.stringify(next)!==JSON.stringify(current)){
+        item.initiatives=next;
+        changed=true;
+      }
+    }else if(!current.length){
+      item.initiatives=[ctx.initiative];
+      changed=true;
+    }
+    if(item.learningJourneyRevision!==REV){
+      item.learningJourneyRevision=REV;
+      changed=true;
+    }
+    return changed;
+  }
+
+  function repair(){
+    let changed=false;
+    try{
+      (learnings||[]).forEach(item=>{
+        if(applyContext(item,contextFor(item)))changed=true;
+      });
+    }catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:false});}catch(_){}
+    }
+    try{renderOverview?.();}catch(_){}
+    try{renderLearnings?.();}catch(_){}
+    try{refreshAllTaxonomyFilters?.();}catch(_){}
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(repair,0),{once:true});
+  }else{
+    setTimeout(repair,0);
+  }
+  window.addEventListener('load',()=>setTimeout(repair,500),{once:true});
+})();
+</script>
+
+
+<script id="ux-suma-transversal-component-clean-v6183">
+(function(){
+  const REV='2026-10-27-suma-transversal-component-clean-v1';
+
+  function repair(){
+    let changed=false;
+    try{
+      (learnings||[]).forEach(item=>{
+        if(String(item?.id||'')!=='L-SUMA-03')return;
+        if(item.product!=='Booking'){item.product='Booking';changed=true;}
+        if(item.funnel!=='Transversal'){item.funnel='Transversal';changed=true;}
+        if(String(item.minifunnel||'')!==''){item.minifunnel='';changed=true;}
+        if(String(item.component||'')!==''){item.component='';changed=true;}
+        if(item.learningComponentCleanupRevision!==REV){
+          item.learningComponentCleanupRevision=REV;
+          changed=true;
+        }
+      });
+    }catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:false});}catch(_){}
+    }
+    try{renderOverview?.();}catch(_){}
+    try{renderLearnings?.();}catch(_){}
+    try{refreshAllTaxonomyFilters?.();}catch(_){}
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(repair,0),{once:true});
+  }else{
+    setTimeout(repair,0);
+  }
+  window.addEventListener('load',()=>{
+    setTimeout(repair,300);
+    setTimeout(repair,1200);
+  },{once:true});
+})();
+</script>
+
+</body>
+</html>
