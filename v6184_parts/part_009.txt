@@ -1,0 +1,1000 @@
+    function renameInitiativeEverywhere(oldName,newName){
+      oldName=String(oldName||'').trim();newName=String(newName||'').trim();
+      if(!oldName||!newName||initiativeNameEquals(oldName,newName))return 0;
+      let changed=0;
+      [sourceItems,learnings,evidenceItems,experiments,patternItems,knowledgeUnits,openQuestionItems].forEach(items=>(items||[]).forEach(item=>{if(updateInitiativeMetadata(item,oldName,newName))changed++;}));
+      sourceItems.forEach(item=>syncInsightRegisterInitiative(item));
+      return changed;
+    }
+    function reconcileInitiativesFromSources(){
+      const liveSourceInitiatives=dedupeInitiativeNames(sourceItems.flatMap(item=>[...(item.initiatives||[]),item.initiative]));
+      const liveKeys=new Set(liveSourceInitiatives.map(normalizeText));
+      let changed=false;
+      learnings.forEach(item=>{
+        const linked=dedupeInitiativeNames(catalogSources(item).flatMap(source=>[...(source.initiatives||[]),source.initiative]));
+        if(!linked.length)return;
+        const current=dedupeInitiativeNames([...(item.initiatives||[]),item.initiative]);
+        const orphaned=current.filter(value=>!liveKeys.has(normalizeText(value)));
+        if(!orphaned.length)return;
+        const next=dedupeInitiativeNames([...current.filter(value=>liveKeys.has(normalizeText(value))),...linked]);
+        if(!next.length)return;
+        if(JSON.stringify(item.initiatives||[])!==JSON.stringify(next)){item.initiatives=next;changed=true;}
+        if(!next.some(value=>initiativeNameEquals(value,item.initiative))){item.initiative=next[0];changed=true;}
+      });
+      return changed;
+    }
+    function refreshCatalogMetadata(){
+      let changed=false;
+      sourceItems.forEach(item=>{
+        normalizeCatalogContext(item);
+        if(normalizeDocumentApplicationMetadata(item))changed=true;
+        item.initiatives=initiativesOf(item);
+        if(syncInsightRegisterInitiative(item))changed=true;
+        if(item.supportingDocument)item.status='Disponible';
+        if(item.simpleKnowledgeActive&&item.insightRegister)item.status='Procesado';
+      });
+      [learnings,evidenceItems,experiments,patternItems].forEach(items=>items.forEach(item=>{
+        normalizeCatalogContext(item);
+        item.initiatives=initiativesOf(item);
+      }));
+      if(reconcileInitiativesFromSources())changed=true;
+      return changed;
+    }
+    const initiativeMetadataRecovered=refreshCatalogMetadata();
+    if(initiativeMetadataRecovered)safeStorageWrite({project:false});
+
+    // Fuente única de vocabularios controlados para toda UX Intelligence.
+    const UX_CONTROLLED_VOCABULARIES=Object.freeze({
+      device:Object.freeze(['Desktop','Mobile','Desktop + mobile','App','No especificado']),
+      market:Object.freeze(['Alemania','Argentina','Bolivia','Brasil','Bélgica','Chile','Colombia','Ecuador','España','Estados Unidos','Francia','Israel','Italia','México','Panamá','Paraguay','Países Bajos','Perú','Portugal','Reino Unido','República Dominicana','Suiza','Turquía','Uruguay','World (EUR)','World (USD)','Multimercado','No especificado']),
+      region:Object.freeze(['España','Europa','África','Oriente Medio','Norteamérica','Caribe','América Central','América del Sur','Global','No especificado']),
+      origin:Object.freeze(['Auditoría UX','Test con usuarios','Análisis conductual','Análisis de datos','Experimentación / CRO','Benchmark','Desk research','Voz del cliente / CSAT','Síntesis estratégica']),
+      recordType:Object.freeze(['Hecho','Evidencia interna','Evidencia externa','Hipótesis','Inferencia','Oportunidad','Restricción','Decisión','Pregunta abierta']),
+      impactUx:Object.freeze(['Alto','Medio','Bajo']),
+      uxLine:Object.freeze(["Accesibilidad","Arquitectura de información","Claridad y comprensión","Consistencia","Contenido y copy","Control y autonomía","Encontrabilidad","Feedback y estado","Flujo y secuenciación","Fricción y eficiencia","Jerarquía visual","Navegación","Orientación y ayuda","Personalización"])
+    });
+    globalThis.UXControlledVocabulary=UX_CONTROLLED_VOCABULARIES;
+
+    function optionSet(select,allLabel,values,current='Todos'){
+      const unique=[...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+      const allValue=select.options[0]?.value==='Todas'?'Todas':'Todos';
+      // UI copy is deliberately uniform across all filters: the field label already provides context.
+      const visibleAllLabel='Todos';
+      select.innerHTML=`<option value="${allValue}">${escapeHtml(visibleAllLabel)}</option>${unique.map(value=>`<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('')}`;
+      select.value=unique.includes(current)?current:allValue;
+}
+    function refreshInitiativeFilters(oldName='',newName=''){
+      const sharedInitiatives=sourceItems.flatMap(item=>[...(item.initiatives||[]),item.initiative]).filter(value=>value&&!['Sin clasificar','No especificado','Documentación'].includes(value));
+      ['learning','evidence','experiment','pattern','source'].forEach(group=>{
+        const select=document.getElementById(`${group}-initiative`);if(!select)return;
+        const items=catalogCollection(group);
+        const values=[...items.flatMap(item=>item.initiatives||[]),...sharedInitiatives];
+        const current=initiativeNameEquals(select.value,oldName)?newName:select.value;
+        optionSet(select,'Todos',values,current);
+      });
+      globalThis.__uxSimpleExploreRefresh?.();
+    }
+    function hierarchyValues(product='Todos',funnel='Todos',minifunnel='Todos',group=''){
+      const contexts=taxonomyContexts();
+      const exact=(actual,selected)=>['Todos','Todas',''].includes(selected)||normalizeText(actual||'')===normalizeText(selected);
+      const inProduct=contexts.filter(ctx=>exact(ctx.product,product));
+      const funnels=[...new Set(inProduct.map(ctx=>ctx.funnel).filter(Boolean))];
+
+      const inFunnel=inProduct.filter(ctx=>exact(ctx.funnel,funnel));
+      const minifunnels=[...new Set(inFunnel.map(ctx=>ctx.minifunnel).filter(Boolean))];
+
+      const inMinifunnel=inFunnel.filter(ctx=>exact(ctx.minifunnel,minifunnel));
+      const canonical=inMinifunnel.map(ctx=>ctx.component).filter(Boolean);
+
+      // Los componentes consolidados de Learnings se preservan aunque estén
+      // pendientes de normalización, pero nunca crean Producto/Funnel/Minifunnel.
+      const learningComponents=group==='learning'
+        ? learnings.filter(item=>{
+            const current=governedTaxonomyRecord(item);
+            return exact(current.product,product)&&exact(current.funnel,funnel)&&exact(current.minifunnel,minifunnel);
+          }).flatMap(item=>governedComponentNames(item))
+        : [];
+
+      const sort=(values)=>[...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+      return {funnels:sort(funnels),minifunnels:sort(minifunnels),components:sort([...canonical,...learningComponents])};
+    }
+    const renderers={explore:renderExplore,learning:renderLearnings,evidence:renderEvidence,experiment:renderExperiments,pattern:renderPatterns,source:renderSources};
+    function refreshHierarchy(group,changed){
+      const product=document.getElementById(`${group}-product`);
+      const funnel=document.getElementById(`${group}-funnel`);
+      const minifunnel=document.getElementById(`${group}-minifunnel`);
+      const component=document.getElementById(`${group}-component`);
+      if(!product||!component)return;
+
+      if(changed==='product'){
+        if(funnel)funnel.value='Todos';
+        if(minifunnel)minifunnel.value='Todos';
+        component.value='Todos';
+      }else if(changed==='funnel'){
+        if(minifunnel)minifunnel.value='Todos';
+        component.value='Todos';
+      }else if(changed==='minifunnel'){
+        component.value='Todos';
+      }
+
+      let values=hierarchyValues(product.value,'Todos','Todos',group);
+      if(funnel){
+        optionSet(funnel,'Todos',values.funnels,funnel.value);
+        funnel.disabled=normalizeText(product.value)==='home'||values.funnels.length===0;
+      }
+
+      values=hierarchyValues(product.value,funnel?.value||'Todos','Todos',group);
+      if(minifunnel){
+        optionSet(minifunnel,'Todos',values.minifunnels,minifunnel.value);
+        minifunnel.disabled=!funnel||['Todos','Todas'].includes(funnel.value)||values.minifunnels.length===0;
+      }
+
+      values=hierarchyValues(product.value,funnel?.value||'Todos',minifunnel?.value||'Todos',group);
+      optionSet(component,'Todos',values.components,component.value);
+      component.disabled=values.components.length===0;
+
+      renderers[group]();
+      updateActiveFilters(group);
+    }
+    document.querySelectorAll('.filter-system').forEach(system=>{
+      const group=system.dataset.filterGroup;
+      system.insertAdjacentHTML('beforeend',`<div class="active-filter-bar" data-active-filters="${group}" hidden></div>`);
+      optionSet(system.querySelector('.hierarchy-product'),'Todos',[...new Set(taxonomyContexts().map(ctx=>ctx.product).filter(Boolean))]);
+      const items=catalogCollection(group);
+      const sharedInitiatives=sourceItems.flatMap(item=>[...(item.initiatives||[]),item.initiative]).filter(value=>value&&!['Sin clasificar','No especificado','Documentación'].includes(value));
+      const dimensions={initiative:{label:'Todos',values:[...items.flatMap(item=>item.initiatives||[]),...sharedInitiatives]},segment:{label:'Todos',values:items.map(item=>item.segment)},login:{label:'Todos',values:items.map(item=>item.loginStatus||item.login)}};
+      Object.entries(dimensions).forEach(([key,{label,values}])=>{const select=document.getElementById(`${group}-${key}`);if(select)optionSet(select,label,values);});
+
+      // Vocabularios controlados: una misma fuente para todas las pantallas.
+      const controlledSelects={
+        device:UX_CONTROLLED_VOCABULARIES.device,
+        market:UX_CONTROLLED_VOCABULARIES.market,
+        impact:UX_CONTROLLED_VOCABULARIES.impactUx
+      };
+      Object.entries(controlledSelects).forEach(([key,values])=>{
+        const select=document.getElementById(`${group}-${key}`);
+        if(select)optionSet(select,'Todos',values,select.value||'Todos');
+      });
+
+      if(group==='explore'){
+        optionSet(document.getElementById('explore-evidence-kind'),'Todos',[...new Set(evidenceRecords().map(item=>humanKnowledgeLabel(item.kind||item.type)))],document.getElementById('explore-evidence-kind').value);
+        optionSet(document.getElementById('explore-date'),'Todos',[...new Set(sourceItems.map(documentDate).filter(knownMetadata))],document.getElementById('explore-date').value);
+      }
+      if(group==='source'){
+        optionSet(document.getElementById('source-type'),'Todos',UX_CONTROLLED_VOCABULARIES.origin,document.getElementById('source-type')?.value||'Todos');
+        optionSet(document.getElementById('source-date'),'Todos',[...new Set(sourceItems.map(documentDate).filter(knownMetadata))],document.getElementById('source-date')?.value||'Todos');
+      }
+
+      refreshHierarchy(group);
+      system.querySelectorAll('[data-hierarchy-level]').forEach(select=>{
+        const level=select.dataset.hierarchyLevel;
+        select.addEventListener('change',()=>refreshHierarchy(group,level));
+      });
+      system.querySelectorAll('select:not([data-hierarchy-level])').forEach(select=>select.addEventListener('change',()=>{renderers[group]();updateActiveFilters(group);}));
+      system.querySelectorAll('input[type="date"]').forEach(input=>input.addEventListener('change',()=>{renderers[group]();updateActiveFilters(group);}));
+      // Visible copy is intentionally uniform across Explore, Learnings and Documents.
+      system.querySelectorAll('option[value="Todos"],option[value="Todas"]').forEach(option=>{option.textContent='Todos';});
+      const more=system.querySelector('.more-filter-button');
+      const secondary=system.querySelector('.secondary-filters');
+      more.addEventListener('click',()=>{const open=more.getAttribute('aria-expanded')==='true';more.setAttribute('aria-expanded',String(!open));secondary.hidden=open;more.textContent=open?'Más filtros':'Menos filtros';});
+    });
+
+    function governedLearningInitiatives(item){
+      return [...new Set([...(item?.initiatives||[]),item?.initiative].filter(value=>value&&!['Sin clasificar','No especificado','Transversal'].includes(value)))];
+    }
+
+    function hierarchyFilter(items,group){
+      const product=document.getElementById(`${group}-product`)?.value||'Todos';
+      const funnel=document.getElementById(`${group}-funnel`)?.value||'Todos';
+      const minifunnel=document.getElementById(`${group}-minifunnel`)?.value||'Todos';
+      const component=document.getElementById(`${group}-component`)?.value||'Todos';
+      const initiative=document.getElementById(`${group}-initiative`)?.value||'Todos';
+      const exact=(actual,selected)=>['Todos','Todas',''].includes(selected)||normalizeText(actual||'')===normalizeText(selected);
+
+      const contextMatches=item=>{
+        const current=governedTaxonomyRecord(item);
+        return exact(current.product,product)&&
+          exact(current.funnel,funnel)&&
+          exact(current.minifunnel,minifunnel)&&
+          (['Todos','Todas'].includes(component)||componentsOf(item).some(value=>exact(value,component)));
+      };
+
+      return items.filter(item=>{
+        const itemInitiatives=group==='learning'?governedLearningInitiatives(item):[...(item.initiatives||[]),item.initiative].filter(Boolean);
+        const initiativeMatch=['Todos','Todas'].includes(initiative)||itemInitiatives.some(value=>exact(value,initiative));
+        if(!initiativeMatch)return false;
+
+        // Un documento puede abarcar varios contextos. Basta con que uno de sus
+        // registros estructurados coincida con el filtro seleccionado.
+        if(group==='source'){
+          const candidates=[item,...(item?.insightRegister?.rows||[])];
+          return candidates.some(contextMatches);
+        }
+        return contextMatches(item);
+      });
+    }
+
+    function updateActiveFilters(group){
+      const system=document.querySelector(`[data-filter-group="${group}"]`);
+      const bar=system?.querySelector('[data-active-filters]');if(!bar)return;
+      const activeSelects=[...system.querySelectorAll('select:not([data-filter-sort])')].filter(select=>!['Todos','Todas'].includes(select.value)).map(select=>({id:select.id,label:select.options[select.selectedIndex]?.textContent||select.value}));
+      const activeDates=[...system.querySelectorAll('input[type="date"]')].filter(input=>input.value).map(input=>{const field=input.closest('label')?.childNodes?.[0]?.textContent?.trim()||'Fecha';return {id:input.id,label:`${field}: ${input.value.split('-').reverse().join('/')}`};});
+      const active=[...activeSelects,...activeDates];
+      bar.hidden=!active.length;
+      bar.innerHTML=active.length?`<span class="active-filter-label">Filtros activos</span>${active.map(item=>`<button class="filter-token" type="button" aria-label="Eliminar filtro ${escapeHtml(item.label)}" data-remove-filter="${item.id}">${escapeHtml(item.label)}<span aria-hidden="true">×</span></button>`).join('')}<button class="clear-filter-button" type="button" data-clear-filters="${group}">Limpiar filtros</button>`:'';
+    }
+    function resetFilterGroup(group){
+      const system=document.querySelector(`[data-filter-group="${group}"]`);if(!system)return;
+      system.querySelectorAll('select').forEach(select=>{if(select.hasAttribute('data-filter-sort'))select.value='newest';else select.value=[...select.options].some(option=>option.value==='Todos')?'Todos':'Todas';});
+      system.querySelectorAll('input[type="date"]').forEach(input=>{input.value='';input.dispatchEvent(new Event('change',{bubbles:true}));});
+      refreshHierarchy(group,'product');
+    }
+    document.addEventListener('click',event=>{
+      const taxonomyToggle=event.target.closest('[data-taxonomy-toggle]');if(taxonomyToggle){taxonomyTreeExpanded=!taxonomyTreeExpanded;renderTaxonomy();return;}
+      const taxonomyTermButton=event.target.closest('[data-taxonomy-term]');if(taxonomyTermButton){activeTaxonomyTermId=taxonomyTermButton.dataset.taxonomyTerm;renderTaxonomy();return;}
+      const taxonomyEdit=event.target.closest('[data-taxonomy-edit]');
+      if(taxonomyEdit){
+        // En Learnings la clasificación gobernada termina en Componente.
+        // Elemento es metadato auxiliar y no debe bloquear el guardado.
+        if(taxonomyEdit.dataset.taxonomyEdit==='learning'){
+          openLearningComponentEditor(taxonomyEdit.dataset.taxonomyId);
+          return;
+        }
+        openTaxonomyEditor(taxonomyEdit.dataset.taxonomyEdit,taxonomyEdit.dataset.taxonomyId);
+        return;
+      }
+      const taxonomyProposal=event.target.closest('[data-propose-taxonomy]');if(taxonomyProposal){proposeTaxonomyTerm().then(()=>{showToast('Propuesta guardada','El término queda pendiente de validación y no se usa como canon.');renderTaxonomy();}).catch(error=>showToast('No se ha guardado la propuesta',error.message));return;}
+      const remove=event.target.closest('[data-remove-filter]');
+      if(remove){const control=document.getElementById(remove.dataset.removeFilter);if(!control)return;const group=control.closest('.filter-system').dataset.filterGroup;if(control.matches('input[type="date"]')){control.value='';control.dispatchEvent(new Event('change',{bubbles:true}));renderers[group]();updateActiveFilters(group);return;}control.value=[...control.options].some(option=>option.value==='Todos')?'Todos':'Todas';const level=control.dataset.hierarchyLevel||null;if(level)refreshHierarchy(group,level);else{renderers[group]();updateActiveFilters(group);}return;}
+      const clear=event.target.closest('[data-clear-filters]');
+      if(clear)resetFilterGroup(clear.dataset.clearFilters);
+    });
+
+
+    function sameProductContext(item,context){
+      const selected=componentsOf(context);
+      return item.product===context.product&&(!selected.length||selected.some(component=>componentsOf(item).includes(component)));
+    }
+    function homeQuestions(){
+      // La Home no es un backlog de todas las preguntas históricas.
+      // Muestra únicamente preguntas de learnings consolidados, una por learning,
+      // priorizadas y con diversidad de iniciativas.
+      const rank={Alto:0,Medio:1,Bajo:2};
+      const candidates=learnings
+        .filter(learning=>Array.isArray(learning.open)&&learning.open.some(value=>String(value||'').trim()))
+        .map(learning=>{
+          const question=(learning.open||[]).map(value=>String(value||'').trim()).find(Boolean)||'';
+          const initiative=(governedLearningInitiatives(learning)[0]||learning.initiative||'Sin iniciativa').trim();
+          const updated=Date.parse(learning.updatedAt||learning.createdAt||'')||0;
+          return {
+            text:question,
+            item:learning,
+            action:`data-learning="${escapeHtml(learning.id)}"`,
+            sources:catalogSources(learning),
+            initiative,
+            impactRank:rank[String(learning.impactUx||'').trim()]??3,
+            updated
+          };
+        })
+        .filter(candidate=>candidate.text)
+        .sort((a,b)=>a.impactRank-b.impactRank||b.updated-a.updated||a.text.localeCompare(b.text,'es'));
+
+      const selected=[];
+      const perInitiative=new Map();
+      for(const candidate of candidates){
+        if(selected.some(existing=>semanticSimilarity(existing.text,candidate.text)>=.72))continue;
+        const key=normalizeText(candidate.initiative||'Sin iniciativa');
+        const used=perInitiative.get(key)||0;
+        if(used>=2)continue;
+        selected.push(candidate);
+        perInitiative.set(key,used+1);
+        if(selected.length>=8)break;
+      }
+      return selected;
+    }
+    function knowledgeContexts(){
+      const keys=new Map();
+      learnings.forEach(item=>{const components=componentsOf(item);if(item.product&&components.length){const key=JSON.stringify([item.product,item.funnel||'',item.minifunnel||'',...components]);if(!keys.has(key))keys.set(key,{key,product:item.product,funnel:item.funnel||'',minifunnel:item.minifunnel||'',component:components.length===1?components[0]:'',components});}});
+      return [...keys.values()].map(context=>{
+        const items=learnings.filter(item=>sameProductContext(item,context));
+        return {...context,learnings:items,evidence:evidenceItems.filter(item=>sameProductContext(item,context)),experiments:experiments.filter(item=>sameProductContext(item,context)),patterns:patternItems.filter(item=>sameProductContext(item,context)),questions:homeQuestions().filter(question=>sameProductContext(question.item,context))};
+      }).sort((a,b)=>b.learnings.length-a.learnings.length);
+    }
+    function goToKnowledgeContext(context){
+      // Contextos de búsqueda/Home deben abrir el explorador actual y conservar
+      // toda la jerarquía seleccionada: Producto → Funnel → Minifunnel → Componente.
+      goToSimpleExploreContext(context||{});
+    }
+    function goToSimpleExploreContext(context){
+      showPanel('explore');
+      const fields=['initiative','product','funnel','minifunnel','component','device','market','region','origin','recordType','impactUx'];
+      fields.forEach(field=>{
+        const idMap={recordType:'type',impactUx:'impact'};
+        const id=`uxs-${idMap[field]||field}`;
+        const select=document.getElementById(id);
+        if(!select)return;
+        select.value='';
+        select.dispatchEvent(new Event('change',{bubbles:true}));
+      });
+      ['product','funnel','minifunnel','component'].forEach(field=>{
+        const value=String(context[field]||'').trim();
+        if(!value)return;
+        const select=document.getElementById(`uxs-${field}`);
+        if(select&&[...select.options].some(option=>normalizeText(option.value)===normalizeText(value))){
+          const matched=[...select.options].find(option=>normalizeText(option.value)===normalizeText(value));
+          select.value=matched.value;
+          select.dispatchEvent(new Event('change',{bubbles:true}));
+        }
+      });
+    }
+
+    function goToSimpleExploreInitiative(initiative){
+      showPanel('explore');
+      const initiativeSelect=document.getElementById('uxs-initiative');
+      if(!initiativeSelect)return;
+      const matched=[...initiativeSelect.options].find(option=>normalizeText(option.value)===normalizeText(initiative));
+      if(!matched)return;
+      initiativeSelect.value=matched.value;
+      initiativeSelect.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+
+    function openHomeQuestions(){
+      const questions=homeQuestions();
+      openDrawer('<div class="drawer-kicker">Qué falta saber</div><h2>Preguntas abiertas prioritarias</h2><p class="drawer-lead">Cuestiones aún abiertas dentro de learnings consolidados. Orientan próximos análisis, research o experimentación sin mezclar preguntas históricas de las fuentes.</p>',
+        `<div class="relation-list">${questions.map(question=>`<div class="relation-row"><div class="relation-copy"><strong>${escapeHtml(question.text)}</strong><span>${escapeHtml(pathOf(question.item))}</span></div><button class="relation-action" type="button" ${question.action}>Ver contexto</button><span></span></div>`).join('')}</div>`);
+    }
+    document.addEventListener('click',event=>{
+      const homePager=event.target.closest('[data-home-page]');
+      if(homePager){
+        const key=String(homePager.dataset.homePage||'');
+        const delta=Number(homePager.dataset.homePageDelta||0);
+        if(Object.prototype.hasOwnProperty.call(homeDashboardState,key)&&delta){homeDashboardState[key]=Math.max(0,Number(homeDashboardState[key]||0)+delta);renderOverview();}
+        return;
+      }
+      if(event.target.closest('[data-home-all-questions]'))openHomeQuestions();
+      const homeInitiative=event.target.closest('[data-home-initiative]');
+      if(homeInitiative){goToSimpleExploreInitiative(homeInitiative.dataset.homeInitiative);return;}
+      const area=event.target.closest('[data-home-area]');
+      if(area)goToSimpleExploreContext({
+        product:area.dataset.product||'',
+        funnel:area.dataset.funnel||'',
+        minifunnel:area.dataset.minifunnel||'',
+        screen:area.dataset.screen||'',
+        component:area.dataset.component||''
+      });
+      const recent=event.target.closest('[data-home-doc]');
+      if(recent){showPanel('sources');openSource(recent.dataset.homeDoc);}
+    });
+    function realActivity(){
+      const events=[];
+      sourceItems.forEach(item=>{
+        const published=item.analysis?.publication;
+        if(published?.status==='published'&&published.publishedAt)events.push({date:published.publishedAt,title:item.name,description:'Conocimiento publicado',action:`data-doc-action="open" data-id="${escapeHtml(item.id)}"`});
+        else if(item.ingestedAt)events.push({date:item.ingestedAt,title:item.name,description:'Documento añadido',action:`data-doc-action="open" data-id="${escapeHtml(item.id)}"`});
+      });
+      learnings.forEach(item=>{
+        // Use recorded publication operations, never the report's date as an event.
+        (item.publicationHistory||[]).forEach(entry=>{if(entry.publishedAt)events.push({date:entry.publishedAt,title:item.title,description:entry.decision,action:`data-learning="${escapeHtml(item.id)}"`});});
+        if(item.createdAt&&!item.publicationHistory?.length)events.push({date:item.createdAt,title:item.title,description:'Learning creado',action:`data-learning="${escapeHtml(item.id)}"`});
+      });
+      return events.filter(event=>/^\d{4}-\d{2}-\d{2}T/.test(event.date)&&Number.isFinite(Date.parse(event.date))).sort((a,b)=>Date.parse(b.date)-Date.parse(a.date)).slice(0,4);
+    }
+    // Presentation-only counts from the current library; no inferred coverage score.
+    function homeCoverageMarkup(products,items){
+      const counts=products.map(product=>({product,count:new Set(items.filter(item=>item.product===product).map(item=>item.id)).size}));
+      const total=new Set(items.map(item=>item.id)).size,max=Math.max(1,...counts.map(item=>item.count));
+      const unassigned=new Set(items.filter(item=>!products.includes(item.product)).map(item=>item.id)).size;
+      return `<figure class="home-coverage-panel" aria-labelledby="home-coverage-title" aria-describedby="home-coverage-note"><figcaption class="section-head"><span class="home-feature-icon" aria-hidden="true"><span class="home-glyph home-glyph-chart"></span></span><div><h2 id="home-coverage-title">Distribución del conocimiento consolidado por producto</h2><p>Visualiza cómo se reparte el conocimiento actualmente disponible entre productos.</p></div></figcaption><div class="home-coverage-body"><dl class="home-coverage-total"><div><dt>Learnings registrados</dt><dd>${total}</dd></div></dl><dl class="home-coverage-bars" aria-label="Learnings registrados por producto">${counts.map(({product,count})=>`<div class="home-coverage-row"><dt>${escapeHtml(product)}</dt><dd><span class="home-coverage-track" aria-hidden="true"><span style="width:${count/max*100}%"></span></span><strong>${count}</strong></dd></div>`).join('')}</dl></div><p class="home-coverage-note" id="home-coverage-note">El volumen describe presencia de conocimiento en la biblioteca; no equivale a validación ni a un porcentaje de cobertura.${unassigned?` ${unassigned} ${unassigned===1?'learning sin producto representado en el gráfico':'learnings sin producto representado en el gráfico'}.`:''}</p></figure>`;
+    }
+    const homeDashboardState={recent:0,consolidation:0,gaps:0,areas:0};
+    function homePage(items,key,pageSize){
+      const pages=Math.max(1,Math.ceil(items.length/pageSize));
+      const page=Math.max(0,Math.min(Number(homeDashboardState[key]||0),pages-1));
+      homeDashboardState[key]=page;
+      return {items:items.slice(page*pageSize,page*pageSize+pageSize),page,pages,total:items.length};
+    }
+    function homePagerMarkup(key,page,pages,total){
+      if(pages<=1)return '';
+      return `<div class="ux-home-pager"><span>${total} elementos · página ${page+1} de ${pages}</span><span class="ux-home-pager-controls"><button class="ux-home-page-button" type="button" data-home-page="${key}" data-home-page-delta="-1" aria-label="Página anterior" ${page===0?'disabled':''}>←</button><button class="ux-home-page-button" type="button" data-home-page="${key}" data-home-page-delta="1" aria-label="Página siguiente" ${page===pages-1?'disabled':''}>→</button></span></div>`;
+    }
+
+    function renderOverview(){
+      try{
+        const activeExcel=sourceItems.filter(item=>item?.simpleKnowledgeActive&&item?.insightRegister?.rows);
+        const sourceRows=activeExcel.flatMap(doc=>(doc.insightRegister?.rows||[]).map(row=>({...row,__docId:doc.id,__docName:doc.name||doc.originalName||''})));
+        const sharedRecords=(()=>{
+          try{
+            const current=globalThis.UXSimpleKnowledge?.currentNormalizedRecords?.();
+            if(Array.isArray(current)&&current.length)return current;
+          }catch(_){}
+          return sourceRows.map(row=>{
+            let normalized=row;
+            try{normalized=globalThis.UXGovernedTaxonomy?.normalizeRecord?.(row)||row;}catch(_){}
+            let impact=String(normalized?.impactUx||row?.impactUx||'').trim();
+            try{impact=globalThis.UXReviewedImpact?.forInsight?.(row?.insight||'')||impact;}catch(_){}
+            return {...normalized,impactUx:impact,docId:row.__docId||'',docName:row.__docName||''};
+          });
+        })();
+        const pdfItems=sourceItems.filter(item=>item?.supportingDocument);
+        const ignoredInitiatives=new Set(['Sin clasificar','Documentación','No especificado']);
+        const initiatives=[...new Set([
+          ...sourceItems.flatMap(item=>[item.initiative,...(item.initiatives||[])]),
+          ...learnings.flatMap(item=>[item.initiative,...(item.initiatives||[])])
+        ].map(value=>String(value||'').trim()).filter(value=>value&&!ignoredInitiatives.has(value)))].sort((a,b)=>a.localeCompare(b,'es'));
+        const products=[...new Set(sharedRecords.map(row=>String(row.product||'').trim()).filter(Boolean))];
+        document.getElementById('ux-base-learnings')?.replaceChildren(document.createTextNode(String(learnings.length)));
+        document.getElementById('ux-base-insights')?.replaceChildren(document.createTextNode(String(sharedRecords.length)));
+        document.getElementById('ux-base-initiatives')?.replaceChildren(document.createTextNode(String(initiatives.length)));
+        document.getElementById('ux-base-documents')?.replaceChildren(document.createTextNode(String(sourceItems.length)));
+        document.getElementById('ux-base-document-split')?.replaceChildren(document.createTextNode(`${activeExcel.length} Excel revisados · ${pdfItems.length} PDF de apoyo`));
+
+        // Home v6-30: surface the knowledge itself first, then curated gaps, coverage and recent sources.
+        const impactRank={Alto:0,Medio:1,Bajo:2};
+
+        // Conocimiento consolidado: all learnings are reachable from Home, balanced by initiative and paginated.
+        const learningTarget=document.getElementById('ux-home-learning-list');
+        if(learningTarget){
+          const learningGroups=new Map();
+          learnings.forEach(learning=>{
+            const initiative=(governedLearningInitiatives(learning)[0]||learning.initiative||'Sin iniciativa').trim();
+            if(!learningGroups.has(initiative))learningGroups.set(initiative,[]);
+            learningGroups.get(initiative).push(learning);
+          });
+          [...learningGroups.values()].forEach(group=>group.sort((a,b)=>(impactRank[a.impactUx]??3)-(impactRank[b.impactUx]??3)||String(a.title||'').localeCompare(String(b.title||''),'es')));
+          const groupNames=[...learningGroups.keys()].sort((a,b)=>a.localeCompare(b,'es'));
+          const orderedLearnings=[];let round=0;
+          while(groupNames.some(name=>learningGroups.get(name)?.[round])){
+            groupNames.forEach(name=>{const candidate=learningGroups.get(name)?.[round];if(candidate)orderedLearnings.push(candidate);});
+            round++;
+          }
+          const learningPage=homePage(orderedLearnings,'consolidation',5);
+          learningTarget.innerHTML=learningPage.total?`<div class="ux-home-learning-list">${learningPage.items.map((learning,index)=>{
+            // En Resumen mostramos únicamente el journey canónico.
+            // La iniciativa sigue disponible en datos y filtros, pero no forma parte de la ruta.
+            const meta=pathOf(learning);
+            const ordinal=String(learningPage.page*5+index+1).padStart(2,'0');
+            const impact=String(learning.impactUx||'').trim();
+            const impactClassName=impact==='Alto'?'is-high':impact==='Medio'?'is-medium':impact==='Bajo'?'is-low':'';
+            return `<button class="ux-home-learning-row" type="button" data-learning="${escapeHtml(learning.id)}"><span class="ux-home-learning-index" aria-hidden="true">${ordinal}</span><span class="ux-home-learning-copy"><span class="ux-home-learning-title">${escapeHtml(editorialCopy(learning.title))}</span><span class="ux-home-learning-meta">${escapeHtml(meta||'Learning consolidado')}</span></span>${impact?`<span class="ux-home-learning-impact ${impactClassName}"><i aria-hidden="true"></i><span>${escapeHtml(impact)}</span></span>`:''}<span class="ux-home-learning-chevron" aria-hidden="true"></span></button>`;
+          }).join('')}</div>${homePagerMarkup('consolidation',learningPage.page,learningPage.pages,learningPage.total)}`:'<p class="ux-home-empty-note">No hay learnings consolidados disponibles en este momento.</p>';
+        }
+
+        // Qué nos falta saber: only consolidated/open questions, not every row-level prompt in the source Excel.
+        const gapsTarget=document.getElementById('ux-home-gaps-list');
+        if(gapsTarget){
+          const questions=homeQuestions().sort((a,b)=>(impactRank[a.item?.impactUx]??3)-(impactRank[b.item?.impactUx]??3)||String(a.text||'').localeCompare(String(b.text||''),'es'));
+          const visibleQuestions=questions.slice(0,3);
+          gapsTarget.innerHTML=visibleQuestions.length?`<div class="ux-home-question-list">${visibleQuestions.map(question=>{
+            const item=question.item||{};
+            const meta=pathOf(item)||question.sources?.[0]?.name||'Pregunta abierta';
+            const isLearning=learnings.some(learning=>learning.id===item.id);
+            const action=isLearning?`data-learning="${escapeHtml(item.id)}"`:item.documentId?`data-home-doc="${escapeHtml(item.documentId)}"`:'';
+            return `<div class="ux-home-question-row"><strong>${escapeHtml(question.text)}</strong><small>${escapeHtml(meta)}</small>${action?`<button class="view-link" type="button" ${action}>Ver contexto</button>`:''}</div>`;
+          }).join('')}</div>`:'<p class="ux-home-empty-note">No hay incertidumbres prioritarias abiertas en los learnings actuales.</p>';
+        }
+
+        // Cobertura: product-level summary only. Volume is descriptive, never a score of validation.
+        const productKnowledgeMap=new Map();
+        const ensureProductKnowledge=product=>{
+          const productName=String(product||'No especificado').trim()||'No especificado';
+          const key=normalizeText(productName);
+          if(!productKnowledgeMap.has(key))productKnowledgeMap.set(key,{product:productName,records:0,sources:new Set(),areas:new Map()});
+          return productKnowledgeMap.get(key);
+        };
+        const firstProductChild=(row,product)=>{
+          const levels=[['funnel',row.funnel],['minifunnel',row.minifunnel],['screen',row.screen],['component',row.component]];
+          for(const [field,raw] of levels){
+            const value=String(raw||'').trim();
+            if(!value||normalizeText(value)===normalizeText(product))continue;
+            return {field,value};
+          }
+          return {field:'',value:''};
+        };
+        sharedRecords.forEach(row=>{
+          const productEntry=ensureProductKnowledge(row.product);
+          productEntry.records++;
+          const sourceKey=String(row.docId||row.documentId||row.__docId||row.sourceFile||row.source||'').trim();
+          if(sourceKey)productEntry.sources.add(sourceKey);
+          const child=firstProductChild(row,productEntry.product);
+          if(!child.value)return;
+          const key=`${child.field}:${normalizeText(child.value)}`;
+          if(!productEntry.areas.has(key))productEntry.areas.set(key,{label:child.value,records:0});
+          productEntry.areas.get(key).records++;
+        });
+        const canonicalHomeProducts=(()=>{
+          try{
+            return new Set((taxonomyProject?.state?.terms||[])
+              .filter(term=>{
+                const origin=String(term?.origin||'').trim();
+                const governed=term?.governed===true||!/^excel revisado\s*·/i.test(origin);
+                return term?.level==='product'&&term?.status==='canonical'&&governed;
+              })
+              .map(term=>normalizeText(term?.canonicalName||term?.name||term?.label||''))
+              .filter(Boolean));
+          }catch(_){return new Set();}
+        })();
+
+        const unclassifiedProductRecords=[...productKnowledgeMap.values()]
+          .filter(item=>!canonicalHomeProducts.has(normalizeText(item.product)))
+          .reduce((sum,item)=>sum+item.records,0);
+
+        const productKnowledge=[...productKnowledgeMap.values()]
+          .filter(item=>canonicalHomeProducts.size?canonicalHomeProducts.has(normalizeText(item.product)):normalizeText(item.product)!=='no especificado')
+          .sort((a,b)=>b.records-a.records||a.product.localeCompare(b.product,'es'));
+
+        const coverageTarget=document.getElementById('ux-home-coverage-list');
+        if(coverageTarget){
+          const visibleProducts=productKnowledge.slice(0,6);
+
+          // SUMA se muestra como iniciativa, no como Producto.
+          // Las métricas usan los mismos registros estructurados que el resto de la cobertura.
+          const sumaInitiativeName='SUMA Frequent Flyer';
+          const itemInitiatives=item=>[...(Array.isArray(item?.initiatives)?item.initiatives:[]),item?.initiative]
+            .map(value=>String(value||'').trim()).filter(Boolean);
+          const isSumaInitiative=item=>itemInitiatives(item).some(value=>{
+            const key=normalizeText(value);
+            return key===normalizeText(sumaInitiativeName)||key===normalizeText('Usuarios SUMA');
+          });
+          const sumaRecords=sharedRecords.filter(isSumaInitiative);
+          const sumaSources=new Set();
+          sumaRecords.forEach(row=>{
+            const sourceKey=String(row.docId||row.documentId||row.__docId||row.sourceFile||row.source||'').trim();
+            if(sourceKey)sumaSources.add(sourceKey);
+          });
+          const sumaLearningCount=learnings.filter(learning=>{
+            const initiatives=typeof governedLearningInitiatives==='function'
+              ? governedLearningInitiatives(learning)
+              : itemInitiatives(learning);
+            return initiatives.some(value=>{
+              const key=normalizeText(value);
+              return key===normalizeText(sumaInitiativeName)||key===normalizeText('Usuarios SUMA');
+            });
+          }).length;
+          const sumaCoverage=sumaRecords.length?{
+            initiative:sumaInitiativeName,
+            records:sumaRecords.length,
+            sources:sumaSources,
+            learnings:sumaLearningCount
+          }:null;
+
+          const maxCoverageRecords=Math.max(
+            1,
+            ...visibleProducts.map(product=>product.records),
+            sumaCoverage?.records||0
+          );
+          const coverageIcon=productName=>{
+            const name=normalizeText(productName);
+            if(name.includes('home'))return `<img class="ux-coverage-official-icon" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTkuOTk5OSAxMC41NjQ3QzE5Ljk5OTkgOS45MzQwMiAxOS45OTExIDkuODA5NDQgMTkuOTYyOCA5LjcwODI2QzE5LjkzIDkuNTkxMjUgMTkuODc1OSA5LjQ4MDc2IDE5LjgwMzYgOS4zODMwNkMxOS43NDExIDkuMjk4NzEgMTkuNjQ3NSA5LjIxNTEyIDE5LjE1MDMgOC44MjgzN0wxMi4zNjggMy41NTI5OEMxMi4xODEzIDMuNDA3NzYgMTIuMDgxOCAzLjMzMTY4IDEyLjAwNjcgMy4yODE1QzEyLjAwNDMgMy4yNzk4NyAxMi4wMDIxIDMuMjc4MDggMTEuOTk5OSAzLjI3NjYxQzExLjk5NzcgMy4yNzgwOCAxMS45OTU1IDMuMjc5ODcgMTEuOTkzIDMuMjgxNUMxMS45MTc5IDMuMzMxNjggMTEuODE4NCAzLjQwNzc2IDExLjYzMTcgMy41NTI5OEw0Ljg0OTQ5IDguODI4MzdDNC4zNTIyNSA5LjIxNTEyIDQuMjU4NjYgOS4yOTg3MSA0LjE5NjE3IDkuMzgzMDZDNC4xMjM5MSA5LjQ4MDc2IDQuMDY5NzkgOS41OTEyNSA0LjAzNjk5IDkuNzA4MjZDNC4wMDg2NyA5LjgwOTQ0IDMuOTk5ODkgOS45MzQwMiAzLjk5OTg4IDEwLjU2NDdWMTcuODAwMUw0LjAwMjgxIDE4LjUyNTZDNC4wMDU5IDE4LjcyNjQgNC4wMTI3MSAxOC44OTA3IDQuMDI0MyAxOS4wMzI1QzQuMDQ2NSAxOS4zMDM5IDQuMDg0MDggMTkuNDA0OSA0LjEwOTI2IDE5LjQ1NDNDNC4yMDUxMiAxOS42NDIzIDQuMzU3ODMgMTkuNzk1MSA0LjU0NTc4IDE5Ljg5MDlDNC41OTUyMiAxOS45MTYxIDQuNjk2MDUgMTkuOTUzNiA0Ljk2NzY2IDE5Ljk3NThDNS4yNTA5OSAxOS45OTkgNS42MjM1MyAyMC4wMDAyIDYuMjAwMDggMjAuMDAwMkgxNy43OTk3QzE4LjM3NjIgMjAuMDAwMiAxOC43NDg4IDE5Ljk5OSAxOS4wMzIxIDE5Ljk3NThDMTkuMzAzNyAxOS45NTM2IDE5LjQwNDUgMTkuOTE2MSAxOS40NTQgMTkuODkwOUMxOS42NDE5IDE5Ljc5NTEgMTkuNzk0NiAxOS42NDIzIDE5Ljg5MDUgMTkuNDU0M0MxOS45MTU3IDE5LjQwNDkgMTkuOTUzMyAxOS4zMDM5IDE5Ljk3NTUgMTkuMDMyNUMxOS45OTg2IDE4Ljc0OTEgMTkuOTk5OSAxOC4zNzY2IDE5Ljk5OTkgMTcuODAwMVYxMC41NjQ3Wk0yMS45OTk5IDE3LjgwMDFDMjEuOTk5OSAxOC4zNDM0IDIyLjAwMDkgMTguODExIDIxLjk2OTYgMTkuMTk0NkMyMS45MzczIDE5LjU4OTggMjEuODY1NCAxOS45ODMzIDIxLjY3MjcgMjAuMzYxNkMyMS4zODUyIDIwLjkyNiAyMC45MjY2IDIxLjM4NTUgMjAuMzYyMiAyMS42NzMxQzE5Ljk4MzkgMjEuODY1OCAxOS41OTA0IDIxLjkzNjcgMTkuMTk1MiAyMS45NjlDMTguODExNSAyMi4wMDAzIDE4LjM0MzIgMjIuMDAwMiAxNy43OTk3IDIyLjAwMDJINi4yMDAwOEM1LjY1NjUzIDIyLjAwMDIgNS4xODgyNCAyMi4wMDAzIDQuODA0NTcgMjEuOTY5QzQuNDA5MzMgMjEuOTM2NyA0LjAxNTg2IDIxLjg2NTggMy42Mzc1OCAyMS42NzMxQzMuMDczMiAyMS4zODU1IDIuNjE0NjEgMjAuOTI2IDIuMzI3MDMgMjAuMzYxNkMyLjEzNDMzIDE5Ljk4MzMgMi4wNjI0NSAxOS41ODk4IDIuMDMwMTYgMTkuMTk0NkMyLjAxNDUyIDE5LjAwMyAyLjAwNzUxIDE4Ljc5MDQgMi4wMDM3OSAxOC41NTc5TDEuOTk5ODggMTcuODAwMVYxMC41NjQ3QzEuOTk5ODggMTAuMDQ3MSAxLjk5MTUxIDkuNTk2ODMgMi4xMTEyMSA5LjE2OTE5QzIuMjA5NTUgOC44MTgwNSAyLjM3MDk3IDguNDg3NzkgMi41ODc3NyA4LjE5NDU4QzIuODUxOCA3LjgzNzYgMy4yMTI1IDcuNTY3OTUgMy42MjA5OCA3LjI1MDI1TDEwLjQwMzIgMS45NzQ4NkMxMC42ODE1IDEuNzU4MzggMTEuMDQyMSAxLjQ1NDA1IDExLjQ3NzQgMS4zMzYxOUMxMS43NzY5IDEuMjU1MTUgMTIuMDkwNSAxLjI0NTExIDEyLjM5MzQgMS4zMDU5MUwxMi41MjIzIDEuMzM2MTlMMTIuNjgyNSAxLjM4ODkyQzEzLjA0NjcgMS41MjkwNCAxMy4zNTMxIDEuNzg1NDkgMTMuNTk2NiAxLjk3NDg2TDIwLjM3ODggNy4yNTAyNUMyMC43ODczIDcuNTY3OTQgMjEuMTQ4IDcuODM3NiAyMS40MTIgOC4xOTQ1OEMyMS42Mjg4IDguNDg3NzkgMjEuNzkwMiA4LjgxODA1IDIxLjg4ODYgOS4xNjkxOUMyMi4wMDgzIDkuNTk2ODMgMjEuOTk5OSAxMC4wNDcxIDIxLjk5OTkgMTAuNTY0N1YxNy44MDAxWiIgZmlsbD0iYmxhY2siLz48L3N2Zz4=" alt="" aria-hidden="true">`;
+            if(name.includes('suma'))return `<img class="ux-coverage-official-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAPoAAAD6AG1e1JrAAACEElEQVRIS9WUP0wTARTGvzuuwpE7Kj0i4UA2tBMsMDBSBwwYnTpRGHSyEyw44SJRYYEBiIsMmjjVQUjdkBESXXCSdBNaAsmJ/Z9Koea94wqEtlzC3cAvad/13d17/b5394RSqVSCi4hwGRE3vYFEX6sbGbyJHCKTd2YculaH8JAXj/sVU8FiNOlYcSJhHGP2818+5gaJP8dwmlTu5MyiarRpEkYDKgLdMv9OGEUsRZOAIOD5sBf+dg/URpHzM5FDrG/l7Q+Zii+P30FoQMXqZgYPpxKsdHmilfOxnQIGp+J4NrcPXZMwPaZVrFNVARVp1ySsbGaxGE1xLm4UOW7v/MPbiOnx7qm96axpiS0FT/oVLk58XDOLE/fv3uJIdhCKLOJFsBnp3AnefU3aVzAyoHCkG7fjR+V8X1cDxx+xAnrvNeDVqA97RhHB13tVH5SKDfwd5j9N589kkyJVFnigRHioCS8/GPgeK6AWNZ+i8+i+OjNqElvzdP6gfI7U0HxIja0ZkAXnixF6iwcWoQdNnKfC7ydaMR3ywSsLqIRA67o7/PtCsq+rnm8kyBKyYWUjg0BPI0YC6oVrP31LYaHKJvi51Fm5gbVPaKhWAwt/hwe6T+IXbG0rV3PFUAOp1j75YmQv5X/tHvHHLmyw5bOTtJ2+R1x5MthcTjiBIosIP7rNxzwDuIgIlxGvuuC6uN7gPxcFxw7XAMoQAAAADnRFWHRTb2Z0d2FyZQBGaWdtYZ6xlmMAAAAASUVORK5CYII=" alt="" aria-hidden="true">`;
+            if(name.includes('booking')||name.includes('reserva'))return `<img class="ux-coverage-official-icon" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjIuNDUgMTguNTk5OEgxLjU1MDE1QzEuMjQ2MjggMTguNTk5OCAxLjAwMDE2IDE4Ljg0NiAxLjAwMDE2IDE5LjE0OThWMTkuNjk5OEMxLjAwMDE2IDIwLjAwMzcgMS4yNDYyOCAyMC4yNDk4IDEuNTUwMTUgMjAuMjQ5OEgyMi40NUMyMi43NTM5IDIwLjI0OTggMjMgMjAuMDAzNyAyMyAxOS42OTk4VjE5LjE0OThDMjMgMTguODQ2IDIyLjc1MzkgMTguNTk5OCAyMi40NSAxOC41OTk4Wk0zLjU2NTg5IDE1LjI5MkMzLjcyMDcyIDE1LjQ2NzMgMy45MTEwNiAxNS42MDc3IDQuMTI0MjkgMTUuNzAzOUM0LjMzNzUzIDE1LjgwMDEgNC41Njg3NyAxNS44NDk5IDQuODAyNjkgMTUuODQ5OUg0LjgwOTkxTDkuMDgwOTcgMTUuODMxM0M5LjQ5NDUgMTUuODMwNiA5LjkxMzg3IDE1LjcyNTggMTAuMjg4NiAxNS41MjgxTDE5LjkyMjEgMTAuNDQyN0MyMC45NTU0IDkuODk3MTkgMjEuNzk0NSA5LjEzNTEgMjIuMzQ4MiA4LjIzODk1QzIzLjAxNTggNy4xNTg5IDIzLjE3MTUgNi4yMjg3MiAyMi44MTA5IDUuNDczODVDMjIuNDU0MSA0LjcyNTE3IDIxLjY1ODMgNC4zMDMwNSAyMC40NDYzIDQuMjIxMjNDMjAuMzM1MyA0LjIxMzY3IDIwLjIyNDIgNC4yMTAyMyAyMC4xMTM1IDQuMjEwMjNDMTkuMTkyMyA0LjIxMDIzIDE4LjI1MzkgNC40NTg3NiAxNy4zMjUxIDQuOTQ5MjlMMTQuMjc2NyA2LjU1ODcyTDE0LjI2NDMgNi41NjUyNUwxNC4yNTA5IDYuNTYwMDlMNy4zNDE2MSAzLjg2MzA1QzcuMTIxMDMgMy43NzY4OSA2Ljg4NDQ5IDMuNzM5MjQgNi42NDgwNiAzLjc1MjY1QzYuNDExNjMgMy43NjYwNSA2LjE4MDg2IDMuODMwMiA1Ljk3MTQzIDMuOTQwNzRMNC43MzY2OSA0LjU5MjgzQzQuNDgyNjYgNC43MjY5MyA0LjI2ODAzIDQuOTI1MDIgNC4xMTQwNCA1LjE2NzUyQzMuOTYwMDYgNS40MTAwMiAzLjg3MjA0IDUuNjg4NTEgMy44NTg3MSA1Ljk3NTQ2QzMuODQ1MzcgNi4yNjI0MSAzLjkwNzE4IDYuNTQ3ODcgNC4wMzgwMiA2LjgwMzZDNC4xNjg4NiA3LjA1OTMzIDQuMzY0MTkgNy4yNzY0NyA0LjYwNDY5IDcuNDMzNTVMOC4xNzY5MiA5Ljc2NjkxTDguMTg2ODkgOS43NzM0NEw4LjE3NDg1IDkuNzc5NjNMNS44Nzg5NiAxMC45OTE3TDUuODY0NTMgMTAuOTk5Mkw1Ljg1MDA5IDEwLjk5MTdMMy45NzE4NSAxMC4wMDY4QzMuNzM1NDkgOS44ODI4NCAzLjQ3MjU2IDkuODE4MDggMy4yMDU2NCA5LjgxODEzQzIuOTQwOTYgOS44MTgxMyAyLjY3NjI3IDkuODgxNzIgMi40MzUzIDEwLjAwODlMMS44Nzk4MSAxMC4zMDIxQzEuNjU4OTYgMTAuNDE4NyAxLjQ2NzQ1IDEwLjU4MzggMS4zMTk3MSAxMC43ODUxQzEuMTcxOTggMTAuOTg2NSAxLjA3MTg4IDExLjIxODcgMS4wMjY5NyAxMS40NjQzQzAuOTgyMDAyIDExLjcwOTkgMC45OTMzODEgMTEuOTYyNSAxLjA2MDI1IDEyLjIwMzFDMS4xMjcxMiAxMi40NDM3IDEuMjQ3NzMgMTIuNjY1OSAxLjQxMyAxMi44NTMxTDMuNTY1ODkgMTUuMjkyWk0zLjIwNTY0IDExLjQ2NzhMNS44NjcyOCAxMi44NjM0TDExLjQzNTMgOS45MjRMNS41MDcwMyA2LjA1MjAzTDYuNzQxNzcgNS4zOTk5NEwxNC4zNjcxIDguMzc2NDVMMTguMDk1NCA2LjQwODVDMTguNzg0NiA2LjA0NDQ3IDE5LjQ2MzkgNS44NjAyMiAyMC4xMTM5IDUuODYwMjJDMjAuMTg3NSA1Ljg2MDIyIDIwLjI2MTQgNS44NjI2MyAyMC4zMzUzIDUuODY3NDRDMjAuODUxOSA1LjkwMjUgMjEuMjQ4MyA2LjAyOTM1IDIxLjMyMjIgNi4xODUwNkMyMS4zOTM3IDYuMzM0OTQgMjEuMzM4IDYuNzM1NCAyMC45NDQ3IDcuMzcxMzRDMjAuNTQ1MyA4LjAxNzU4IDE5LjkyNTIgOC41NzUxNCAxOS4xNTE3IDguOTgzNTFMOS41MTg1NiAxNC4wNjg5QzkuMzc5NjkgMTQuMTQyMSA5LjIyNTY5IDE0LjE4MSA5LjA3Mzc1IDE0LjE4MTNMNC44MDI2OSAxNC4xOTk5TDIuNjUwMTUgMTEuNzYxTDMuMjA1NjQgMTEuNDY3OFoiIGZpbGw9ImJsYWNrIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjAuMyIvPjwvc3ZnPg==" alt="" aria-hidden="true">`;
+            return `<span aria-hidden="true">•••</span>`;
+          };
+          const productCoverageRows=visibleProducts.map(product=>{
+            const learningCount=learnings.filter(learning=>normalizeText(learning.product)===normalizeText(product.product)).length;
+            const share=Math.max(8,Math.round(product.records/maxCoverageRecords*100));
+            const productKey=normalizeText(product.product);
+            let sortedAreas=[...product.areas.values()].sort((a,b)=>b.records-a.records).map(area=>area.label);
+
+            // En Booking mostramos el journey canónico, no todos los valores posibles de taxonomía.
+            // "Transversal" se conserva como clasificación válida, pero no forma parte de esta lectura de cobertura.
+            if(productKey.includes('booking')){
+              const bookingOrder=['Availability','Shopping Cart','Passengers','Extras'];
+              const present=new Map(sortedAreas.map(label=>[normalizeText(label),label]));
+              sortedAreas=bookingOrder.filter(label=>present.has(normalizeText(label)));
+            }else{
+              sortedAreas=sortedAreas.slice(0,4);
+            }
+
+            const areaPrefix=productKey.includes('booking')?'Funnels':productKey.includes('home')?'Componentes':'Áreas';
+            const areaLabels=sortedAreas.join(' · ');
+            return `<button class="ux-coverage-list-row" type="button" data-home-area data-product="${escapeHtml(product.product)}" data-funnel="" data-minifunnel="" data-screen="" data-component="" aria-label="Explorar ${escapeHtml(product.product)}: ${product.records} registros, ${product.sources.size} fuentes y ${learningCount} learnings"><span class="ux-coverage-list-icon" aria-hidden="true">${coverageIcon(product.product)}</span><span class="ux-coverage-list-product"><strong>${escapeHtml(product.product)}</strong>${areaLabels?`<small><span class="ux-coverage-context-label">${escapeHtml(areaPrefix)}:</span> ${escapeHtml(areaLabels)}</small>`:''}</span><span class="ux-coverage-records"><strong>${product.records}</strong><span class="ux-coverage-bar" aria-hidden="true"><i style="width:${share}%"></i></span></span><span class="ux-coverage-number is-sources">${product.sources.size}</span><span class="ux-coverage-number is-learnings">${learningCount}</span><span class="ux-coverage-arrow" aria-hidden="true">→</span></button>`;
+          }).join('');
+
+          const sumaCoverageRow=sumaCoverage?(()=>{
+            const share=Math.max(8,Math.round(sumaCoverage.records/maxCoverageRecords*100));
+            return `<button class="ux-coverage-list-row is-initiative" type="button" data-home-initiative="${escapeHtml(sumaCoverage.initiative)}" aria-label="Explorar iniciativa ${escapeHtml(sumaCoverage.initiative)}: ${sumaCoverage.records} registros, ${sumaCoverage.sources.size} fuentes y ${sumaCoverage.learnings} learnings"><span class="ux-coverage-list-icon" aria-hidden="true">${coverageIcon('SUMA')}</span><span class="ux-coverage-list-product"><strong>${escapeHtml(sumaCoverage.initiative)}</strong><small><span class="ux-coverage-context-label">Iniciativa</span></small></span><span class="ux-coverage-records"><strong>${sumaCoverage.records}</strong><span class="ux-coverage-bar" aria-hidden="true"><i style="width:${share}%"></i></span></span><span class="ux-coverage-number is-sources">${sumaCoverage.sources.size}</span><span class="ux-coverage-number is-learnings">${sumaCoverage.learnings}</span><span class="ux-coverage-arrow" aria-hidden="true">→</span></button>`;
+          })():'';
+
+          const hasCoverage=Boolean(productCoverageRows||sumaCoverageRow);
+          coverageTarget.innerHTML=hasCoverage?`<div class="ux-coverage-table" aria-label="Cobertura por contexto"><div class="ux-coverage-table-head" aria-hidden="true"><span>Contexto</span><span>Registros</span><span>Fuentes</span><span>Learnings</span></div><div class="ux-coverage-table-body">${productCoverageRows}${sumaCoverageRow}</div></div>${unclassifiedProductRecords?`<p class="ux-home-coverage-quality-note"><strong>${unclassifiedProductRecords}</strong> ${unclassifiedProductRecords===1?'registro pendiente':'registros pendientes'} de clasificación de producto.</p>`:''}`:'<p class="ux-home-empty-note">La cobertura se mostrará cuando haya registros estructurados disponibles.</p>';
+        }
+
+        const recent=[...sourceItems].sort((a,b)=>Date.parse(b.ingestedAt||0)-Date.parse(a.ingestedAt||0)).slice(0,4);
+        const recentTarget=document.getElementById('ux-home-recent-list');
+        if(recentTarget)recentTarget.innerHTML=recent.length?`<div class="ux-home-recent-list">${recent.map(item=>{
+          const initiative=String(item.initiative||'').trim();
+          const product=String(item.product||'').trim();
+          const component=String(item.component||'').trim();
+          const screen=String(item.screen||'').trim();
+          const initiativeKey=normalizeText(initiative);
+          const specificContext=[component,screen,product].find(value=>value&&normalizeText(value)!==initiativeKey)||product||initiative||'Sin clasificar';
+          const contextParts=[];
+          if(initiative)contextParts.push(initiative);
+          if(specificContext&&normalizeText(specificContext)!==initiativeKey)contextParts.push(specificContext);
+          if(!contextParts.length)contextParts.push('Sin clasificar');
+          const contextLabel=contextParts.slice(0,2).join(' · ');
+          return `<button class="ux-home-recent-row" type="button" data-home-doc="${escapeHtml(item.id)}"><span class="ux-home-file-kind ${item.supportingDocument?'is-pdf':'is-excel'}">${item.supportingDocument?'<img src="assets/file-icons/file-type-icon.png" alt="" aria-hidden="true">':'<img src="assets/file-icons/excel-file-icon.png" alt="" aria-hidden="true">'}</span><span class="ux-home-recent-copy"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(contextLabel)}</small></span><span class="ux-home-recent-arrow" aria-hidden="true">→</span></button>`;
+        }).join('')}</div>`:'<p class="ux-home-empty-note">No hay documentos incorporados todavía.</p>';
+
+        const impactValues=sharedRecords.map(item=>String(item.impactUx||'').trim()).filter(value=>['Alto','Medio','Bajo'].includes(value));
+        const impactTarget=document.getElementById('ux-home-impact-content');
+        if(impactTarget){
+          if(impactValues.length){
+            const count=value=>impactValues.filter(item=>item===value).length,total=impactValues.length;
+            const high=count('Alto'),medium=count('Medio'),low=count('Bajo');
+            impactTarget.innerHTML=`<div class="ux-impact-chart-block"><div class="ux-impact-stack" role="img" aria-label="Impacto UX: ${high} alto, ${medium} medio y ${low} bajo"><span class="is-high" style="width:${high/total*100}%"></span><span class="is-medium" style="width:${medium/total*100}%"></span><span class="is-low" style="width:${low/total*100}%"></span></div><p class="ux-home-impact-note">${total} registros tienen Impacto UX informado.</p></div><div class="ux-impact-legend" role="list" aria-label="Detalle por nivel de impacto"><div role="listitem"><i class="is-high" aria-hidden="true"></i><span>Alto</span><strong>${high}</strong></div><div role="listitem"><i class="is-medium" aria-hidden="true"></i><span>Medio</span><strong>${medium}</strong></div><div role="listitem"><i class="is-low" aria-hidden="true"></i><span>Bajo</span><strong>${low}</strong></div></div>`;
+          }else{
+            impactTarget.innerHTML=`<div class="ux-impact-empty"><div class="ux-impact-empty-track"></div><strong>Impacto UX todavía no informado</strong><p>Aparecerá cuando existan registros estructurados con este dato.</p></div>`;
+          }
+        }
+
+      }catch(e){
+        console.error('Error en resumen simplificado',e);
+      }
+    }
+
+    function inclusionTimestamp(value){
+      const raw=String(value||'').trim();
+      if(!raw)return NaN;
+      const parsed=Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(raw)?`${raw}T12:00:00`:raw);
+      return Number.isFinite(parsed)?parsed:NaN;
+    }
+    function inclusionDateMatch(value,from='',to=''){
+      if(!from&&!to)return true;
+      const time=inclusionTimestamp(value);
+      if(!Number.isFinite(time))return false;
+      const fromTime=from?Date.parse(`${from}T00:00:00`):-Infinity;
+      const toTime=to?Date.parse(`${to}T23:59:59.999`):Infinity;
+      return time>=fromTime&&time<=toTime;
+    }
+    function sortByInclusion(items,direction='newest',getter=item=>item?.ingestedAt||item?.createdAt||''){
+      const sign=direction==='oldest'?1:-1;
+      return [...items].sort((a,b)=>{
+        const ta=inclusionTimestamp(getter(a)),tb=inclusionTimestamp(getter(b));
+        const aKnown=Number.isFinite(ta),bKnown=Number.isFinite(tb);
+        if(aKnown&&bKnown&&ta!==tb)return sign*(ta-tb);
+        if(aKnown!==bKnown)return aKnown?-1:1;
+        return 0;
+      });
+    }
+
+    function renderLearnings(){
+      let items=hierarchyFilter(learnings,'learning');
+      const device=document.getElementById('learning-device').value,market=document.getElementById('learning-market').value,impact=document.getElementById('learning-impact').value;
+      const includedFrom=document.getElementById('learning-included-from')?.value||'',includedTo=document.getElementById('learning-included-to')?.value||'',sort=document.getElementById('learning-sort')?.value||'newest';
+      items=items.filter(item=>matches(item.device,device)&&matches(item.market,market)&&(impact==='Todos'||item.impactUx===impact)&&inclusionDateMatch(item.createdAt,includedFrom,includedTo));
+      items=sortByInclusion(items,sort,item=>item.createdAt);
+      document.getElementById('learning-result').textContent=`${items.length} ${items.length===1?'learning':'learnings'}`;
+      const pageItems=catalogPage(items,'learning','learnings');
+      document.getElementById('learning-list').innerHTML=items.length?pageItems.map(item=>`<tr data-learning="${item.id}" tabindex="0"><td data-label="Learning"><strong>${escapeHtml(editorialCopy(item.title))}</strong>${item.know?`<span class="learning-know-snippet">${escapeHtml(item.know)}</span>`:''}<span class="sub learning-context-meta">${escapeHtml((()=>{
+  const parts=[
+    governedTaxonomyDisplay(item,'product'),
+    governedTaxonomyDisplay(item,'funnel'),
+    governedTaxonomyDisplay(item,'minifunnel')
+  ].map(value=>String(value||'').trim()).filter(Boolean);
+  const deduped=[];
+  parts.forEach(value=>{
+    if(!deduped.length||normalizeText(deduped[deduped.length-1])!==normalizeText(value))deduped.push(value);
+  });
+  return deduped.join(' › ');
+})())}</span></td><td data-label="Componente">${escapeHtml(componentsOf(item).join(' · ')||'No especificado')}</td><td data-label="Impacto UX">${item.impactUx?`<span class="status-badge ${impactClass(item.impactUx)}">${escapeHtml(item.impactUx)}</span>`:'<span class="sub">No informado</span>'}</td><td data-label="Acción" class="row-action"><button class="view-link" type="button" data-learning="${item.id}">Ver learning</button></td></tr>`).join(''):`<tr><td colspan="4">${empty('learnings')}</td></tr>`;
+      document.querySelector('.nav-button[data-panel="learnings"] .nav-count').textContent=learnings.length;
+    }
+
+    function renderEvidence(){
+      let items=displayEvidenceItems(hierarchyFilter(evidenceItems,'evidence'));
+      const kind=document.getElementById('evidence-kind').value,device=document.getElementById('evidence-device').value,confidence=document.getElementById('evidence-confidence').value;
+      items=items.filter(item=>matches(item.kind,kind)&&matches(item.device,device)&&(confidence==='Todas'||item.confidence===confidence));
+      document.getElementById('evidence-result').textContent=`${items.length} ${items.length===1?'evidencia':'evidencias'}`;
+      const pageItems=catalogPage(items,'evidence','evidencias');
+      document.getElementById('evidence-table').innerHTML=items.length?pageItems.map(item=>`<tr data-detail="evidence" data-id="${item.id}" tabindex="0"><td data-label="Evidencia"><strong>${escapeHtml(editorialCopy(item.name))}</strong><span class="sub">${escapeHtml(humanKnowledgeLabel(item.kind||item.type))}</span></td><td data-label="Componente">${escapeHtml(componentsOf(item).join(', ')||'No especificado')}</td><td data-label="Qué aporta">${escapeHtml(evidenceExplanation(item))}</td><td data-label="Confianza"><span class="status-badge ${confidenceClass(item.confidence)}">${escapeHtml(item.confidence)}</span></td><td data-label="Acción" class="row-action"><button class="view-link" type="button" data-detail="evidence" data-id="${item.id}">Ver evidencia</button></td></tr>`).join(''):`<tr><td colspan="6">${empty('evidencias')}</td></tr>`;
+      document.querySelector('.nav-button[data-panel="evidence"] .nav-count')?.replaceChildren(document.createTextNode(String(consolidatedEvidence().length)));
+    }
+
+    function renderExperiments(){
+      let items=hierarchyFilter(experiments,'experiment');
+      const device=document.getElementById('experiment-device').value,outcome=document.getElementById('experiment-outcome').value,pro=document.getElementById('experiment-pro').value;
+      items=items.filter(item=>matches(item.device,device)&&matches(item.outcome,outcome)&&matches(item.pro,pro));
+      document.getElementById('experiment-result').textContent=`${items.length} ${items.length===1?'test':'tests'}`;
+      const pageItems=catalogPage(items,'experiment','tests');
+      document.getElementById('experiment-table').innerHTML=items.length?pageItems.map(item=>`<tr data-detail="experiment" data-id="${item.id}" tabindex="0"><td data-label="Test A/B"><strong>${item.title}</strong><span class="sub">${item.result}</span></td><td data-label="Producto">${escapeHtml(taxonomyDisplay(item,'product','experiment'))}</td><td data-label="Componente">${escapeHtml(componentsOf(item).join(' · ')||'No especificado')}</td><td data-label="Dispositivo">${item.device}</td><td data-label="Resultado"><span class="status-badge ${outcomeClass(item.outcome)}">${item.outcome}</span></td><td data-label="Acción" class="row-action"><button class="view-link" type="button" data-detail="experiment" data-id="${item.id}">Ver test</button></td></tr>`).join(''):`<tr><td colspan="7">${empty('tests')}</td></tr>`;
+      document.querySelector('.nav-button[data-panel="experiments"] .nav-count')?.replaceChildren(document.createTextNode(String(experiments.length)));
+    }
+
+    function renderPatterns(){
+      let items=hierarchyFilter(patternItems,'pattern');
+      const device=document.getElementById('pattern-device').value,confidence=document.getElementById('pattern-confidence').value,status=document.getElementById('pattern-status').value;
+      items=items.filter(item=>matches(item.device,device)&&(confidence==='Todas'||item.confidence===confidence)&&matches(item.status,status));
+      document.getElementById('pattern-result').textContent=`${items.length} ${items.length===1?'patrón':'patrones'}`;
+      const pageItems=catalogPage(items,'pattern','patrones');
+      document.getElementById('pattern-list').innerHTML=items.length?pageItems.map(item=>`<tr data-detail="pattern" data-id="${item.id}" tabindex="0"><td data-label="Patrón"><strong>${escapeHtml(item.title)}</strong><span class="sub">${escapeHtml(item.description)}</span></td><td data-label="Producto">${escapeHtml(taxonomyDisplay(item,'product','pattern'))}</td><td data-label="Componente">${escapeHtml(componentsOf(item).join(' · '))}</td><td data-label="Dispositivo">${escapeHtml(item.device)}</td><td data-label="Confianza"><span class="status-badge ${confidenceClass(item.confidence)}">${escapeHtml(item.confidence)}</span></td><td data-label="Acción" class="row-action"><button class="view-link" type="button" data-detail="pattern" data-id="${item.id}">Ver patrón</button></td></tr>`).join(''):`<tr><td colspan="7">${empty('patrones')}</td></tr>`;
+      document.querySelector('.nav-button[data-panel="patterns"] .nav-count')?.replaceChildren(document.createTextNode(String(patternItems.length)));
+    }
+
+    function sourceDisplayType(item){
+      if(item?.supportingDocument||item?.type==='Documentación adicional')return 'PDF de apoyo';
+      if(item?.insightRegister||item?.type==='Insight Register')return 'Excel revisado';
+      return item?.type||'Documento';
+    }
+    function documentStatusLabel(status){if(status==='Pendiente de analizar')return 'Disponible';return status==='Error'?'Error de análisis':status;}
+    function documentStatusClass(status){return ['Procesado','Disponible'].includes(status)?'system-success':['Pendiente de revisión','Pendiente de Insight Register'].includes(status)?'system-pending':status==='Analizando'?'system-processing':['Error','Error de análisis'].includes(status)?'system-error':'unknown';}
+    function documentCanUpdateSource(item){return Boolean(documentHydrationComplete&&item&&item.status!=='Analizando'&&(documentHistoricalUnavailable(item)||!item.fileMeta));}
+    function documentPrimaryAction(item){
+      if(!documentHydrationComplete)return null;
+      if(item.insightRegister)return {action:'open',label:'Abrir'};
+      if(item.supportingDocument)return null;
+      if(item.status==='Pendiente de Insight Register')return {action:'add-register',label:'Añadir Excel revisado'};
+      if(hasDocumentAnalysis(item)||documentAnalysisRecoverable(item))return {action:'view',label:'Ver ficha'};
+      if(hasRelatedDocumentKnowledge(item))return {action:'knowledge',label:'Ver conocimiento relacionado'};
+      if(hasDocumentHistory(item))return null;
+      if(item.status==='Analizando')return null;
+      return {action:'process',label:item.status==='Error de análisis'||item.status==='Error'?'Reintentar análisis':'Seleccionar archivo y analizar'};
+    }
+
+    async function insightRegisterFileAvailable(item){
+      if(!item?.insightRegister)return false;
+      const localBlob=await getInsightRegisterBlob(item.id).catch(()=>null);
+      if(localBlob)return true;
+      const persistentBlob=await getPersistentSourceBlob(item.id,'insight-register').catch(()=>null);
+      return Boolean(persistentBlob);
+    }
+    async function refreshInsightRegisterRecoveryActions(items){
+      const candidates=(items||[]).filter(item=>item?.insightRegister);
+      await Promise.all(candidates.map(async item=>{
+        const available=await insightRegisterFileAvailable(item);
+        const menu=[...document.querySelectorAll('.action-menu[data-menu]')].find(node=>node.dataset.menu===String(item.id));
+        if(!menu)return;
+        const existing=menu.querySelector('[data-doc-action="relink-register"]');
+        if(available){existing?.remove();return;}
+        if(existing)return;
+        const button=document.createElement('button');
+        button.type='button';
+        button.dataset.docAction='relink-register';
+        button.dataset.id=String(item.id);
+        button.textContent='Volver a vincular archivo';
+        const edit=menu.querySelector('[data-doc-action="edit"]');
+        if(edit)menu.insertBefore(button,edit);else menu.appendChild(button);
+      }));
+    }
+    async function openDocumentReview(id){
+      const item=sourceItems.find(record=>record.id===id);if(!item)return;
+      if(!documentHydrationComplete){openSource(id);return;}
+      if(documentAnalysisRecoverable(item)&&!await recoverDocumentAnalysis(item))return;
+      if(!hasDocumentAnalysis(item)){openSource(id);return;}
+      activeReviewDocumentId=id;analysisMode='view';closeDrawer();showPanel('review');
+    }
+    function renderSources(){
+      let items=hierarchyFilter(sourceItems,'source');
+      const type=document.getElementById('source-type').value,initiative=document.getElementById('source-initiative').value,date=document.getElementById('source-date').value;
+      const includedFrom=document.getElementById('source-included-from')?.value||'',includedTo=document.getElementById('source-included-to')?.value||'',sort=document.getElementById('source-sort')?.value||'newest';
+      items=items.filter(item=>(type==='Todos'||documentAnalysisType(item)===type)&&(date==='Todos'||documentDate(item)===date)&&inclusionDateMatch(item.ingestedAt,includedFrom,includedTo)&&(['Todas','Todos'].includes(initiative)||[item.initiative,...(item.initiatives||[])].filter(Boolean).some(value=>matches(value,initiative))));
+      items=sortByInclusion(items,sort,item=>item.ingestedAt);
+      document.getElementById('source-result').textContent=`${items.length} ${items.length===1?'documento':'documentos'}`;
+      const summary=document.getElementById('initiative-summary');
+      if(!['Todas','Todos'].includes(initiative)){
+        const types=[...new Set(items.map(documentAnalysisType).filter(Boolean))];
+        summary.hidden=false;summary.innerHTML=`<strong>${escapeHtml(initiative)}</strong> · ${items.length} documentos · ${types.map(escapeHtml).join(', ')||'Sin resultados'}`;
+      }else summary.hidden=true;
+      const pageItems=catalogPage(items,'source','documentos');
+      document.getElementById('source-table').innerHTML=items.length?pageItems.map(item=>{
+        const primary=documentPrimaryAction(item),hasRealAnalysis=hasDocumentAnalysis(item);
+        const primaryMarkup=primary?`<button data-doc-action="${primary.action}" data-id="${item.id}">${primary.label}</button>`:'';
+        const filename=item.originalName||item.fileMeta?.name;
+        const relations=documentLearningRelations(item);
+        const relatedLearnings=[...relations.used,...relations.proposed].filter((learning,index,array)=>array.findIndex(candidate=>candidate.id===learning.id)===index);
+        const recordCount=item.insightRegister?.rows?.length||0;
+        const pendingSuggestions=(item.insightRegister?.learningSuggestions?.candidates||[]).filter(candidate=>candidate.status==='pending').length;
+        const knowledgeSummary=item.insightRegister
+          ? `<span class="document-knowledge-summary">${recordCount} ${recordCount===1?'registro estructurado':'registros estructurados'}${relatedLearnings.length?` · ${relatedLearnings.length} ${relatedLearnings.length===1?'learning relacionado':'learnings relacionados'}`:''}${pendingSuggestions?` · ${pendingSuggestions} ${pendingSuggestions===1?'sugerencia pendiente':'sugerencias pendientes'}`:''}</span>`
+          : '';
+        const sourceUpdate=documentCanUpdateSource(item)?`<button data-doc-action="link-source" data-id="${item.id}">Actualizar fuente documental</button>`:'';
+        const registerAction=item.supportingDocument?'':item.insightRegister?`<button data-doc-action="add-register" data-id="${item.id}">Actualizar Excel</button>`:`<button data-doc-action="add-register" data-id="${item.id}">Añadir Excel revisado</button>`;
+        const where=documentApplicationPath(item)||'Pendiente de clasificar';
+        const rawDate=documentDate(item);
+        const dateLabel=/^No especificad[oa]$/i.test(String(rawDate||'').trim())?'—':rawDate;
+        return `<tr data-doc-open="${escapeHtml(item.id)}" tabindex="0"><td data-label="Documento"><div class="document-file-cell"><span class="document-file-icon ${item.supportingDocument?'is-pdf':'is-excel'}">${item.supportingDocument?'<img src="assets/file-icons/file-type-icon.png" alt="" aria-hidden="true">':'<img src="assets/file-icons/excel-file-icon.png" alt="" aria-hidden="true">'}</span><span class="document-file-copy"><strong>${escapeHtml(item.name)}</strong>${filename?`<span class="sub">${escapeHtml(filename)}</span>`:''}${knowledgeSummary}</span></div></td><td data-label="Tipo de análisis">${escapeHtml(documentAnalysisType(item)||'Sin clasificar')}</td><td data-label="Iniciativa">${escapeHtml(item.initiative||((item.initiatives||[]).filter(Boolean).join(' · '))||'Sin clasificar')}</td><td data-label="Dónde aplica">${escapeHtml(where)}</td><td data-label="Fecha"><span class="document-date-value">${escapeHtml(dateLabel)}</span></td><td data-label="Acciones" class="document-actions"><button class="icon-button" type="button" aria-label="Acciones de ${escapeHtml(item.name)}" data-action-menu="${item.id}">⋮</button><div class="action-menu" data-menu="${item.id}"><button data-doc-action="open" data-id="${item.id}">Abrir</button>${registerAction}<button data-doc-action="edit" data-id="${item.id}">Editar datos</button><button class="delete-action" data-doc-action="delete" data-id="${item.id}">Eliminar</button></div></td></tr>`;
+      }).join(''):`<tr><td colspan="6">${empty('documentos')}</td></tr>`;
+      document.querySelector('.nav-button[data-panel="sources"] .nav-count').textContent=sourceItems.length;
+      void refreshInsightRegisterRecoveryActions(pageItems);
+    }
+
+    function activeReviewDocument(){return activeReviewDocumentId?sourceItems.find(item=>item.id===activeReviewDocumentId):sourceItems.find(item=>item.status==='Pendiente de revisión')||sourceItems.find(item=>item.id===PILOT_SOURCE_ID);}
+    function findingStatusLabel(status){return status==='approved'?'Aprobado':status==='discarded'?'Descartado':status==='published'?'Publicado':'Pendiente';}
+    function findingStatusClass(status){return ['approved','published'].includes(status)?'system-success':status==='discarded'?'system-error':'unknown';}
+    const REVIEW_INTERPRETATION_VERSION='2026-08-29.2';
+    const reviewTopicDefinitions=[
+      {id:'last-search',name:'Recuperación de la última búsqueda',editorialTitle:'Recuperar la última búsqueda reduce esfuerzo si mantiene el control',seed:'última búsqueda recuperar retomar usuarios recurrentes editable control',terms:['ultima busqueda','recuperar','retomar','recurrentes','editable'],learningId:'L-08',proposal:'Reforzar learning existente',synthesis:'Recuperar una búsqueda anterior reduce esfuerzo y permite retomar la tarea, siempre que la información se presente de forma clara y editable.',nuance:'La auditoría respalda la utilidad de conservarla; quedan por medir el uso real, la edición y las diferencias por contexto.'},
+      {id:'claim-seo',name:'Claim principal y condicionantes SEO',editorialTitle:'El claim debe cumplir SEO sin retrasar la intención de búsqueda',seed:'claim h1 seo copy marca intención búsqueda accionable precio facilidad',terms:['claim','seo','h1','aspiracional','accionable','copy','precio'],learningId:'',proposal:'Crear pregunta abierta',synthesis:'El claim cumple una función de marca y un requisito SEO, pero su peso y su mensaje pueden alejar al usuario de la intención inmediata de búsqueda.',nuance:'La restricción SEO se conserva como contexto verificable; la mejora de copy es una oportunidad que necesita coordinación y validación, no un learning cerrado.'},
+      {id:'banners',name:'Banners, campañas y gestión en Magnolia',editorialTitle:'Los banners deben aportar valor sin competir con la búsqueda',seed:'banner promoción campaña marketing carrusel ctr revenue magnolia legibilidad imagen texto',terms:['banner','promocion','campana','marketing','carrusel','ctr','revenue','magnolia'],learningId:'L-07',proposal:'Ampliar learning',synthesis:'Los banners cumplen una función comercial, pero su peso debe valorarse por su efecto en el journey y no únicamente por el clic.',nuance:'Magnolia se trata como capacidad o restricción de implementación dentro del tema; no como un patrón UX.'},
+      {id:'self-service',name:'Autoservicio y accesos rápidos',editorialTitle:'Los accesos de autoservicio deben seguir visibles sin competir con la búsqueda',seed:'autoservicio check-in gestiona reserva información vuelos tareas frecuentes accesos rápidos ces llamadas cards',terms:['autoservicio','check-in','gestiona tu reserva','informacion de vuelos','accesos rapidos','tareas frecuentes','ces','llamadas','cards'],learningId:'L-02',proposal:'Ampliar learning',synthesis:'Check-in, Gestiona tu reserva e Información de vuelos resuelven tareas frecuentes y deben seguir accesibles sin desplazar la búsqueda.',nuance:'Mobile y desktop son contextos de presentación de este mismo conocimiento; se revisan juntos para evitar duplicidades.'},
+      {id:'mobile',name:'Enfoque mobile-first y densidad del componente',editorialTitle:'El buscador debe ordenar su densidad desde mobile',seed:'mobile-first escalar mobile a desktop espacio limitado densidad componente secuencia',terms:['mobile-first','escalar a desktop','escala a desktop','espacio limitado','densidad del componente'],learningId:'',proposal:'Posible oportunidad',synthesis:'La auditoría propone usar mobile como punto de partida para ordenar la densidad del buscador y después escalar una estructura clara a desktop.',nuance:'Es una recomendación de esta auditoría, todavía sin evidencia suficiente para convertirla en learning general ni relacionarla con L-03.'},
+      {id:'design-system',name:'Evolución del componente y UI Kit',editorialTitle:'El buscador necesita variantes y estados definidos en el UI Kit',seed:'ui kit sistema componente robusto estados accesibilidad deuda mantenimiento variantes',terms:['ui kit','sistema','componente robusto','estados','accesibilidad','deuda visual','mantenimiento','variantes'],learningId:'',proposal:'Recomendación de sistema',synthesis:'El buscador debería documentarse como componente de sistema, con variantes, estados, responsive y accesibilidad definidos.',nuance:'Es una oportunidad de sistema apoyada por la auditoría; no constituye todavía un patrón reutilizable validado.'},
+      {id:'measurement',name:'Validación con datos, research y CRO',editorialTitle:'Las propuestas necesitan validación antes de convertirse en decisiones',seed:'datos medir test a/b cro research hipótesis validar comportamiento siguiente fase riesgo',terms:['datos','medir','test a/b','cro','research','hipotesis','validar','siguiente fase'],learningId:'',proposal:'Crear pregunta abierta',synthesis:'Las direcciones de la auditoría deben contrastarse con comportamiento, research y experimentación antes de implementarse.',nuance:'Son preguntas, propuestas de validación y siguientes pasos; no experimentos ejecutados ni decisiones tomadas.'},
+      {id:'cta-form',name:'CTA Buscar vuelos y claridad del formulario',editorialTitle:'El CTA Buscar vuelos debe mantener una lectura inmediata',seed:'cta buscar vuelos campos formulario claridad carga cognitiva protagonismo conversión completar',terms:['cta','buscar vuelos','campos','formulario','carga cognitiva','protagonismo','completar'],learningId:'L-05',proposal:'Ampliar learning',synthesis:'El CTA y los campos clave necesitan una lectura inmediata y prioridad visual para sostener el avance hacia resultados.',nuance:'La auditoría respalda la dirección, pero no demuestra todavía qué combinación concreta de copy, tamaño, posición o estilo funciona mejor.'},
+      {id:'header-account',name:'Header, cuenta y navegación global',editorialTitle:'El Header condiciona el foco, pero esta auditoría no permite concluir sobre él',seed:'header cuenta suma navegación global menú apoyo necesidades alcance',terms:['header','cuenta','suma','navegacion global','menu','fuera de alcance'],learningId:'',proposal:'Mantener solo como evidencia',synthesis:'Header, cuenta y navegación aparecen como contexto porque condicionan el foco del buscador y el primer impacto.',nuance:'La auditoría no analiza el Header completo; estos puntos no deben generar un learning propio desde esta fuente.'},
+      {id:'above-fold',name:'Jerarquía del above the fold',editorialTitle:'El above the fold necesita una jerarquía común entre búsqueda, autoservicio y comunicación',seed:'above the fold primer impacto jerarquía peso visual capas densidad secuencia convivencia foco',terms:['above the fold','primer impacto','jerarquia','peso visual','capas','densidad','secuencia','convivencia'],learningId:'L-03',proposal:'Ampliar learning',synthesis:'El primer impacto reúne varias funciones necesarias y necesita una jerarquía común que ordene conversión, autoservicio y comunicación.',nuance:'Las conclusiones del autor sirven de ancla y están respaldadas por observaciones detalladas, pero siguen siendo una síntesis de auditoría.'},
+      {id:'search-priority',name:'Prioridad del buscador y conversión',editorialTitle:'El buscador debe mantener la prioridad al iniciar la reserva',seed:'buscador búsqueda vuelos acción principal reserva conversión booking resultados claridad foco negocio',terms:['buscador','busqueda de vuelos','accion principal','proceso de reserva','conversion','booking','resultados'],learningId:'L-01',proposal:'Reforzar learning existente',synthesis:'El buscador es la entrada principal al proceso de reserva y necesita ganar claridad, presencia y foco como pieza de conversión.',nuance:'Su prioridad no implica ocultar autoservicio, promoción u otras necesidades de la Home.'}
+    ];
+    function hasSemanticPredicate(text){return /\b(es|son|esta|estan|sera|tiene|tienen|incluye|incluyen|utiliza|utilizan|dispone|muestra|permite|permiten|resuelve|resuelven|aporta|aportan|ocupa|ocupan|aparece|aparecen|reduce|reducen|aumenta|aumentan|refuerza|refuerzan|cumple|cumplen|conecta|conectan|puede|pueden|podremos|debe|deben|deberia|deberian|tendria|necesita|necesitan|conviene|interesa|convive|conviven|funciona|funcionan|facilita|facilitan|limita|limitan|evita|evitan|ayuda|ayudan|anade|anaden|suma|resta|retrasa|compite|compiten|explorar|equilibrar|contrastar|formular|testar|testarlas|medir|revisar|mantener|se percibe|se reconoce|se explora|se define|se parte)\b/.test(normalizeText(text));}
+    function reviewStructuralFragment(text){
+      const clean=String(text||'').trim(),value=normalizeText(clean);
+      if(!clean)return 'Registro vacío.';
+      if(/:\s*$/.test(clean))return 'Introducción o enumeración incompleta; se usa como contexto del contenido posterior.';
+      if(!/[.!?]$/.test(clean)&&clean.split(/\s+/).length<=8&&!hasSemanticPredicate(clean))return 'Título o etiqueta sin una afirmación completa.';
+      if(/^(vertical|cualquier elemento)\b/.test(value)&&(clean.match(/,/g)||[]).length>=2)return 'Lista usada como contexto de jerarquía, sin una proposición independiente.';
+      if(!hasSemanticPredicate(clean)&&((clean.match(/,/g)||[]).length>=2||/^(pasajeros|claim\s+banners)\b/.test(value)))return 'Lista o fragmento sin una proposición semántica completa.';
+      return '';
+    }
+    function segmentTableColumn(lines,expected){
+      const groups=[];let current=[];
+      const startsCell=line=>/^["“'¿A-ZÁÉÍÓÚÑ0-9]/.test(line);
+      lines.forEach(line=>{
+        const previous=current.at(-1)||'',continued=/\b(y|e|o|de|del|la|el|con|para|por|en|aunque|pero|sin)$/i.test(previous.trim());
+        if(current.length&&startsCell(line)&&!continued){groups.push(current.join(' ').replace(/\s+/g,' ').trim());current=[];}
+        current.push(line);
+      });
+      if(current.length)groups.push(current.join(' ').replace(/\s+/g,' ').trim());
+      while(groups.length>expected){let index=1;for(let i=2;i<groups.length;i++)if(groups[i].length<groups[index].length)index=i;groups[index-1]=`${groups[index-1]} ${groups[index]}`;groups.splice(index,1);}
+      if(groups.length!==expected){
+        const balanced=[];let cursor=0;
+        for(let index=0;index<expected;index++){const remaining=lines.length-cursor,slots=expected-index,size=Math.max(1,Math.round(remaining/slots));balanced.push(lines.slice(cursor,cursor+size).join(' ').replace(/\s+/g,' ').trim());cursor+=size;}
+        return balanced;
+      }
+      return groups;
+    }
+    function extractStructuredTables(analysis){
+      const rows=[],sourceFindingIds=new Set(),pages=analysis?.extractedPages||[];
+      pages.forEach(page=>{
+        const lines=String(page.text||'').split(/\n/).map(line=>line.replace(/\s+/g,' ').trim()).filter(Boolean),normalized=lines.map(normalizeText);
+        const areaIndex=normalized.indexOf('area'),findingIndex=normalized.indexOf('hallazgo',areaIndex+1),impactIndex=normalized.indexOf('impacto potencial',findingIndex+1),opportunityIndex=normalized.indexOf('oportunidad',impactIndex+1);
+        if(areaIndex<0||findingIndex<=areaIndex||impactIndex<=findingIndex||opportunityIndex<=impactIndex)return;
+        const areas=lines.slice(areaIndex+1,findingIndex).filter(line=>line.length<80),count=areas.length;
+        if(count<2||count>30)return;
+        const findings=segmentTableColumn(lines.slice(findingIndex+1,impactIndex),count),impacts=segmentTableColumn(lines.slice(impactIndex+1,opportunityIndex),count),opportunities=segmentTableColumn(lines.slice(opportunityIndex+1),count);
+        if([findings,impacts,opportunities].some(column=>column.length!==count||column.some(cell=>!cell)))return;
+        (analysis.findings||[]).filter(item=>Number(item.source?.page)===Number(page.page)).forEach(item=>sourceFindingIds.add(item.id));
+        areas.forEach((area,index)=>{
+          const text=findings[index],context=detectContext(`${area} ${text} ${impacts[index]} ${opportunities[index]}`);
+          const originalFindingIds=(analysis.findings||[]).filter(item=>Number(item.source?.page)===Number(page.page)).map(item=>item.id);
+          rows.push({id:`TABLE-P${page.page}-${String(index+1).padStart(2,'0')}`,text,type:'Hallazgo',...context,confidence:'Media',confidenceWhy:'La fila conserva el hallazgo, su impacto potencial y la oportunidad propuesta por la auditoría.',source:{documentId:analysis.findings?.[0]?.source?.documentId||'',name:analysis.findings?.[0]?.source?.name||'',page:page.page,section:'Hallazgos principales · tabla',block:`Tabla · fila ${index+1}`},status:'pending',semanticRole:'finding',derivedFromTable:true,originalFindingIds,provenance:{kind:'reconstructed-table-row',originalFindingIds},structure:{area,hallazgo:text,impacto:impacts[index],oportunidad:opportunities[index]}});
+        });
+      });
+      return {rows,sourceFindingIds};
+    }
+    function strictReviewType(finding,pageContext=''){
+      const text=normalizeText(finding.text),section=normalizeText(finding.source?.section||''),context=`${text} ${normalizeText(pageContext)}`;
+      const authorConclusion=/\b(conclusiones|insights|key findings)\b/.test(section);
+      const documentedRestriction=/\b(requisito|condicionante|obligatoriamente|limita las opciones)\b/.test(text)&&/\b(seo|h1|copy|palabras)\b/.test(context);
+      const futureValidation=/\b(debera|deberia|tendria que|habra que|siguiente fase|antes de implementar|validarse|testar|testarlas|medirse|contrastar|apoyarse en datos)\b/.test(text)&&/\b(test|cro|research|datos|medir|medirse|validar|validarse|hipotesis|variantes)\b/.test(text);
+      const actualExperiment=/\b(test a\/?b|experimento|variante|control)\b/.test(text)&&/\b(resultado|obtuvo|mostro|aumento|disminuyo|uplift|chance to win|significancia|supero)\b/.test(text)&&(/%|\d/.test(text));
+      const uxEvaluation=/\b(desde (?:una )?(?:lectura )?ux|se percibe|es correcto desde ux|aspiracional|accionable|carga cognitiva|peso visual|puede (?:reducir|aumentar|aportar|perder|desviar|no activar)|pueden necesitar|son utiles,? pero|conviene|parece)\b/.test(text);
+      const opportunity=/\b(oportunidad|tendria sentido explorar|deberia priorizar|deberia trabajarse|deberia documentarse|aplicar enfoque|simplificar|reforzar su protagonismo|coordinar su evolucion|optimizar|se explora otra forma)\b/.test(text);
+      const explicitObservation=/^(desktop|mobile):/.test(text)&&/\b(ocupa|aparece|se parte|anade|suma|esta|tiene)\b/.test(text);
+      if(documentedRestriction)return 'Hecho';
+      if(actualExperiment)return 'Experimento';
+      if(futureValidation||/\binteresa saber si\b/.test(text))return 'Hipótesis';
+      if(authorConclusion)return 'Insight del autor';
+      if(opportunity)return 'Oportunidad';
+      if(uxEvaluation)return 'Inferencia';
+      if(explicitObservation)return 'Hecho';
+      if(finding.type==='Experimento'||finding.type==='Decisión')return 'Hallazgo';
+      if(finding.type==='Hecho'&&!/\b(deberia|puede|conviene|se percibe)\b/.test(text))return 'Hecho';
+      return finding.type||'Hallazgo';
+    }
+    function reviewContextTags(finding,pageContext=''){
+      const value=normalizeText(`${finding.text} ${pageContext}`),tags=[];
+      if(/\b(conclusiones|insights|key findings)\b/.test(normalizeText(finding.source?.section||'')))tags.push('Síntesis del autor');
+      if(/\b(seo|h1)\b/.test(value)&&/\b(requisito|condicionante|obligatoriamente|limita)\b/.test(value))tags.push('Restricción SEO');
+      if(/\bmagnolia\b/.test(value))tags.push('Capacidad de implementación · Magnolia');
+      if(/\b(negocio|estrategia comercial|campanas)\b/.test(value))tags.push('Contexto de negocio');
+      if(/\bmobile|movil\b/.test(normalizeText(finding.text)))tags.push('Mobile');
+      if(/\bdesktop\b/.test(normalizeText(finding.text)))tags.push('Desktop');
+      if(/\b(test a\/?b|cro|research|datos|medir|validar)\b/.test(normalizeText(finding.text)))tags.push('Siguiente paso de validación');
+      return [...new Set(tags)];
+    }
+    function buildReviewInterpretation(analysis){
+      if(analysis?.documentEditorial)return UXDocumentAnalysis.interpretation(analysis);
+      const pageContexts=new Map((analysis?.extractedPages||[]).map(page=>[Number(page.page),String(page.text||'')]));
+      (analysis?.findings||[]).forEach(finding=>{const page=Number(finding.source?.page);if(!pageContexts.has(page))pageContexts.set(page,(analysis.findings||[]).filter(item=>Number(item.source?.page)===page).map(item=>item.text).join(' '));});
+      const table=extractStructuredTables(analysis),originalRecords=(analysis?.findings||[]).map((finding,index)=>{
+        const pageContext=pageContexts.get(Number(finding.source?.page))||'',tableSource=table.sourceFindingIds.has(finding.id),fragmentReason=tableSource?'Texto de origen de una tabla reconstruida por filas y columnas.':reviewStructuralFragment(finding.text);
+        const type=fragmentReason?(tableSource?'Tabla de origen':'Contexto estructural'):strictReviewType(finding,pageContext);
+        return {...finding,originalFinding:finding,originalIndex:index+1,type,semanticRole:fragmentReason?'context':'finding',interpretationReason:fragmentReason,contextTags:reviewContextTags(finding,pageContext),authorConclusion:/\b(conclusiones|insights|key findings)\b/.test(normalizeText(finding.source?.section||''))};
+      });
+      originalRecords.forEach((record,index)=>{
+        if(record.semanticRole!=='finding')return;
+        const explicit=reviewExplicitTopicId(record);
+        if(explicit){record.topicHint=explicit;return;}
+        const ambiguous=/^(su |esta |este |estos |estas |en este punto|en mobile|si (?:en )?mobile|si duplican|aun asi)/.test(normalizeText(record.text));
+        if(!ambiguous)return;
+        const candidates=originalRecords.slice(Math.max(0,index-6),index).filter(item=>item.semanticRole==='finding'&&Number(item.source?.page)===Number(record.source?.page)&&item.topicHint),counts=candidates.reduce((acc,item)=>{acc[item.topicHint]=(acc[item.topicHint]||0)+1;return acc;},{}),preferred=Object.entries(counts).sort((a,b)=>b[1]-a[1]||candidates.map(item=>item.topicHint).lastIndexOf(b[0])-candidates.map(item=>item.topicHint).lastIndexOf(a[0]))[0]?.[0];
+        if(preferred)record.topicHint=preferred;
+      });
+      const representedOriginalIds=new Set(table.rows.flatMap(row=>row.originalFindingIds||[])),originalUnits=originalRecords.filter(item=>item.semanticRole==='finding'&&!representedOriginalIds.has(item.id)),units=[...originalUnits,...table.rows],typeCounts={};
+      units.forEach(item=>{typeCounts[item.type]=(typeCounts[item.type]||0)+1;});
+      const doubleCountedOriginalIds=originalUnits.filter(item=>representedOriginalIds.has(item.id)).map(item=>item.id),traceComplete=table.rows.every(row=>row.originalFindingIds?.length&&row.originalFindingIds.every(id=>originalRecords.some(record=>record.id===id)));
+      return {version:REVIEW_INTERPRETATION_VERSION,originalRecords,units,tableRows:table.rows,typeCounts,validOriginals:originalUnits.length,contextRecords:originalRecords.filter(item=>item.semanticRole==='context').length,tableDedup:{representedOriginalIds:[...representedOriginalIds],doubleCountedOriginalIds,traceComplete}};
+    }
+    function formatPageRanges(values){
+      const pages=[...new Set(values.filter(Number.isFinite))].sort((a,b)=>a-b),ranges=[];let start=null,previous=null;
+      pages.forEach(page=>{if(start===null){start=previous=page;return;}if(page===previous+1){previous=page;return;}ranges.push(start===previous?`${start}`:`${start}–${previous}`);start=previous=page;});
+      if(start!==null)ranges.push(start===previous?`${start}`:`${start}–${previous}`);
+      return ranges.join(', ')||'No especificadas';
+    }
+    function reviewExplicitTopicId(finding){
+      const text=normalizeText(finding.text),structure=normalizeText(finding.structure?.area||''),tags=normalizeText((finding.contextTags||[]).join(' '));
+      const tableArea={buscador:'search-priority',cta:'cta-form',claim:'claim-seo',header:'header-account',banners:'banners','accesos rapidos':'self-service',mobile:'mobile','ui kit':'design-system'}[structure];
+      if(tableArea)return tableArea;
+      let anchored='';
+      if(/\b(ultima busqueda|busqueda guardada|retomar el proceso)\b/.test(text))anchored='last-search';
+      else if(/\b(primer bloque de la home concentra|convive con elementos|ordena mejor la convivencia|muchas funciones necesarias|demasiadas capas)\b/.test(text))anchored='above-fold';
+      else if(/\b(check-?\s*in|gestiona (?:tu )?reserva|informacion de vuelos|autoservicio|accesos (?:rapidos|directos)|cards de autoservicio|tareas frecuentes|acciones (?:muy )?pulsadas|resolver una tarea concreta|responden a acciones que los usuarios)\b/.test(text))anchored='self-service';
+      else if(/\b(claim|h1|seo)\b/.test(text)||tags.includes('restriccion seo'))anchored='claim-seo';
+      else if(/\b(banner|campana|promocion|carrusel|magnolia|ctr|revenue)\b/.test(text))anchored='banners';
+      else if(/\b(ui kit|componente robusto|deuda visual|variantes,? estados|accesibilidad bien definida)\b/.test(text))anchored='design-system';
+      else if(/\b(mobile-first|escalar(?:lo)? a desktop|escala(?:r)? (?:el buscador )?a desktop)\b/.test(text))anchored='mobile';
+      else if(/\b(siguiente fase|contrastar estos hallazgos|apoyandonos en datos|formular hipotesis|testarlas con cro)\b/.test(text))anchored='measurement';
+      else if(/\b(cta|buscar vuelos|campos clave|formulario|que debe completar)\b/.test(text))anchored='cta-form';
+      else if(/\b(header|cuenta|suma|navegacion global|menu)\b/.test(text)&&!/\babove the fold\b/.test(text))anchored='header-account';
+      else if(/\b(above the fold|primer impacto|demasiadas capas|jerarquia (?:comun|visual)|accion principal)\b/.test(text))anchored='above-fold';
+      return anchored;
+    }
+    function reviewTopicForFinding(finding){
+      const text=normalizeText(finding.text),anchored=finding.topicHint||reviewExplicitTopicId(finding);
+      if(anchored)return reviewTopicDefinitions.find(topic=>topic.id===anchored);
+      const fallbackIds=new Set(['search-priority','above-fold','header-account','cta-form']),ranked=reviewTopicDefinitions.filter(topic=>fallbackIds.has(topic.id)).map((topic,index)=>({topic,index,score:semanticSimilarity(`${finding.text} ${finding.source?.section||''}`,`${topic.seed} ${topic.terms.join(' ')}`)+topic.terms.reduce((score,term)=>score+(text.includes(normalizeText(term))?(term.includes(' ')?0.34:0.16):0),0)})).sort((a,b)=>b.score-a.score||a.index-b.index);
+      return ranked[0]?.topic||reviewTopicDefinitions.find(topic=>topic.id==='search-priority');
+    }
+    function buildReviewClusters(analysis,interpretation=buildReviewInterpretation(analysis)){
+      if(analysis?.documentEditorial)return UXDocumentAnalysis.clusters(analysis,learnings);
+      const findings=interpretation.units,relations=analysis?.relations||[],clusterReview=analysis?.clusterReview||{};
+      const clusters=new Map(reviewTopicDefinitions.map(topic=>[topic.id,{...topic,findings:[],relations:[]} ]));
+      findings.forEach(finding=>clusters.get(reviewTopicForFinding(finding).id).findings.push(finding));
+      relations.forEach(relation=>{const finding=findings.find(item=>item.id===relation.findingId);if(finding)clusters.get(reviewTopicForFinding(finding).id).relations.push(relation);});
+      return [...clusters.values()].filter(cluster=>cluster.findings.length).map(cluster=>{
+        const saved=clusterReview[cluster.id]||{},savedIsCurrent=Boolean(saved.decision&&saved.status),decision=savedIsCurrent?saved.decision:cluster.proposal,learning=learnings.find(item=>item.id===cluster.learningId)||null;
+        const publishedOperation=analysis?.publication?.operations?.find(item=>item.id===cluster.id),isPublished=analysis?.publication?.status==='published';
+        const displayTitle=isPublished?(publishedOperation?.name||saved.editorialTitle||cluster.name):(saved.editorialTitle||cluster.editorialTitle||cluster.name),displaySynthesis=isPublished?(publishedOperation?.synthesis||saved.editorialSynthesis||cluster.synthesis):(saved.editorialSynthesis||cluster.synthesis);
+        const pages=cluster.findings.map(item=>Number(item.source?.page)),devices=[...new Set(cluster.findings.map(item=>item.device).filter(value=>value&&value!=='No especificado'))],types=[...new Set(cluster.findings.map(item=>item.type).filter(Boolean))],contextTags=[...new Set(cluster.findings.flatMap(item=>item.contextTags||[]))];
+        const hasLowConfidence=cluster.findings.some(item=>item.confidence==='Baja'),hasContradiction=cluster.relations.some(relation=>relation.decision==='Contradice learning'&&/\b(no funciona|empeora|contradice|cae|reduce (?:conversion|avance|uso)|dificulta)\b/.test(normalizeText(cluster.findings.find(item=>item.id===relation.findingId)?.text||'')));
+        const highRisk=['Crear nuevo learning','Ampliar learning','Contradice learning','Crear pregunta abierta','Posible patrón','Posible oportunidad','Recomendación de sistema'].includes(decision);
+        return {...cluster,displayTitle,displaySynthesis,decision,learning,pages,devices,types,contextTags,hasLowConfidence,hasContradiction,needsDecision:highRisk||hasLowConfidence||hasContradiction,reviewStatus:savedIsCurrent?(saved.status||'pending'):'pending'};
+      }).sort((a,b)=>b.findings.length-a.findings.length);
+    }
+    function reviewInsightsForDocument(documentItem,interpretation=documentInterpretation(documentItem)){
+      if(hasRecoveredDocumentAnalysis(documentItem))return applyAnalysisEditorial(documentItem,documentItem.archivedReview.insights);
+      const base=isDocumentPublished(documentItem)?publishedAnalysisInsights(documentItem,interpretation):buildReviewClusters(documentItem?.analysis,interpretation);
+      return applyAnalysisEditorial(documentItem,base);
+    }
+    function reviewDecisionCounts(clusters){return clusters.reduce((counts,cluster)=>{counts[cluster.decision]=(counts[cluster.decision]||0)+1;return counts;},{});}
+    const publicationImpactDefinitions=[
+      {key:'reinforced',label:'Learnings reforzados',decisions:['Reforzar learning','Reforzar learning existente']},
+      {key:'expanded',label:'Learnings ampliados',decisions:['Ampliar learning']},
+      {key:'newLearnings',label:'Nuevos learnings',decisions:['Crear nuevo learning']},
+      {key:'questions',label:'Preguntas abiertas',decisions:['Crear pregunta abierta']},
+      {key:'opportunities',label:'Oportunidades',decisions:['Posible oportunidad']},
+      {key:'recommendations',label:'Recomendaciones de sistema',decisions:['Recomendación de sistema']},
+      {key:'patterns',label:'Patterns',decisions:['Posible patrón']},
+      {key:'evidenceOnly',label:'Insights conservados solo como evidencia',decisions:['Mantener solo como evidencia']},
+      {key:'contradictions',label:'Contradicciones',decisions:['Contradice learning']},
+      {key:'linkedEvidence',label:'Evidencias vinculadas',decisions:['Usar como evidencia']},
+      {key:'restrictions',label:'Restricciones nuevas',decisions:['Crear restricción']},
+      {key:'updatedRestrictions',label:'Restricciones actualizadas',decisions:['Actualizar restricción existente']},
+      {key:'discarded',label:'Insights descartados',decisions:['Descartar']},
+      {key:'context',label:'Contexto documental',decisions:['Solo contexto / evidencia documental']}
+    ];
+    function approvedDocumentFirstV2Plan(documentItem){
+      const analysis=documentItem?.analysis,artifact=analysis?.documentFirstV2,stored=artifact?.publicationPlan;
+      if(!stored||stored.status!=='approved'||stored.automaticPublication!==false)return null;
+      const canonical=stored.canonicalContext||{},canonicalUnits=(analysis.findings||[]).map(unit=>({...cloneAnalysisValue(unit),product:canonical.product||unit.product,screen:canonical.screen||unit.screen,component:canonical.component||unit.component})),byId=new Map(canonicalUnits.map(unit=>[unit.id,unit]));
+      const operations=stored.operations.map(operation=>{
+        const findings=(operation.evidenceRefs||[]).map(id=>byId.get(id)).filter(Boolean),pages=formatPageRanges(findings.map(item=>Number(item.source?.page))),devices=[...new Set(findings.map(item=>item.device).filter(knownMetadata))],types=[...new Set(findings.map(item=>item.type).filter(Boolean))],scope=[canonical.product,canonical.screen,canonical.component].filter(Boolean).join(' / ');
+        const details=operation.decision==='Crear nuevo learning'?{title:operation.name,synthesis:operation.synthesis,scope,confidence:'Media',limitation:(operation.specificLimits||[]).join('\n')}:
+          ['Reforzar learning existente','Ampliar learning'].includes(operation.decision)?{targetKind:'learning',targetId:operation.learningId,contribution:operation.nuance||operation.synthesis}:
+          operation.decision==='Crear pregunta abierta'?{question:operation.name,scope}:
+          operation.decision==='Recomendación de sistema'?{title:operation.name,synthesis:operation.synthesis,scope}:{};
+        return {id:operation.id,name:operation.name,synthesis:operation.synthesis,nuance:operation.nuance||'',decision:operation.decision,learningId:operation.learningId||'',learningTitle:learnings.find(item=>item.id===operation.learningId)?.title||'',unitCount:findings.length,pages,devices,types,proposedClassification:'',contextTags:[],findings,reviewStatus:'approved',decisionDetails:details,editorialContext:{product:canonical.product||'',screen:canonical.screen||'',component:canonical.component||'',context:scope,notDemonstrated:(operation.specificLimits||[]).join('\n')}};
+      });
+      const clusters=operations.map(operation=>({...operation,displayTitle:operation.name,displaySynthesis:operation.synthesis,needsDecision:false,learning:learnings.find(item=>item.id===operation.learningId)||null}));
+      const counts=publicationImpactDefinitions.reduce((summary,definition)=>{summary[definition.key]=operations.filter(operation=>definition.decisions.includes(operation.decision)).length;return summary;},{}),decisionErrors=clusters.flatMap(cluster=>insightDecisionErrors(cluster));
+      const interpretation={...documentInterpretation(documentItem),units:canonicalUnits};
