@@ -303,74 +303,9 @@ taxonomy_runtime_js = f"""
     observer.observe(detail,{{childList:true,subtree:true}});
   }}
 
-  function ensureValidatedLearnings(){{
-    try{{
-      if(typeof learnings==='undefined' || !Array.isArray(learnings)) return;
-      const specs=[
-        {{
-          id:'L-SUMA-04',
-          initiative:'SUMA Frequent Flyer',
-          initiatives:['SUMA Frequent Flyer'],
-          product:'Booking',
-          funnel:'Passengers',
-          minifunnel:'',
-          component:'Card Datos del pasajero',
-          components:['Card Datos del pasajero'],
-          impactUx:'Alto',
-          title:'Si el usuario ya está logado en SUMA, aprovechemos los datos que ya tenemos',
-          know:'Si ya conocemos sus datos y beneficios, volver a pedirlos añade esfuerzo.',
-          text:'Podemos recuperar la información disponible y aplicar sus ventajas, dejando claro qué se ha recuperado o aplicado.',
-          forEvidence:[
-            'DEMO-051 · La identificación SUMA puede reducir esfuerzo si evita volver a introducir datos ya conocidos.',
-            'DEMO-077 · La recuperación automática de datos personales y número SUMA reduce esfuerzo en Paxes.'
-          ],
-          sourceNames:['UX_Intelligence_CRO_master_final.xlsx'],
-          status:'Learning consolidado'
-        }},
-        {{
-          id:'L-SUMA-05',
-          initiative:'SUMA Frequent Flyer',
-          initiatives:['SUMA Frequent Flyer'],
-          product:'Booking',
-          funnel:'Shopping Cart',
-          minifunnel:'',
-          component:'Slider de Millas',
-          components:['Slider de Millas'],
-          impactUx:'Alto',
-          title:'No queda claro qué representa la cifra de Millas',
-          know:'La cifra puede parecer el saldo total cuando quizá sea el máximo que se puede usar en esa reserva. Esa diferencia cambia cómo se entiende el canje.',
-          text:'Antes de usar el slider, tiene que quedar claro qué significa esa cifra y qué cantidad puede aplicarse realmente.',
-          forEvidence:[
-            'DEMO-059 · El mensaje inicial no deja claro si las Millas mostradas son saldo total o máximo aplicable a la reserva.'
-          ],
-          sourceNames:['UX_Intelligence_CRO_master_final.xlsx'],
-          status:'Learning consolidado'
-        }}
-      ];
-      let changed=false;
-      for(const spec of specs){{
-        const exists=learnings.some(item =>
-          String(item?.id||'')===spec.id ||
-          String(item?.title||'').trim()===spec.title
-        );
-        if(!exists && learnings.length<16){{
-          learnings.push(JSON.parse(JSON.stringify(spec)));
-          changed=true;
-        }}
-      }}
-      if(changed){{
-        try{{ renderLearnings?.(); }}catch(_e){{}}
-        try{{ renderOverview?.(); }}catch(_e){{}}
-      }}
-    }}catch(e){{
-      console.error('[UX Intel validated learning restore]',e);
-    }}
-  }}
-
   function run(){{
     restoreTaxonomy();
     keepReadonlyTaxonomyStable();
-    ensureValidatedLearnings();
   }}
 
   if(document.readyState==='loading'){{
