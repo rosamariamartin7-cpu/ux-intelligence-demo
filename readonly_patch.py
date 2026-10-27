@@ -92,6 +92,130 @@ taxonomy_runtime_js = f"""
 (() => {{
   const TERMS={canonical_terms_js};
 
+  function renderReadonlyTaxonomy(){{
+    try{{
+      const tree=document.getElementById('taxonomy-tree');
+      const detail=document.getElementById('taxonomy-detail');
+      if(!tree||!detail)return;
+
+      const all=TERMS.filter(term=>term.status==='canonical'&&term.governed===true);
+      const byParent=new Map();
+      all.forEach(term=>{{
+        const key=String(term.parentId||'');
+        if(!byParent.has(key))byParent.set(key,[]);
+        byParent.get(key).push(term);
+      }});
+
+      const levelLabel={{product:'Producto',funnel:'Funnel',minifunnel:'Minifunnel',component:'Componente'}};
+      const levelClass={{product:'is-product',funnel:'is-funnel',minifunnel:'is-minifunnel',component:'is-component'}};
+      const rank={{product:0,funnel:1,minifunnel:2,component:3}};
+
+      function orderedChildren(parentId){{
+        return [...(byParent.get(String(parentId||''))||[])].sort((a,b)=>
+          (rank[a.level]??9)-(rank[b.level]??9)||
+          String(a.canonicalName||a.name||'').localeCompare(String(b.canonicalName||b.name||''),'es')
+        );
+      }}
+
+      function buildBranch(parentId,depth){{
+        const frag=document.createDocumentFragment();
+        orderedChildren(parentId).forEach(term=>{{
+          const wrap=document.createElement('div');
+          wrap.className='ux-ro-taxonomy-node';
+          wrap.style.setProperty('--ux-depth',String(depth));
+
+          const btn=document.createElement('button');
+          btn.type='button';
+          btn.className='ux-ro-taxonomy-term '+(levelClass[term.level]||'');
+          btn.dataset.roTaxonomyId=String(term.id||'');
+
+          const level=document.createElement('span');
+          level.className='ux-ro-taxonomy-level';
+          level.textContent=levelLabel[term.level]||term.level||'';
+
+          const strong=document.createElement('strong');
+          strong.textContent=String(term.canonicalName||term.name||'');
+
+          btn.append(level,strong);
+          wrap.append(btn);
+
+          const children=orderedChildren(term.id);
+          if(children.length){{
+            const childWrap=document.createElement('div');
+            childWrap.className='ux-ro-taxonomy-children';
+            childWrap.append(buildBranch(term.id,depth+1));
+            wrap.append(childWrap);
+          }}
+          frag.append(wrap);
+        }});
+        return frag;
+      }}
+
+      function pathFor(term){{
+        const map=new Map(all.map(x=>[String(x.id||''),x]));
+        const parts=[];let current=term;const seen=new Set();
+        while(current){{
+          const id=String(current.id||'');
+          if(id&&seen.has(id))break;
+          if(id)seen.add(id);
+          parts.unshift(String(current.canonicalName||current.name||''));
+          current=current.parentId?map.get(String(current.parentId)):null;
+        }}
+        return parts;
+      }}
+
+      function show(term){{
+        detail.innerHTML='';
+        const box=document.createElement('div');
+        box.className='ux-ro-taxonomy-detail';
+
+        const kicker=document.createElement('span');
+        kicker.className='ux-ro-taxonomy-kicker';
+        kicker.textContent=levelLabel[term.level]||term.level||'';
+
+        const h=document.createElement('h3');
+        h.textContent=String(term.canonicalName||term.name||'');
+
+        const p=document.createElement('p');
+        p.className='ux-ro-taxonomy-path';
+        p.textContent=pathFor(term).join(' / ');
+
+        box.append(kicker,h,p);
+
+        const aliases=Array.isArray(term.aliases)?term.aliases.filter(Boolean):[];
+        if(aliases.length){{
+          const a=document.createElement('div');
+          a.className='ux-ro-taxonomy-aliases';
+          const st=document.createElement('strong');
+          st.textContent='Alias históricos';
+          const ap=document.createElement('p');
+          ap.textContent=aliases.join(' · ');
+          a.append(st,ap);
+          box.append(a);
+        }}
+        detail.append(box);
+
+        tree.querySelectorAll('[data-ro-taxonomy-id]').forEach(node=>
+          node.classList.toggle('active',node.dataset.roTaxonomyId===String(term.id||''))
+        );
+      }}
+
+      tree.innerHTML='';
+      tree.append(buildBranch('',0));
+      tree.onclick=event=>{{
+        const btn=event.target.closest('[data-ro-taxonomy-id]');
+        if(!btn)return;
+        const term=all.find(x=>String(x.id||'')===btn.dataset.roTaxonomyId);
+        if(term)show(term);
+      }};
+
+      const first=all.find(term=>term.level==='product')||all[0];
+      if(first)show(first);
+    }}catch(e){{
+      console.error('[UX Intel readonly taxonomy render]',e);
+    }}
+  }}
+
   function restoreTaxonomy(){{
     try{{
       if(typeof taxonomyProject==='undefined' || !taxonomyProject) return;
@@ -105,6 +229,7 @@ taxonomy_runtime_js = f"""
       }}
       try{{ refreshAllTaxonomyFilters?.(); }}catch(_e){{}}
       try{{ renderTaxonomy?.(); }}catch(_e){{}}
+      renderReadonlyTaxonomy();
       try{{ renderLearnings?.(); }}catch(_e){{}}
       try{{ renderOverview?.(); }}catch(_e){{}}
     }}catch(e){{
@@ -210,6 +335,28 @@ if 'ux-demo-readonly-badge' not in s:
 # Solo lectura: misma UI, mismos filtros, navegación y descargas.
 # Ocultamos exclusivamente acciones que modifican datos o taxonomía.
 readonly_css = r'''
+<style id="ux-demo-taxonomy-readonly-fallback">
+#taxonomy .taxonomy-layout{grid-template-columns:minmax(320px,.9fr) minmax(360px,1.1fr)!important;align-items:start}
+#taxonomy .taxonomy-tree,#taxonomy .taxonomy-detail{background:#fff;border:1px solid var(--border-secondary);border-radius:14px}
+#taxonomy .taxonomy-tree{padding:12px}
+#taxonomy .taxonomy-detail{padding:22px;min-height:180px}
+.ux-ro-taxonomy-node{margin-left:calc(var(--ux-depth,0) * 18px)}
+.ux-ro-taxonomy-term{width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;border:0;background:transparent;border-radius:9px;text-align:left;color:var(--text-primary);cursor:pointer}
+.ux-ro-taxonomy-term:hover,.ux-ro-taxonomy-term.active{background:#f5f8ff}
+.ux-ro-taxonomy-level{font-size:10px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;min-width:72px}
+.ux-ro-taxonomy-term.is-product .ux-ro-taxonomy-level{color:#2563eb}
+.ux-ro-taxonomy-term.is-funnel .ux-ro-taxonomy-level{color:#16803c}
+.ux-ro-taxonomy-term.is-minifunnel .ux-ro-taxonomy-level{color:#b45309}
+.ux-ro-taxonomy-term.is-component .ux-ro-taxonomy-level{color:#6d28d9}
+.ux-ro-taxonomy-children{border-left:1px solid #e5e7eb;margin-left:11px}
+.ux-ro-taxonomy-kicker{font-size:11px;font-weight:800;text-transform:uppercase;color:var(--text-secondary)}
+.ux-ro-taxonomy-detail h3{margin:8px 0 8px;font-size:22px}
+.ux-ro-taxonomy-path,.ux-ro-taxonomy-aliases p{color:var(--text-secondary)}
+@media(max-width:820px){
+  #taxonomy .taxonomy-layout{grid-template-columns:1fr!important}
+  .ux-ro-taxonomy-node{margin-left:calc(var(--ux-depth,0) * 10px)}
+}
+</style>
 <style id="ux-demo-readonly-final">
 .ux-demo-readonly-badge{
   display:inline-flex;align-items:center;min-height:30px;padding:4px 10px;
