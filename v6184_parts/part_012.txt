@@ -1,0 +1,999 @@
+        const selectedComponent=canonicalComponentName(enteredComponent)||enteredComponent;
+        if(!selectedComponent)throw new Error('Edita la propuesta y escribe un único componente antes de crear el learning.');
+        learning={id:nextLearningIdForInitiative(item),initiative:item.initiative||rows[0]?.initiative||'Sin clasificar',initiatives:[item.initiative||rows[0]?.initiative||'Sin clasificar'].filter(Boolean),area:rows[0]?.uxLine||rows[0]?.component||'UX',impactUx:candidate.impactUx||'Medio',confidence:'Media',product:products.length===1?products[0]:(item.product||products[0]||'No especificado'),screen:screens.length===1?screens[0]:'Multipantalla',component:selectedComponent,element:'',device:devices.length===1?devices[0]:(devices.length?'Desktop + mobile':'No especificado'),market:markets.length===1?markets[0]:'No especificado',title:candidate.newLearningTitle||'Nuevo learning',text:candidate.summary||'',know:candidate.summary||'',forEvidence:evidence,contrary:[],noProof:['Este learning se consolida a partir de los registros revisados de esta fuente; no demuestra por sí solo impacto causal ni permite generalizar fuera de su contexto.'],open:[...new Set(rows.map(row=>String(row.openQuestion||'').trim()).filter(Boolean))],applications,sourceNames:[item.name],status:'Learning consolidado',createdAt:publishedAt.slice(0,10),updatedAt:publishedAt.slice(0,10),publicationHistory:[]};
+        learnings.push(learning);candidate.targetLearningId=learning.id;
+      }else{
+        if(!learning)throw new Error('Selecciona un learning objetivo antes de confirmar esta propuesta.');
+        if(candidate.action==='Contradice learning')mergeUnique(learning,'contrary',evidence);else{mergeUnique(learning,'forEvidence',evidence);if(candidate.action==='Ampliar learning'&&candidate.summary&&!normalizeText(learning.know||'').includes(normalizeText(candidate.summary).slice(0,60)))learning.know=`${String(learning.know||'').trim()} ${candidate.summary}`.trim();}
+        mergeUnique(learning,'applications',applications);mergeUnique(learning,'sourceNames',[item.name]);mergeUnique(learning,'initiatives',[item.initiative].filter(Boolean));learning.updatedAt=publishedAt.slice(0,10);
+      }
+      learning.publicationHistory=dedupeLearningPublicationHistory([
+        ...(learning.publicationHistory||[]),
+        {documentId:item.id,sourceName:item.name,decision:candidate.action,publishedAt,rowRefs:[...(candidate.rowRefs||[])]}
+      ]);
+      candidate.status='confirmed';candidate.resolvedAt=publishedAt;candidate.appliedLearningId=learning.id;return learning;
+    }
+    function resolveLearningSuggestion(item,candidate,status){
+      if(!item?.insightRegister?.learningSuggestions||!candidate)return;
+      const state=item.insightRegister.learningSuggestions;
+      candidate.status=status;
+      candidate.resolvedAt=new Date().toISOString();
+      state.history=dedupeLearningSuggestionHistory([...(state.history||[]),{
+        candidateId:candidate.id,
+        fingerprint:candidate.fingerprint,
+        rowRefs:[...(candidate.rowRefs||[])],
+        status,
+        decision:candidate.action,
+        learningId:candidate.appliedLearningId||candidate.targetLearningId||'',
+        at:candidate.resolvedAt
+      }]);
+      rememberLearningSuggestionDecision(item,candidate,status,candidate.appliedLearningId||candidate.targetLearningId||'');
+      if(status==='evidence-only')reconcileOpenQuestionsFromRows(learningSuggestionRows(item,candidate),item);
+      safeStorageWrite({project:true});renderOverview();renderLearnings();renderSources();renderExplore();openInsightRegister(item);
+    }
+    function confirmLearningSuggestion(item,candidate){
+      try{
+        const learning=applyLearningSuggestion(item,candidate),state=item.insightRegister.learningSuggestions;
+        reconcileOpenQuestionsFromRows(learningSuggestionRows(item,candidate),item);
+        state.history=dedupeLearningSuggestionHistory([...(state.history||[]),{
+          candidateId:candidate.id,
+          fingerprint:candidate.fingerprint,
+          rowRefs:[...(candidate.rowRefs||[])],
+          status:candidate.status,
+          decision:candidate.action,
+          learningId:learning?.id||candidate.appliedLearningId||candidate.targetLearningId||'',
+          at:candidate.resolvedAt
+        }]);
+        rememberLearningSuggestionDecision(item,candidate,candidate.status,learning?.id||candidate.appliedLearningId||candidate.targetLearningId||'');
+        if(learning&&['Reforzar learning existente','Ampliar learning'].includes(candidate.action)){
+          reconcileLearningQuestions(learning,learningSuggestionRows(item,candidate),item);
+        }
+        if(!safeStorageWrite({project:true}))throw new Error('No se ha podido guardar la decisión.');
+        refreshCatalogMetadata();refreshAllTaxonomyFilters?.();renderOverview();renderLearnings();renderSources();renderExplore();openInsightRegister(item);showToast(learning?'Learning actualizado':'Evidencia mantenida',learning?`${learning.id} se ha actualizado con esta fuente.`:'Los registros siguen disponibles en Explorar sin crear ni modificar un learning.');
+      }catch(error){console.error('[UX Intel learning suggestion]',error);showToast('No se ha aplicado la sugerencia',String(error?.message||error));}
+    }
+    function openLearningSuggestionEditor(item,candidate){
+      const sameInitiative=learnings.filter(learning=>!item.initiative||[learning.initiative,...(learning.initiatives||[])].some(value=>initiativeNameEquals(value,item.initiative)));
+      const entries=learningSuggestionEntryRows(item,candidate),rows=entries.map(entry=>entry.row);
+      const inferredCanonical=[...new Set(rows.map(row=>canonicalComponentName(row.component)).filter(Boolean))];
+      const inferredRaw=[...new Set(rows.map(row=>String(row.component||'').trim()).filter(Boolean))];
+      const contextItem={product:rows[0]?.product||item.product||'',screen:rows[0]?.screen||item.screen||''};
+      const componentOptions=learningComponentOptions(contextItem);
+      const selectedComponent=String(candidate.component||(inferredCanonical.length===1?inferredCanonical[0]:(inferredRaw.length===1?inferredRaw[0]:''))||'').trim();
+      const componentListId=`learning-component-options-${String(candidate.id||'candidate').replace(/[^a-zA-Z0-9_-]/g,'-')}`;
+      const componentHelp=selectedComponent?(canonicalComponentName(selectedComponent)?`Componente existente: ${canonicalComponentName(selectedComponent)}.`:'Nuevo componente. Se guardará con este nombre.'):'Escribe un componente o elige uno existente. Un learning tiene un único componente principal.';
+      const rowOptions=entries.map(({row,index})=>{
+        const ref=row?.sourceRow||index+1;
+        const meta=[row.component?`Componente: ${row.component}`:'',row.channelEnvironment?`Dispositivo: ${row.channelEnvironment}`:row.device?`Dispositivo: ${row.device}`:'',row.recordType?`Tipo: ${row.recordType}`:''].filter(Boolean).join(' · ');
+        return `<label class="learning-suggestion-row-option"><input type="checkbox" name="rowRef" value="${escapeHtml(String(ref))}" checked><span><strong>Fila ${escapeHtml(String(ref))} · ${escapeHtml(row.insight||row.evidence||row.recommendation||'Registro revisado')}</strong>${meta?`<span>${escapeHtml(meta)}</span>`:''}</span></label>`;
+      }).join('');
+      const header=`<div class="drawer-kicker">Sugerencia de learning</div><h2>Editar propuesta</h2><p class="drawer-lead">Ajusta la decisión y elige exactamente qué registros forman parte de ella. El Excel original no se modifica.</p>`;
+      const body=`<form id="learning-suggestion-edit-form" data-source-id="${escapeHtml(item.id)}" data-candidate-id="${escapeHtml(candidate.id)}"><div class="form-grid"><div class="learning-suggestion-row-editor"><div class="learning-suggestion-row-editor-head"><div><strong>Registros incluidos en esta propuesta</strong><span>Desmarca cualquier registro que no pertenezca a este learning. Los que quites quedarán como una propuesta pendiente separada para poder reasignarlos o mantenerlos solo como evidencia.</span></div><span>${entries.length} ${entries.length===1?'registro':'registros'}</span></div><div class="learning-suggestion-row-list">${rowOptions}</div></div><label class="form-field full">Decisión<select name="action"><option ${candidate.action==='Crear nuevo learning'?'selected':''}>Crear nuevo learning</option><option ${candidate.action==='Reforzar learning existente'?'selected':''}>Reforzar learning existente</option><option ${candidate.action==='Ampliar learning'?'selected':''}>Ampliar learning</option><option ${candidate.action==='Contradice learning'?'selected':''}>Contradice learning</option><option ${candidate.action==='Mantener solo como evidencia'?'selected':''}>Mantener solo como evidencia</option></select></label><label class="form-field full">Learning objetivo<select name="targetLearningId"><option value="">Sin learning objetivo</option>${sameInitiative.map(learning=>`<option value="${escapeHtml(learning.id)}" ${candidate.targetLearningId===learning.id?'selected':''}>${escapeHtml(learning.id)} · ${escapeHtml(learning.title)}</option>`).join('')}</select></label><label class="form-field full">Título si se crea un nuevo learning<input name="newLearningTitle" value="${escapeHtml(candidate.newLearningTitle||'')}"></label><label class="form-field full">Componente si se crea un nuevo learning<input name="component" type="text" list="${escapeHtml(componentListId)}" value="${escapeHtml(selectedComponent)}" placeholder="Escribe o selecciona un componente" data-component-free-input><datalist id="${escapeHtml(componentListId)}">${componentOptions.map(value=>`<option value="${escapeHtml(value)}"></option>`).join('')}</datalist><span class="form-help" data-component-free-help>${escapeHtml(componentHelp)}</span></label><label class="form-field full">Síntesis<textarea name="summary">${escapeHtml(candidate.summary||'')}</textarea></label><label class="form-field">Impacto UX<select name="impactUx"><option ${candidate.impactUx==='Alto'?'selected':''}>Alto</option><option ${candidate.impactUx==='Medio'?'selected':''}>Medio</option><option ${candidate.impactUx==='Bajo'?'selected':''}>Bajo</option></select></label></div><div class="form-actions"><button class="secondary-button" type="button" data-learning-suggestion-cancel data-source-id="${escapeHtml(item.id)}">Cancelar</button><button class="action-button" type="submit">Guardar propuesta</button></div></form>`;
+      openDrawer(header,body);
+    }
+    function ensureRecentLearningSuggestions(){
+      let changed=0;const now=Date.now(),windowMs=3*24*60*60*1000;
+      sourceItems.forEach(item=>{if(!item?.simpleKnowledgeActive||!item?.insightRegister?.rows?.length||item.insightRegister.learningSuggestions)return;const ingested=Date.parse(item.ingestedAt||'');if(!Number.isFinite(ingested)||now-ingested>windowMs)return;if(ensureLearningSuggestions(item,{force:true}))changed++;});
+      if(changed)safeStorageWrite({project:false});return changed;
+    }
+
+    function openInsightRegister(item){
+      const register=item?.insightRegister;if(!register)return;
+      const fieldLabels={product:'Producto',funnel:'Funnel',minifunnel:'Minifunnel',component:'Componente',recordType:'Tipo',insight:'Insight / hallazgo',evidence:'Evidencia',uxImplication:'Lectura UX',recommendation:'Recomendación / oportunidad',openQuestion:'Pregunta abierta',origin:'Origen',device:'Dispositivo',channelEnvironment:'Dispositivo',market:'Mercado',region:'Región',impactUx:'Impacto UX',uxLine:'Dimensión UX',observations:'Observaciones'};
+      const recognized=(register.recognizedFields||[]).map(field=>fieldLabels[field]||field);
+      const visible=register.rows.slice(0,50),filename=register.file?.name||item.originalName||'Excel revisado.xlsx';
+      const deviceValues=[...new Set(register.rows.map(row=>row.channelEnvironment||row.device).filter(Boolean))];
+      const deviceScope=deviceValues.length===1?deviceValues[0]:deviceValues.length>1?'Varios dispositivos':'No especificado';
+      const header=`<div class="drawer-kicker">Excel revisado por UX</div><h2>${escapeHtml(item.name||filename.replace(/\.[^.]+$/,''))}</h2><p class="drawer-file-name">${escapeHtml(filename)}</p><div class="drawer-tags"><span class="status-badge ${register.reviewedByUx?'system-success':'system-pending'}">${register.reviewedByUx?'Revisado por UX':'Revisión UX no confirmada'}</span></div>${documentDrawerMeta(item,deviceScope)}`;
+      const relations=documentLearningRelations(item);
+      const relatedLearnings=[...relations.used,...relations.proposed].filter((learning,index,array)=>array.findIndex(candidate=>candidate.id===learning.id)===index);
+      const relatedLearningMarkup=relatedLearnings.length
+        ? `<div class="relation-list document-learning-list">${relatedLearnings.map(learning=>`<div class="relation-row"><div class="relation-copy"><strong>${escapeHtml(learning.title)}</strong><span>${escapeHtml([pathOf(learning),learning.impactUx?`Impacto UX: ${learning.impactUx}`:''].filter(Boolean).join(' · '))}</span></div><button class="relation-action" type="button" data-learning="${escapeHtml(learning.id)}">Abrir</button></div>`).join('')}</div>`
+        : `<p class="document-knowledge-empty">Todavía no hay un learning consolidado vinculado directamente a este Excel.</p>`;
+      const body=`<section class="drawer-section drawer-section-primary document-knowledge-contribution"><h3>Qué aporta a UX Intelligence</h3><p>Este Excel aporta <strong>${register.rows.length}</strong> ${register.rows.length===1?'registro estructurado':'registros estructurados'}${relatedLearnings.length?` y está relacionado con <strong>${relatedLearnings.length}</strong> ${relatedLearnings.length===1?'learning consolidado':'learnings consolidados'}`:''}.</p>${relatedLearningMarkup}</section>${learningSuggestionsMarkup(item)}<section class="drawer-section"><h3>Conocimiento estructurado</h3><div class="import-summary"><strong>${register.rows.length}</strong><span>${register.rows.length===1?'registro disponible':'registros disponibles'} en Explorar</span></div><div class="relation-list excel-register-list">${visible.map(row=>`<div class="relation-row"><div class="relation-copy"><strong>${escapeHtml(row.insight||row.evidence||row.recommendation||row.openQuestion||`Fila ${row.sourceRow}`)}</strong><span>${escapeHtml([row.recordType?`Tipo: ${row.recordType}`:'',compactJourneyValues(row).length?`Dónde aplica: ${compactJourneyValues(row).join(' › ')}`:''].filter(Boolean).join(' · '))}</span><span>${escapeHtml([row.channelEnvironment?`Dispositivo: ${row.channelEnvironment}`:row.device?`Dispositivo: ${row.device}`:'',row.market?`Mercado: ${row.market}`:'',row.region?`Región: ${row.region}`:'',row.impactUx?`Impacto UX: ${row.impactUx}`:'',row.uxLine?`Dimensión UX: ${String(row.uxLine).split(';').map(value=>value.trim()).filter(Boolean).join(' · ')}`:''].filter(Boolean).join(' · '))}</span></div></div>`).join('')}</div>${register.rows.length>visible.length?`<p>Se muestran 50 de ${register.rows.length} registros.</p>`:''}</section>${drawerFileFooter(item,'excel')}`;
+      openDrawer(header,body);
+    }
+    async function relinkInsightRegisterFile(file,documentId){
+      const item=sourceItems.find(document=>document.id===documentId);
+      if(!item?.insightRegister){showToast('No se puede vincular','Este documento no tiene un Excel revisado registrado.');return;}
+      try{
+        const parsed=await UXInsightRegister.parseFile(file),validation=UXInsightRegister.validate(parsed);
+        if(!validation.valid)throw new Error(validation.errors.join(' '));
+        const existing=item.insightRegister;
+        const normalize=value=>String(value??'').trim().replace(/\s+/g,' ').toLowerCase();
+        const identity=rows=>(rows||[]).map(row=>normalize(row?.insight||row?.evidence||row?.recommendation||row?.openQuestion||''));
+        if((existing.rows||[]).length!==(parsed.rows||[]).length||JSON.stringify(identity(existing.rows))!==JSON.stringify(identity(parsed.rows))){
+          throw new Error('El Excel seleccionado no parece corresponder a este documento. Comprueba que estás seleccionando el archivo original asociado.');
+        }
+        await saveInsightRegisterBlob(item.id,file);
+        await persistSourceFile(item.id,'insight-register',file);
+        showToast('Archivo Excel vinculado','El fichero ha quedado guardado de forma permanente. Si contiene las mismas filas con nuevos campos de gobierno, UX Intelligence los sincronizará al recargar.');
+renderSources();
+        openInsightRegister(item);
+      }catch(error){
+        console.error('[UX Intel relink Insight Register]',error);
+        showToast('No se ha vinculado el Excel',String(error?.message||error));
+      }
+    }
+
+    async function syncInsightRegistersFromStoredFiles(){
+      let changed=0;
+      const normalize=value=>String(value??'').trim().replace(/\s+/g,' ').toLowerCase();
+      const identity=rows=>(rows||[]).map(row=>normalize(row?.insight||row?.evidence||row?.recommendation||row?.openQuestion||''));
+      for(const item of sourceItems){
+        if(!item?.insightRegister)continue;
+        try{
+          let file=await getInsightRegisterBlob(item.id).catch(()=>null);
+          if(!file)file=await getPersistentSourceBlob(item.id,'insight-register').catch(()=>null);
+          if(!file)continue;
+
+          const parsed=await UXInsightRegister.parseFile(file);
+          const validation=UXInsightRegister.validate(parsed);
+          if(!validation.valid)continue;
+
+          const existing=item.insightRegister;
+          const sameIdentity=(existing.rows||[]).length===(parsed.rows||[]).length
+            && JSON.stringify(identity(existing.rows))===JSON.stringify(identity(parsed.rows));
+          if(!sameIdentity)continue;
+
+          const before=JSON.stringify((existing.rows||[]).map(row=>({
+            impactUx:row?.impactUx||'',
+            initiative:row?.initiative||'',
+            funnel:row?.funnel||'',
+            minifunnel:row?.minifunnel||''
+          })));
+          const after=JSON.stringify((parsed.rows||[]).map(row=>({
+            impactUx:row?.impactUx||'',
+            initiative:row?.initiative||'',
+            funnel:row?.funnel||'',
+            minifunnel:row?.minifunnel||''
+          })));
+          const inferredDocumentDate=insightRegisterDocumentDateFromFileName(parsed.file?.name||item.originalName||item.fileMeta?.name||'');
+          const metadataNeedsRepair=existing.reviewedByUx!==true
+            || item.documentProfile?.reviewedByUx!==true
+            || shouldApplyInsightRegisterFileDate(item,inferredDocumentDate);
+          if(before===after&&!metadataNeedsRepair)continue;
+
+          parsed.history=existing.history||[];
+          parsed.reviewedByUx=true;
+          if(existing.status)parsed.status=existing.status;
+          if(existing.analysisVersion)parsed.analysisVersion=existing.analysisVersion;
+          if(shouldApplyInsightRegisterFileDate(item,inferredDocumentDate)){
+            item.documentDate=inferredDocumentDate;
+            item.exactDate=formatDateEs(inferredDocumentDate);
+          }
+
+          parsed.learningSuggestions=existing.learningSuggestions||null;
+          item.insightRegister=parsed;
+          ensureLearningSuggestions(item,{force:true,previousState:existing.learningSuggestions||null});
+          item.documentProfile=UXInsightRegister.documentProfile(item,{
+            ...(item.documentProfile||{}),
+            date:item.exactDate,
+            reviewedByUx:true,
+            associatedFiles:{insightRegister:parsed.file}
+          });
+          item.exportDimensions=UXInsightRegister.exportModel().filters;
+          changed++;
+        }catch(error){
+          console.warn('[UX Intel Excel metadata sync]',item?.name,error);
+        }
+      }
+      if(changed){
+        safeStorageWrite({project:false});
+        renderSources();
+        renderOverview();
+        renderExplore();
+        console.info(`[UX Intel] ${changed} Excel revisado${changed===1?'':'s'} sincronizado${changed===1?'':'s'} con el archivo vinculado.`);
+      }
+      return changed;
+    }
+
+    const UX_INTEL_ALLOWED_RECORD_TYPES=new Set([
+      'hecho','evidencia interna','evidencia externa','hallazgo','insight del autor',
+      'hipotesis','inferencia','oportunidad','decision','experimento','resultado',
+      'learning consolidado','patron','restriccion','pregunta abierta','insight ux'
+    ]);
+    const UX_INTEL_ALLOWED_ORIGINS=new Set([
+      'ux research','test de usuarios','quantum metric','a/b test','cro','auditoria ux',
+      'heuristica','benchmark','desk research','data','negocio','csat'
+    ]);
+    const UX_INTEL_ALLOWED_UX_DIMENSIONS=new Set(["accesibilidad","arquitectura de informacion","claridad y comprension","consistencia","contenido y copy","control y autonomia","encontrabilidad","feedback y estado","flujo y secuenciacion","friccion y eficiencia","jerarquia visual","navegacion","orientacion y ayuda","personalizacion"]);
+    function uxRegisterNorm(value){
+      return String(value??'')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+        .replace(/\s+/g,' ').trim().toLocaleLowerCase('es');
+    }
+    function uxRegisterSplit(value){
+      return String(value||'').split(/[;|·\n]/).map(part=>uxRegisterNorm(part)).filter(Boolean);
+    }
+    function validateInsightRegisterControlledVocabulary(parsed){
+      const invalid={recordType:new Set(),origin:new Set(),uxLine:new Set()};
+      let tooManyDimensions=0;
+      (parsed?.rows||[]).forEach(row=>{
+        const normalizedRecordType=(typeof normalizeRecordType==='function')?normalizeRecordType(row?.recordType):row?.recordType;
+        const recordType=uxRegisterNorm(normalizedRecordType);
+        if(recordType&&!UX_INTEL_ALLOWED_RECORD_TYPES.has(recordType))invalid.recordType.add(String(row.recordType));
+        uxRegisterSplit(row?.origin).forEach(value=>{
+          if(!UX_INTEL_ALLOWED_ORIGINS.has(value))invalid.origin.add(value);
+        });
+        const dimensions=uxRegisterSplit(row?.uxLine);
+        if(dimensions.length>2)tooManyDimensions++;
+        dimensions.forEach(value=>{
+          if(!UX_INTEL_ALLOWED_UX_DIMENSIONS.has(value))invalid.uxLine.add(value);
+        });
+      });
+      const messages=[];
+      if(invalid.recordType.size)messages.push(`Tipo de registro fuera de vocabulario: ${[...invalid.recordType].join(', ')}`);
+      if(invalid.origin.size)messages.push(`Origen del hallazgo fuera de vocabulario: ${[...invalid.origin].join(', ')}`);
+      if(invalid.uxLine.size)messages.push(`Dimensión UX fuera de vocabulario: ${[...invalid.uxLine].join(', ')}`);
+      if(tooManyDimensions)messages.push(`Dimensión UX admite un máximo de 2 valores (${tooManyDimensions} ${tooManyDimensions===1?'fila':'filas'})`);
+      if(messages.length)throw new Error(messages.join('. '));
+      return true;
+    }
+    function insightRegisterGovernedStructure(rows){
+      const levels=['product','funnel','minifunnel','component'];
+      const result={};
+      levels.forEach(level=>result[level]=new Set());
+      (rows||[]).forEach(row=>{
+        levels.forEach(level=>{
+          const values=level==='component'
+            ? [...(Array.isArray(row?.components)?row.components:[]),row?.component]
+            : [row?.[level]];
+          values.map(value=>String(value||'').trim()).filter(Boolean)
+            .forEach(value=>result[level].add(uxRegisterNorm(value)));
+        });
+      });
+      return result;
+    }
+    function insightRegisterIntroducesGovernedStructure(parsed,previous){
+      if(!previous)return true;
+      const before=insightRegisterGovernedStructure(previous?.rows||[]);
+      const after=insightRegisterGovernedStructure(parsed?.rows||[]);
+      return Object.keys(after).some(level=>[...after[level]].some(value=>!before[level].has(value)));
+    }
+    // Excel import governance: historical Pantalla/Elemento columns are compatibility input only.
+    // The governed structure is Producto > Funnel > Minifunnel > Componente, so legacy levels
+    // are excluded from taxonomy review and cannot block a valid reviewed Excel.
+    function insightRegisterTaxonomyReviewPayload(parsed){
+      return {
+        ...parsed,
+        rows:(parsed?.rows||[]).map(row=>({...row,screen:'',element:''}))
+      };
+    }
+    function isLegacyTaxonomyImportError(error){
+      return /Nivel o estado taxon[oó]mico no v[aá]lido/i.test(String(error?.message||error||''));
+    }
+    async function applyInsightRegisterTaxonomySafely(parsed,fileName){
+      validateInsightRegisterControlledVocabulary(parsed);
+      const payload=insightRegisterTaxonomyReviewPayload(parsed);
+      try{
+        const governance=await taxonomyReviewRegisterImport(payload,fileName);
+        if(governance===null)return null;
+        try{
+          await taxonomyApplyRegisterGovernance(governance,fileName);
+          return {skipped:false,deferred:false};
+        }catch(error){
+          if(!isLegacyTaxonomyImportError(error))throw error;
+          console.warn('[UX Intel taxonomy] La validación heredada de taxonomía no debe bloquear el Excel.',error,governance);
+          return {skipped:true,deferred:true,reason:'legacy-taxonomy-validator'};
+        }
+      }catch(error){
+        if(!isLegacyTaxonomyImportError(error))throw error;
+        console.warn('[UX Intel taxonomy] La revisión heredada de taxonomía no debe bloquear el Excel.',error);
+        return {skipped:true,deferred:true,reason:'legacy-taxonomy-validator'};
+      }
+    }
+    async function applyInsightRegisterTaxonomyForUpdate(parsed,previous,fileName){
+      validateInsightRegisterControlledVocabulary(parsed);
+      // En una sustitución editorial del mismo Excel, si la estructura gobernada
+      // no incorpora ningún valor nuevo, no se vuelve a crear/retirar taxonomía.
+      // Esto evita que un validador taxonómico legacy bloquee el guardado.
+      if(previous&&!insightRegisterIntroducesGovernedStructure(parsed,previous)){
+        return {skipped:true,reason:'same-governed-structure'};
+      }
+      const taxonomyResult=await applyInsightRegisterTaxonomySafely(parsed,fileName);
+      if(taxonomyResult===null)return null;
+      return taxonomyResult;
+    }
+
+    async function attachInsightRegister(file,documentId){
+      const item=sourceItems.find(document=>document.id===documentId);if(!item)return;const previous=item.insightRegister?cloneAnalysisValue(item.insightRegister):null,previousBlob=await getInsightRegisterBlob(item.id).catch(()=>null),previousProfile=item.documentProfile?cloneAnalysisValue(item.documentProfile):null;
+      try{
+        const parsed=await UXInsightRegister.parseFile(file),validation=UXInsightRegister.validate(parsed);if(!validation.valid)throw new Error(validation.errors.join(' '));
+        const fileName=String(file?.name||'Excel revisado.xlsx'),inferredDocumentDate=insightRegisterDocumentDateFromFileName(fileName);
+        const taxonomyResult=await applyInsightRegisterTaxonomyForUpdate(parsed,previous,fileName);
+        if(taxonomyResult===null){showToast('Importación cancelada','No se ha modificado la taxonomía ni el documento.');return;}
+        if(previous){parsed.history=[...(previous.history||[]),{replacedAt:new Date().toISOString(),file:previous.file,rowCount:previous.rows?.length||0,rows:previous.rows||[],recognizedFields:previous.recognizedFields||[]}];}
+        parsed.reviewedByUx=true;
+        if(inferredDocumentDate){item.documentDate=inferredDocumentDate;item.exactDate=formatDateEs(inferredDocumentDate);}
+        item.originalName=fileName;item.fileMeta={name:fileName,size:file?.size||0,type:file?.type||'',lastModified:file?.lastModified||0};
+        item.insightRegister=parsed;ensureLearningSuggestions(item,{force:true,previousState:previous?.learningSuggestions||null});item.documentProfile=UXInsightRegister.documentProfile(item,{...(item.documentProfile||{}),date:item.exactDate,reviewedByUx:true,associatedFiles:{insightRegister:parsed.file}});item.exportDimensions=UXInsightRegister.exportModel().filters;
+        if(item.status==='Pendiente de Insight Register'&&!hasDocumentAnalysis(item)){item.simpleKnowledgeActive=true;item.status='Procesado';}
+        await saveInsightRegisterBlob(item.id,file);await persistSourceFile(item.id,'insight-register',file);if(!safeStorageWrite({project:false}))throw new Error('No se ha podido guardar la asociación en el navegador.');
+        if(hasDocumentAnalysis(item))await persistDocumentAnalysis(item,item.analysis);else await queueProjectHistory();
+        renderSources();renderOverview();renderExplore();openSource(item.id);showToast(previous?'Excel revisado actualizado':'Excel revisado añadido',item.simpleKnowledgeActive?'Los registros curados ya forman parte de la base activa.':'La síntesis UX pertenece al mismo documento y no se ha publicado conocimiento.');
+      }catch(error){item.insightRegister=previous;item.documentProfile=previousProfile;if(previousBlob)await saveInsightRegisterBlob(item.id,previousBlob).catch(()=>{});else await deleteInsightRegisterBlob(item.id).catch(()=>{});safeStorageWrite({project:false});console.error('[UX Intel Insight Register]',error);showToast('No se ha guardado el Excel revisado',String(error?.message||error));}
+    }
+
+    async function importInsightRegister(file){
+      let item=null;
+      try{
+        const parsed=await UXInsightRegister.parseFile(file),validation=UXInsightRegister.validate(parsed);
+        if(!validation.valid)throw new Error(validation.errors.join(' '));
+        const fileName=String(file?.name||'Excel revisado.xlsx'),inferredDocumentDate=insightRegisterDocumentDateFromFileName(fileName);
+        const taxonomyResult=await applyInsightRegisterTaxonomySafely(parsed,fileName);
+        if(taxonomyResult===null){showToast('Importación cancelada','No se ha modificado la taxonomía ni la base de conocimiento.');return;}
+        const firstRow=parsed.rows[0]||{};
+        item={
+          id:`IR-${Date.now()}`,
+          name:canonicalDocumentTitle(fileName.replace(/\.[^.]+$/,'')),
+          originalName:fileName,
+          product:firstRow.product||'',funnel:firstRow.funnel||'',minifunnel:firstRow.minifunnel||'',screen:firstRow.screen||'',component:firstRow.component||'',
+          initiative:firstRow.initiative||firstRow.component||firstRow.product||'Sin clasificar',
+          initiatives:firstRow.initiative?[firstRow.initiative]:[],
+          type:'Insight Register',
+          exactDate:inferredDocumentDate?formatDateEs(inferredDocumentDate):'No especificada',documentDate:inferredDocumentDate,ingestedAt:new Date().toISOString(),status:'Procesado',
+          simpleKnowledgeActive:true,fileMeta:{name:fileName,size:file?.size||0,type:file?.type||'',lastModified:file?.lastModified||0},
+          insightRegister:parsed,exportDimensions:UXInsightRegister.exportModel().filters,
+          taxonomySyncPending:taxonomyResult?.deferred===true
+        };
+        ensureLearningSuggestions(item,{force:true});
+        item.documentProfile=UXInsightRegister.documentProfile(item,{reviewedByUx:true,associatedFiles:{insightRegister:parsed.file}});
+        item.insightRegister.reviewedByUx=true;
+        await saveInsightRegisterBlob(item.id,file);
+        await persistSourceFile(item.id,'insight-register',file);
+        sourceItems.unshift(item);
+        if(!safeStorageWrite({project:false}))throw new Error('No se ha podido guardar el Excel en el navegador.');
+        if(projectHistory.ready&&!projectHistory.error&&documentHydrationComplete)await queueProjectHistory();
+        renderSources();renderOverview();renderExplore();
+        showPanel(excelReturnPanel||'sources');openInsightRegister(item);
+        showToast('Excel incorporado',taxonomyResult?.deferred
+          ? `${parsed.rows.length} registros añadidos. La validación taxonómica heredada queda pendiente y ya no bloquea la importación.`
+          : `${parsed.rows.length} registros añadidos. Puedes consultarlos cuando quieras en Explorar.`);
+      }catch(error){
+        if(item){const index=sourceItems.findIndex(value=>value.id===item.id);if(index>=0)sourceItems.splice(index,1);await deleteInsightRegisterBlob(item.id).catch(()=>{});safeStorageWrite({project:false});}
+        console.error('[UX Intel Excel ingest]',error);showToast('No se ha importado el Excel',String(error?.message||error));
+      }
+    }
+    async function analyzeWithInsightRegister(item){
+      if(!item?.insightRegister||!hasDocumentAnalysis(item))return;
+      if(!['active-new-ingest','insight-register-primary'].includes(item.analysis?.documentFirstV2?.mode)){showToast('Migración controlada necesaria','El documento histórico conserva document-first-1. Añadir el Excel no lo migra automáticamente.');return;}
+      const previous=serializableAnalysisClone(item.analysis).value,previousRegister=cloneAnalysisValue(item.insightRegister);
+      try{
+        const prepared=UXDocumentAnalysisV2.prepareWithInsightRegister({analysis:previous,document:item,register:item.insightRegister,canonicalContext:{product:item.product,screen:item.screen,component:item.component}}),tree=UXDocumentAnalysis.inspectDataTree(prepared);if(tree.total)throw new Error('El análisis con el Excel revisado contiene valores no persistibles.');
+        item.analysis=serializableAnalysisClone(prepared).value;item.insightRegister={...item.insightRegister,status:'analyzed-pending-review',analysisVersion:item.analysis.documentFirstV2.createdAt};item.status='Pendiente de revisión';item.analysis.review={...(item.analysis.review||{}),status:'Pendiente de revisión',updatedAt:new Date().toISOString()};
+        await saveDocumentAnalysis(item.id,item.analysis);if(!safeStorageWrite({project:false}))throw new Error('No se ha podido guardar el análisis en el navegador.');await persistDocumentAnalysis(item,previous);activeReviewDocumentId=item.id;renderSources();showPanel('review');showToast('Análisis preparado','La síntesis UX es la capa editorial principal. Nada se ha publicado.');
+      }catch(error){item.analysis=previous;item.insightRegister=previousRegister;await saveDocumentAnalysis(item.id,previous).catch(()=>{});safeStorageWrite({project:false});console.error('[UX Intel Insight Register analysis]',error);showToast('No se ha preparado el análisis',String(error?.message||error));}
+    }
+    function sourceUpdateCounts(item){const related=documentKnowledgeRelations(item);return [['learnings',related.learnings.length],['evidencias',related.evidence.length],['tests A/B',related.tests.length],['patrones',related.patterns.length]].filter(([,count])=>count).map(([label,count])=>`${count} ${label}`).join(' · ')||'Sin conocimiento publicado relacionado';}
+    function openSourceUpdateConfirmation(file,item){
+      pendingSourceUpdate={file,documentId:item.id};
+      const header=`<div class="drawer-kicker">Actualizar fuente documental</div><h2>${escapeHtml(item.name)}</h2><p class="drawer-lead">Vincula el archivo al registro existente sin borrar su histórico.</p>`;
+      const body=`<section class="drawer-section"><h3>Archivo seleccionado</h3><p>${escapeHtml(file.name)} · ${Math.max(1,Math.round(file.size/1024))} KB</p></section><section class="drawer-section"><h3>Se conserva</h3><p>ID ${escapeHtml(item.id)} · ${escapeHtml(sourceUpdateCounts(item))} · clasificación y estados anteriores.</p></section><section class="drawer-section"><h3>Qué ocurrirá</h3><p>El archivo se analizará como una nueva versión de esta fuente. Las coincidencias, límites, contradicciones y propuestas nuevas quedarán pendientes de revisión. No se publicará ni se fusionará conocimiento automáticamente.</p></section><div class="form-actions"><button class="secondary-button" type="button" data-cancel-source-update>Cancelar</button><button class="action-button" type="button" data-confirm-source-update>Vincular archivo y analizar</button></div>`;
+      openDrawer(header,body);
+    }
+    function openSourceCandidateChoice(file,matches){
+      pendingSourceUpdate={file,documentId:null};
+      const header=`<div class="drawer-kicker">Posible documento existente</div><h2>¿A qué registro pertenece?</h2><p class="drawer-lead">No se creará un duplicado hasta que confirmes el registro correcto.</p>`;
+      const body=`<section class="drawer-section"><h3>${escapeHtml(file.name)}</h3>${matches.map(match=>`<button class="relation-action" type="button" data-source-update-choice="${escapeHtml(match.item.id)}">${escapeHtml(match.item.name)}</button>`).join('')}</section><div class="form-actions"><button class="secondary-button" type="button" data-cancel-source-update>Cancelar</button></div>`;
+      openDrawer(header,body);
+    }
+    async function processDocumentFile(file,targetId,{linkExisting=false}={}){
+      let documentItem=sourceItems.find(item=>item.id===targetId);
+      const isNewIngest=!documentItem;
+      const resolvedFileName=String(file?.name||documentItem?.originalName||documentItem?.fileMeta?.name||`${documentItem?.name||'documento'}.pdf`);
+      if(!documentItem){documentItem={id:`UP-${Date.now()}`,name:canonicalDocumentTitle(resolvedFileName.replace(/\.[^.]+$/,'')),product:'',screen:'',component:'',element:'',initiative:'Sin clasificar',type:'Sin clasificar',exactDate:'No especificada',documentDate:null,ingestedAt:new Date().toISOString(),status:'Disponible'};sourceItems.unshift(documentItem);}
+      const previousDocument=linkExisting?JSON.parse(JSON.stringify(documentItem)):null;
+      const previousBlob=linkExisting?await getDocumentBlob(documentItem.id).catch(()=>null):null;
+      const sourceUpdateBaseline=linkExisting?documentSourceUpdateBaseline(documentItem):null;
+      const previousAnalysis=documentItem.analysis?serializableAnalysisClone(documentItem.analysis).value:null;
+      let savingProject=false;
+      if(!documentItem.ingestedAt)documentItem.ingestedAt=new Date().toISOString();
+      documentItem.originalName=resolvedFileName;
+      documentItem.fileMeta={name:resolvedFileName,size:file?.size||documentItem.fileMeta?.size||0,type:file?.type||documentItem.fileMeta?.type||'',lastModified:file?.lastModified||documentItem.fileMeta?.lastModified||0};
+      documentItem.status='Analizando';documentItem.processing=null;documentItem.analysisFailure=null;documentItem.analysisError='';documentItem.analysisStack='';
+      pipelineCheckpoint(documentItem,'file_received',{sizeBytes:documentItem.fileMeta.size,mimeType:documentItem.fileMeta.type||'No indicado'});
+      renderSources();showPanel('sources');showToast('Analizando documento','Leyendo todas las páginas y preparando unidades de conocimiento.');
+      try{
+        await saveDocumentBlob(documentItem.id,file);
+        pipelineCheckpoint(documentItem,'file_stored',{storage:'IndexedDB/files'});
+        const extraction=await extractDocumentPages(file,resolvedFileName,(phase,details)=>pipelineCheckpoint(documentItem,phase,details));
+        documentItem.analysis=buildAnalysis(documentItem,extraction.pages,{engine:isNewIngest?'document-first-2':'document-first-1'});
+        if(sourceUpdateBaseline){annotateSourceUpdateAnalysis(documentItem.analysis,documentItem,sourceUpdateBaseline);documentItem.sourceHistory=[...(documentItem.sourceHistory||[]),sourceUpdateBaseline.revision];}
+        pipelineCheckpoint(documentItem,'findings_generated',{findings:documentItem.analysis.findings.length,relations:documentItem.analysis.relations.length});
+        documentItem.analysis.extraction=extraction.diagnostics;
+        documentItem.analysis.extractedPages=extraction.pages;
+        documentItem.analysis.extractedText=extraction.pages.map(page=>`[Página ${page.page}]\n${page.text}`).join('\n\n');
+        documentItem.analysis.review={status:'Pendiente de revisión',updatedAt:new Date().toISOString()};
+        documentItem.documentDate=temporalValue(documentItem.analysis.metadata.date,'documento')||documentItem.documentDate||temporalValue(documentItem.exactDate,'manual')||temporalValue(documentItem.catalogDate,'catálogo');
+        documentItem.analysis.metadata.date=documentDate(documentItem);
+        if(!documentItem.analysis.findings.length)throw new Error('El texto se ha leído, pero no se han podido generar hallazgos reales para revisión. El documento no se marcará como analizado.');
+        pipelineCheckpoint(documentItem,'analysis_created',{pages:documentItem.analysis.pages,findings:documentItem.analysis.findings.length,relations:documentItem.analysis.relations.length});
+        const treeCheck=UXDocumentAnalysis.inspectDataTree(documentItem.analysis);
+        pipelineCheckpoint(documentItem,'analysis_tree_checked',{circularReferences:treeCheck.circularReferences.length,sharedReferences:treeCheck.sharedReferences.length,unsupportedValues:treeCheck.unsupportedValues.length,undefinedValues:treeCheck.undefinedValues.length,total:treeCheck.total});
+        if(treeCheck.total)throw new Error(`El análisis no es un árbol persistible: ${JSON.stringify(treeCheck)}`);
+        const serializable=serializableAnalysisClone(documentItem.analysis);
+        documentItem.analysis=serializable.value;
+        pipelineCheckpoint(documentItem,'analysis_serialized',{jsonLength:serializable.jsonLength});
+        await saveDocumentAnalysis(documentItem.id,documentItem.analysis);
+        pipelineCheckpoint(documentItem,'analysis_persisted',{storage:'IndexedDB/analyses'});
+        const persistedAnalysis=await getDocumentAnalysis(documentItem.id);
+        if(!persistedAnalysis)throw new Error('IndexedDB no devolvió el análisis después de guardarlo.');
+        pipelineCheckpoint(documentItem,'analysis_restored',{pages:persistedAnalysis.pages||0,findings:persistedAnalysis.findings?.length||0,relations:persistedAnalysis.relations?.length||0});
+        const wrongSourceIds=(persistedAnalysis.findings||[]).filter(finding=>finding.source?.documentId!==documentItem.id).length;
+        if(wrongSourceIds)throw new Error(`${wrongSourceIds} hallazgos no están relacionados con el documento ${documentItem.id}.`);
+        documentItem.analysis=persistedAnalysis;
+        pipelineCheckpoint(documentItem,'document_linked',{documentId:documentItem.id,sourceIdsVerified:persistedAnalysis.findings.length});
+        documentItem.product=documentItem.analysis.metadata.products[0]||'No especificado';documentItem.screen=documentItem.analysis.metadata.screens[0]||'No especificado';documentItem.component=documentItem.analysis.metadata.components[0]||'';documentItem.initiative=documentItem.analysis.metadata.initiative;documentItem.type=documentItem.analysis.metadata.detectedType;documentItem.analysisType=normalizeDocumentAnalysisType(documentItem.analysis.metadata.detectedType)||documentAnalysisType(documentItem);
+        documentItem.exactDate=documentItem.analysis.metadata.date;
+        documentItem.documentProfile=UXInsightRegister.documentProfile(documentItem,{analysisType:documentItem.analysisType||documentAnalysisType(documentItem),primaryProduct:documentItem.product,devices:documentItem.analysis.metadata.devices||[],markets:documentItem.analysis.metadata.markets||[],segments:documentItem.analysis.metadata.segments||[],documentLimits:documentItem.analysis.documentFirstV2?.documentLimits||[]});
+        documentItem.exportDimensions=UXInsightRegister.exportModel().filters;
+        documentItem.status='Pendiente de revisión';
+        documentItem.analysisError='';documentItem.analysisStack='';documentItem.analysisFailure=null;documentItem.sourceUpdateFailure=null;
+        activeReviewDocumentId=documentItem.id;
+        if(!safeStorageWrite({project:false}))throw new Error('El análisis se ha completado, pero no se ha podido guardar en el navegador. El documento no se marcará como pendiente de revisión.');
+        const persistedDocument=safeStorageRead().documents?.find(item=>item.id===documentItem.id);
+        if(persistedDocument?.status!=='Pendiente de revisión'||persistedDocument?.analysisSummary?.findings!==documentItem.analysis.findings.length||persistedAnalysis?.findings?.length!==documentItem.analysis.findings.length||persistedAnalysis?.extractedPages?.length!==extraction.pages.length)throw new Error('El análisis no ha superado la comprobación de persistencia. Vuelve a seleccionar el archivo para intentarlo de nuevo.');
+        pipelineCheckpoint(documentItem,'status_updated',{status:documentItem.status});
+        documentItem.processing.completedAt=new Date().toISOString();
+        savingProject=true;
+        pipelineCheckpoint(documentItem,'project_persisting',{documentId:documentItem.id});
+        await persistDocumentAnalysis(documentItem,previousAnalysis,{allowInterruptedSourceUpdate:linkExisting});
+        savingProject=false;
+        safeStorageWrite({project:false});
+        setDocumentAnalysisTypeFilter(document.getElementById('source-type')?.value||'Todos');refreshDocumentDateFilter();renderSources();renderOverview();showPanel('review');
+        showToast('Análisis listo',`${documentItem.analysis.findings.length} hallazgos propuestos para revisión humana.`);
+      }catch(error){
+        const failure={message:String(error?.message||error),phase:error?.phase||documentItem.processing?.phase||'unknown',timestamp:new Date().toISOString(),stack:error?.stack||'Stack no disponible',runId:documentItem.processing?.runId||'',checkpoints:documentItem.processing?.checkpoints||[]};
+        console.error('[UX Intel PDF] Error exacto del análisis',{fileName:resolvedFileName,fileSize:file?.size||documentItem.fileMeta?.size||0,...failure,error});
+        if(linkExisting&&previousDocument){
+          Object.keys(documentItem).forEach(key=>delete documentItem[key]);Object.assign(documentItem,previousDocument,{sourceUpdateFailure:failure});
+          try{if(previousAnalysis)await saveDocumentAnalysis(documentItem.id,previousAnalysis);else await deleteDocumentAnalysis(documentItem.id);if(previousBlob)await saveDocumentBlob(documentItem.id,previousBlob);else await deleteDocumentBlob(documentItem.id);}
+          catch(cacheError){console.error('No se pudo restaurar íntegramente la fuente anterior',cacheError);}
+        }else if(savingProject){
+          documentItem.analysis=previousAnalysis;
+          try{if(previousAnalysis)await saveDocumentAnalysis(documentItem.id,previousAnalysis);else await deleteDocumentAnalysis(documentItem.id);}
+          catch(cacheError){console.error('No se pudo restaurar la copia del navegador tras el fallo del proyecto',cacheError);}
+        }
+        if(!linkExisting){documentItem.status='Error';documentItem.analysisError=failure.message;documentItem.analysisStack=failure.stack;documentItem.analysisFailure=failure;}
+        safeStorageWrite({project:false});renderSources();showToast(linkExisting?'No se ha podido actualizar la fuente':savingProject?'El análisis se ha generado pero no se ha podido guardar.':'No se pudo analizar',linkExisting?`Fase: ${failure.phase} · Error: ${failure.message}`:`${failure.phase}: ${failure.message}`);
+      }
+    }
+    // Las migraciones editoriales históricas no se ejecutan en runtime.
+    // Los estados ya migrados permanecen persistidos en localStorage/IndexedDB.
+
+    uploadInput.addEventListener('change',async()=>{const file=uploadInput.files?.[0],targetId=uploadTargetId,intent=uploadIntent;uploadInput.value='';uploadTargetId=null;uploadIntent='new';if(!file)return;if(intent==='supporting'){await storeSupportingDocument(file);return;}if(targetId){const item=sourceItems.find(record=>record.id===targetId);if(intent==='link'&&item){openSourceUpdateConfirmation(file,item);return;}await processDocumentFile(file,targetId);return;}const matches=documentUploadCandidates(file);if(matches.length){const top=matches[0],ambiguous=matches[1]&&top.score-matches[1].score<.12;if(ambiguous)openSourceCandidateChoice(file,matches.slice(0,5));else openSourceUpdateConfirmation(file,top.item);return;}await storeNewDocumentSource(file);});
+
+    async function downloadDocument(item){const blob=await getDocumentBlob(item.id);if(!blob){showToast('Archivo no disponible','Este registro no conserva todavía el archivo original.');return;}const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=item.originalName||item.name;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+    async function downloadInsightRegister(item){let blob=await getInsightRegisterBlob(item.id).catch(()=>null);if(!blob)blob=await getPersistentSourceBlob(item.id,'insight-register').catch(()=>null);if(!blob){showToast('Excel no disponible','Este Excel histórico todavía no está guardado en el proyecto. En Documentos, abre el menú ⋯ y elige “Volver a vincular archivo”. Solo tendrás que hacerlo una vez.');return;}const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=item.insightRegister?.file?.name||'Excel revisado.xlsx';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+    function openSourceMetadataEditor(item){const inferredScope=sourceHasTransversalScopeMarker(item)?'transversal':'specific';const header=`<div class="drawer-kicker">Documento</div><h2>Editar datos</h2><p class="drawer-lead">Corrige la clasificación global del documento. El detalle de cada registro del Excel se conserva intacto.</p>`;const body=`<form id="source-edit-form" data-source-id="${item.id}"><div class="form-grid"><label class="form-field full">Nombre<input name="name" value="${escapeHtml(item.name)}"></label><label class="form-field">Tipo de análisis<select name="analysisType">${documentAnalysisTypeOptions(item)}</select></label><label class="form-field">Iniciativa<input name="initiative" value="${escapeHtml(item.initiative)}"></label><label class="form-field">Alcance<select name="documentScopeMode"><option value="specific" ${inferredScope==='specific'?'selected':''}>Específico</option><option value="transversal" ${inferredScope==='transversal'?'selected':''}>Transversal</option></select></label><label class="form-field">Producto<input name="product" value="${escapeHtml(item.product)}"></label><label class="form-field">Funnel<input name="funnel" value="${escapeHtml(item.funnel||'')}"></label><label class="form-field">Minifunnel<input name="minifunnel" value="${escapeHtml(item.minifunnel||'')}"></label><label class="form-field">Componente<input name="component" value="${escapeHtml(item.component)}"></label><label class="form-field">Fecha del documento<input name="exactDate" value="${escapeHtml(item.documentDate?.source==='manual'&&isSpecifiedMetadata(item.exactDate)?item.exactDate:documentDate(item))}" placeholder="Ej. sep 26, sept 2026 o 09/2026"></label></div><div class="form-actions"><button class="secondary-button" type="button" data-close-editor>Cancelar</button><button class="action-button" type="submit">Guardar cambios</button></div></form>`;openDrawer(header,body);}
+
+    let pendingDelete=null,deleteReturnFocus=null;
+    const deleteModal=document.getElementById('delete-modal');
+    function openDelete(id){const item=sourceItems.find(value=>value.id===id);if(!item)return;deleteReturnFocus=document.activeElement;pendingDelete=id;const impact=learnings.filter(learning=>learning.sourceNames.includes(item.name)).length;document.getElementById('delete-copy').textContent=`“${item.name}” está relacionado con ${impact} ${impact===1?'learning':'learnings'}. Si lo eliminas, dejará de aparecer en esta vista.`;deleteModal.hidden=false;deleteModal.querySelector('[data-delete-cancel]').focus();}
+    function closeDelete(){if(deleteModal.hidden)return;deleteModal.hidden=true;pendingDelete=null;if(deleteReturnFocus?.isConnected)deleteReturnFocus.focus();deleteReturnFocus=null;}
+    document.querySelector('[data-delete-cancel]').addEventListener('click',closeDelete);
+    document.querySelector('.modal-close').addEventListener('click',closeDelete);
+    document.querySelector('[data-delete-confirm]').addEventListener('click',()=>{if(!pendingDelete)return;const id=pendingDelete,index=sourceItems.findIndex(value=>value.id===id);const name=sourceItems[index]?.name;if(index>=0)sourceItems.splice(index,1);deleteDocumentBlob(id).catch(()=>{});deleteInsightRegisterBlob(id).catch(()=>{});deleteDocumentAnalysis(id).catch(()=>{});closeDelete();safeStorageWrite();renderSources();showToast('Documento eliminado',name||'El documento ya no aparece en la lista.');});
+    deleteModal.addEventListener('click',event=>{if(event.target===deleteModal)closeDelete();});
+    document.getElementById('source-table').addEventListener('click',event=>{
+      const action=event.target.closest('[data-doc-action]');
+      if(!action){const row=event.target.closest('[data-doc-open]');if(row&&!event.target.closest('[data-action-menu],.action-menu'))openSource(row.dataset.docOpen);return;}
+      event.stopPropagation();document.querySelectorAll('.action-menu').forEach(value=>value.classList.remove('open'));
+      const item=sourceItems.find(value=>value.id===action.dataset.id);if(!item)return;
+      if(action.dataset.docAction==='open')openSource(item.id);
+      else if(action.dataset.docAction==='view')consultDocument(item.id);
+      else if(action.dataset.docAction==='knowledge')openDocumentKnowledge(item.id);
+      else if(action.dataset.docAction==='process'){
+        if(!documentHydrationComplete||isDocumentPublished(item)||item.status==='Analizando')return;
+        uploadTargetId=item.id;uploadIntent='analyze';uploadInput.click();
+      }
+      else if(action.dataset.docAction==='link-source'){
+        if(!documentCanUpdateSource(item))return;
+        uploadTargetId=item.id;uploadIntent='link';uploadInput.click();
+      }
+      else if(action.dataset.docAction==='add-register'){insightRegisterTargetId=item.id;insightRegisterUploadIntent='attach';insightRegisterInput.click();}
+      else if(action.dataset.docAction==='relink-register'){insightRegisterTargetId=item.id;insightRegisterUploadIntent='relink';insightRegisterInput.click();}
+      else if(action.dataset.docAction==='view-register')openInsightRegister(item);
+      else if(action.dataset.docAction==='download')downloadDocument(item);
+      else if(action.dataset.docAction==='edit')openSourceMetadataEditor(item);
+      else if(action.dataset.docAction==='delete')openDelete(item.id);
+    });
+    document.getElementById('source-table').addEventListener('keydown',event=>{const row=event.target.closest('[data-doc-open]');if(row&&(event.key==='Enter'||event.key===' ')){event.preventDefault();openSource(row.dataset.docOpen);}});
+
+    insightRegisterInput.addEventListener('change',async()=>{const file=insightRegisterInput.files?.[0],documentId=insightRegisterTargetId,intent=insightRegisterUploadIntent;insightRegisterInput.value='';insightRegisterTargetId=null;insightRegisterUploadIntent='attach';if(!file||!documentId)return;if(intent==='new'||documentId==='__new_excel__')await importInsightRegister(file);else if(intent==='relink')await relinkInsightRegisterFile(file,documentId);else await attachInsightRegister(file,documentId);});
+
+    document.addEventListener('click',event=>{
+      const componentEdit=event.target.closest('[data-learning-component-edit]');
+      if(componentEdit){openLearningComponentEditor(componentEdit.dataset.learningComponentEdit);return;}
+      const componentCancel=event.target.closest('[data-learning-component-cancel]');
+      if(componentCancel){openLearning(componentCancel.dataset.learningComponentCancel);return;}
+      const confirmButton=event.target.closest('[data-learning-suggestion-confirm]');
+      if(confirmButton){const item=sourceItems.find(value=>value.id===confirmButton.dataset.sourceId),candidate=item?.insightRegister?.learningSuggestions?.candidates?.find(value=>value.id===confirmButton.dataset.learningSuggestionConfirm);if(item&&candidate)confirmLearningSuggestion(item,candidate);return;}
+      const editButton=event.target.closest('[data-learning-suggestion-edit]');
+      if(editButton){const item=sourceItems.find(value=>value.id===editButton.dataset.sourceId),candidate=item?.insightRegister?.learningSuggestions?.candidates?.find(value=>value.id===editButton.dataset.learningSuggestionEdit);if(item&&candidate)openLearningSuggestionEditor(item,candidate);return;}
+      const evidenceButton=event.target.closest('[data-learning-suggestion-evidence]');
+      if(evidenceButton){const item=sourceItems.find(value=>value.id===evidenceButton.dataset.sourceId),candidate=item?.insightRegister?.learningSuggestions?.candidates?.find(value=>value.id===evidenceButton.dataset.learningSuggestionEvidence);if(item&&candidate)resolveLearningSuggestion(item,candidate,'evidence-only');return;}
+      const cancelButton=event.target.closest('[data-learning-suggestion-cancel]');
+      if(cancelButton){const item=sourceItems.find(value=>value.id===cancelButton.dataset.sourceId);if(item)openInsightRegister(item);return;}
+    });
+
+    document.addEventListener('input',event=>{
+      const componentInput=event.target.closest?.('[data-component-free-input]');
+      if(!componentInput)return;
+      const help=componentInput.closest('.form-field')?.querySelector('[data-component-free-help]');
+      if(!help)return;
+      const value=String(componentInput.value||'').trim();
+      const canonical=value?canonicalComponentName(value):'';
+      help.textContent=!value
+        ? 'Escribe un componente o elige uno existente. Un learning tiene un único componente principal.'
+        : canonical
+          ? `Componente existente: ${canonical}.`
+          : 'Nuevo componente. Se guardará con este nombre.';
+    });
+
+    document.addEventListener('change',event=>{
+      const taxonomyField=event.target.closest('[data-taxonomy-level]');if(taxonomyField){refreshTaxonomyEditor(taxonomyField.form,taxonomyField.dataset.taxonomyLevel);return;}
+      if(event.target.closest('[data-cluster-choice],[data-relation-choice]')&&!reviewCanEdit(activeReviewDocument()))return;
+      const clusterChoice=event.target.closest('[data-cluster-choice]');if(clusterChoice){const documentItem=activeReviewDocument();setClusterReviewDecision(documentItem,clusterChoice.dataset.clusterChoice,clusterChoice.value,'pending').then(()=>renderReview());return;}
+      const choice=event.target.closest('[data-relation-choice]');if(!choice)return;
+      const documentItem=activeReviewDocument(),relation=documentItem?.analysis?.relations?.find(item=>item.id===choice.dataset.relationChoice);
+      if(relation){relation.decision=choice.value;relation.status='pending';touchReview(documentItem);safeStorageWrite();}
+    });
+    document.addEventListener('submit',event=>{
+      if(event.target.id==='taxonomy-resolver-form'){event.preventDefault();showTaxonomyResolution(event.target);return;}
+      if(event.target.id==='taxonomy-classification-form'){
+        event.preventDefault();const form=event.target,error=form.querySelector('.taxonomy-validation');submitTaxonomyClassification(form).then(()=>{const type=form.dataset.objectType,id=form.dataset.objectId;closeDrawer();refreshAllTaxonomyFilters();renderLearnings();renderEvidence();renderExperiments();renderPatterns();renderTaxonomy();showToast('Clasificación actualizada','La corrección y su trazabilidad se han guardado sin modificar la fuente original.');if(type==='evidence')openEvidence(id);else if(type==='learning')openLearning(id);else if(type==='experiment')openExperiment(id);else openPattern(id);taxonomyAddDrawerAction(type,id);}).catch(reason=>{error.textContent=reason.message;error.hidden=false;});return;
+      }
+      if(event.target.id==='learning-component-edit-form'){
+        event.preventDefault();
+        const item=learnings.find(value=>value.id===event.target.dataset.learningId);if(!item)return;
+        const data=new FormData(event.target);
+        const selectedComponent=String(data.get('component')||'').trim();
+        const previousComponent=String(item.component||'').trim();
+        const nextComponent=selectedComponent?(canonicalComponentName(selectedComponent)||selectedComponent):previousComponent;
+        const allowedDevices=new Set(['Desktop','Mobile','Desktop + mobile','No especificado']);
+        const nextDevice=String(data.get('device')||'').trim();
+        if(!allowedDevices.has(nextDevice)){showToast('Dispositivo no válido','Selecciona Desktop, Mobile, Desktop + mobile o No especificado.');return;}
+        const previousDevice=String(item.device||'').trim();
+        const changedAt=new Date().toISOString();
+        if(nextComponent)item.component=nextComponent;
+        item.device=nextDevice;
+        if(Object.prototype.hasOwnProperty.call(item,'components'))delete item.components;
+        item.updatedAt=changedAt.slice(0,10);
+        item.classificationHistory=Array.isArray(item.classificationHistory)?item.classificationHistory:[];
+        if(normalizeText(previousComponent)!==normalizeText(nextComponent)){
+          item.classificationHistory.push({field:'component',from:previousComponent,to:nextComponent,at:changedAt,origin:'Edición manual en learning'});
+        }
+        if(previousDevice!==nextDevice){
+          item.classificationHistory.push({field:'device',from:previousDevice,to:nextDevice,at:changedAt,origin:'Edición manual en learning'});
+        }
+        if(!safeStorageWrite({project:true})){showToast('No se ha guardado','No se ha podido guardar la clasificación.');return;}
+        refreshAllTaxonomyFilters?.();renderOverview();renderLearnings();renderExplore();openLearning(item.id);
+        showToast('Clasificación actualizada',`${item.id}: ${nextComponent} · ${nextDevice}.`);return;
+      }
+      if(event.target.id==='learning-suggestion-edit-form'){
+        event.preventDefault();
+        const item=sourceItems.find(value=>value.id===event.target.dataset.sourceId),candidate=item?.insightRegister?.learningSuggestions?.candidates?.find(value=>value.id===event.target.dataset.candidateId);
+        if(!item||!candidate)return;
+        const data=new FormData(event.target),selectedRefs=[...new Set(data.getAll('rowRef').map(value=>String(value)))];
+        if(!selectedRefs.length){showToast('Selecciona al menos un registro','Una propuesta necesita al menos un registro. Si no quieres asociarlos, usa “Mantener solo como evidencia”.');return;}
+        const allEntries=learningSuggestionEntryRows(item,candidate),selectedSet=new Set(selectedRefs);
+        const selectedEntries=allEntries.filter(entry=>selectedSet.has(String(entry.row?.sourceRow||entry.index+1)));
+        const removedEntries=allEntries.filter(entry=>!selectedSet.has(String(entry.row?.sourceRow||entry.index+1)));
+        candidate.rowRefs=learningSuggestionSourceRows(selectedEntries);
+        candidate.evidence=learningSuggestionEvidence(selectedEntries,item);
+        candidate.action=String(data.get('action')||candidate.action).trim();
+
+        // Guardado robusto del learning objetivo.
+        // El select visual del UI Kit puede mostrar una opción seleccionada aunque,
+        // en algunos drawers dinámicos, el select nativo no llegue a reflejarla en FormData.
+        const targetSelect=event.target.querySelector('select[name="targetLearningId"]');
+        let targetLearningId=String(data.get('targetLearningId')||targetSelect?.value||'').trim();
+        if(!targetLearningId&&targetSelect){
+          const visibleLabel=String(targetSelect.nextElementSibling?.querySelector('.ds-select-value')?.textContent||'').trim();
+          const visibleTarget=learnings.find(learning=>{
+            const id=String(learning?.id||'').trim();
+            const title=String(learning?.title||'').trim();
+            return visibleLabel===title||visibleLabel===`${id} · ${title}`||(title&&visibleLabel.endsWith(`· ${title}`));
+          });
+          if(visibleTarget)targetLearningId=String(visibleTarget.id||'').trim();
+        }
+        if(!targetLearningId&&['Reforzar learning existente','Ampliar learning','Contradice learning'].includes(candidate.action)){
+          const eligibleTargets=learnings.filter(learning=>!item.initiative||[learning.initiative,...(learning.initiatives||[])].some(value=>initiativeNameEquals(value,item.initiative)));
+          if(eligibleTargets.length===1)targetLearningId=String(eligibleTargets[0].id||'').trim();
+        }
+        candidate.targetLearningId=targetLearningId;
+        candidate.fingerprint=learningSuggestionHash(`${candidate.targetLearningId||candidate.action}|${candidate.rowRefs.join(',')}`);
+        candidate.newLearningTitle=String(data.get('newLearningTitle')||'').trim();
+        candidate.component=String(data.get('component')||'').trim();
+        candidate.summary=learningSuggestionCountText(String(data.get('summary')||'').trim(),candidate.rowRefs.length);
+        candidate.rationale=learningSuggestionCountText(candidate.rationale,candidate.rowRefs.length);
+        candidate.impactUx=String(data.get('impactUx')||'Medio').trim();
+        candidate.edited=true;
+        if(removedEntries.length)appendLearningSuggestionSplit(item,removedEntries,candidate);
+        if(!safeStorageWrite({project:true})){showToast('No se ha guardado','No se ha podido guardar la propuesta.');return;}
+        openInsightRegister(item);
+        showToast('Propuesta actualizada',removedEntries.length?`${candidate.rowRefs.length} registro(s) permanecen en la propuesta y ${removedEntries.length} quedan separados para revisión.`:'La sugerencia se ha editado. El learning todavía no se ha modificado.');return;
+      }
+
+      if(event.target.id==='insight-edit-form'){
+        event.preventDefault();const documentItem=activeReviewDocument();if(!reviewCanEdit(documentItem))return;
+        const data=new FormData(event.target),patch=Object.fromEntries(insightEditorialFields.filter(key=>data.has(key)).map(key=>[key,String(data.get(key)||'').trim()]));
+        if(isDocumentPublished(documentItem))patch.publishEditorialChanges=data.has('publishEditorialChanges');
+        saveAnalysisEdit(documentItem,event.target.dataset.insightId,patch).then(saved=>{
+          if(!saved)return;closeDrawer();renderReview();showToast('Análisis guardado',pendingAnalysisChanges(documentItem).length?'Cambios pendientes de publicar. La base de conocimiento no ha cambiado.':'La edición se ha guardado. No se ha publicado nada.');
+        });return;
+      }
+      if(event.target.id==='source-edit-form'){
+        event.preventDefault();
+        const item=sourceItems.find(value=>value.id===event.target.dataset.sourceId);if(!item)return;
+        const data=new FormData(event.target),enteredDate=String(data.get('exactDate')||'').trim(),normalizedEnteredDate=normalizeText(enteredDate),clearDate=!enteredDate||['no especificada','no especificado','no indicada','no indicado'].includes(normalizedEnteredDate),manualDate=clearDate?null:temporalValue(enteredDate,'manual');
+        if(!clearDate&&!manualDate){showToast('Fecha no válida','Usa un formato como “sep 26”, “sept 2026”, “09/26”, “09/2026” o “19/09/2026”.');return;}
+        const previousInitiative=String(item.initiative||'').trim();
+        const nextInitiative=String(data.get('initiative')||'').trim();
+        const initiativeChanged=previousInitiative&&nextInitiative&&!initiativeNameEquals(previousInitiative,nextInitiative);
+        const oldUsage=sourceItems.filter(source=>initiativeNameEquals(source.initiative,previousInitiative)||(source.initiatives||[]).some(value=>initiativeNameEquals(value,previousInitiative))).length;
+        const nextAlreadyExists=sourceItems.some(source=>source.id!==item.id&&(initiativeNameEquals(source.initiative,nextInitiative)||(source.initiatives||[]).some(value=>initiativeNameEquals(value,nextInitiative))));
+        const globalRename=Boolean(initiativeChanged&&oldUsage>1&&!nextAlreadyExists);
+        ['name','product','funnel','minifunnel','screen','component'].forEach(key=>item[key]=String(data.get(key)||'').trim());
+        item.analysisType=normalizeDocumentAnalysisType(data.get('analysisType'));
+        item.documentScopeMode=String(data.get('documentScopeMode')||'specific')==='transversal'?'transversal':'specific';
+        if(item.documentScopeMode==='transversal'){item.funnel='';item.minifunnel='';item.screen='';item.component='';item.components=[];}
+        if(globalRename){
+          renameInitiativeEverywhere(previousInitiative,nextInitiative);
+        }else{
+          item.initiative=nextInitiative;
+          item.initiatives=nextInitiative?[nextInitiative]:[];
+          syncInsightRegisterInitiative(item);
+        }
+        item.initiativeManual=true;
+        const previousDocumentDate=temporalValue(item.documentDate||item.exactDate);
+        const dateActuallyChanged=clearDate
+          ? Boolean(previousDocumentDate)
+          : !previousDocumentDate||previousDocumentDate.value!==manualDate.value||previousDocumentDate.precision!==manualDate.precision;
+        if(dateActuallyChanged){
+          item.exactDate=clearDate?'No especificada':enteredDate;
+          item.documentDate=manualDate;
+        }
+        item.documentProfile=UXInsightRegister.documentProfile(item,{...(item.documentProfile||{}),title:item.name,analysisType:item.analysisType||documentAnalysisType(item),date:item.exactDate,initiative:item.initiative,primaryProduct:item.product,scope:item.documentScopeMode==='transversal'?'Transversal':''});
+        refreshDocumentDateFilter();
+        refreshCatalogMetadata();
+        refreshInitiativeFilters(previousInitiative,nextInitiative);
+        refreshAllTaxonomyFilters?.();
+        const saved=safeStorageWrite();
+        closeDrawer();
+        renderSources();renderOverview();renderExplore();renderLearnings();renderEvidence();renderExperiments();renderPatterns();renderReview();renderTaxonomy();
+        if(saved===false)showToast('No se ha podido guardar','La edición no ha quedado persistida.');
+        else if(globalRename)showToast('Iniciativa renombrada',`“${previousInitiative}” ahora es “${nextInitiative}” en todo UX Intelligence.`);
+        else showToast('Documento actualizado',`La clasificación y la fecha ${clearDate?'sin especificar':item.exactDate} se han guardado correctamente.`);
+      }
+    });
+
+    const searchInput=document.getElementById('global-search');
+    const overviewInput=document.getElementById('overview-search-input');
+    const searchPopover=document.getElementById('search-popover');
+    const overviewResults=document.getElementById('overview-search-results');
+    function currentStructuredRecords(){
+      try{
+        const rows=globalThis.UXSimpleKnowledge?.allRecords?.(sourceItems)||[];
+        return rows.map(row=>globalThis.UXGovernedTaxonomy?.normalizeRecord?.(row)||row);
+      }catch(e){return [];}
+    }
+    const searchStopWords=new Set([
+      'que','qué','sabemos','saber','del','de','la','las','el','los','un','una','unos','unas',
+      'sobre','acerca','por','para','en','y','o','con','sin','me','dime','quiero','ver','hay',
+      'tenemos','tengo','como','cómo','cual','cuál','cuales','cuáles'
+    ]);
+
+    const searchSynonymGroups=[
+      ['mobile','movil','móvil','responsive'],
+      ['desktop','escritorio'],
+      ['autoservicio','autogestion','autogestión','self service','self-service'],
+      ['reserva','reservas','gestionar reserva','gestion de reserva','gestión de reserva','mi reserva','mis reservas','mmb'],
+      ['check-in','checkin','facturacion','facturación'],
+      ['buscador','buscar','busqueda','búsqueda','search'],
+      ['header','cabecera','navegacion','navegación'],
+      ['calendario','fechas','fecha'],
+      ['pasajeros','pasajero','pax'],
+      ['ultima busqueda','última búsqueda','busqueda anterior','búsqueda anterior','retomar busqueda','retomar búsqueda'],
+      ['cta','boton','botón','accion principal','acción principal'],
+      ['banner','promocion','promoción'],
+      ['ayuda','soporte'],
+      ['impacto ux','impacto'],
+      ['mercado','pais','país'],
+      ['evidencia','registro','registros','hallazgo','insight'],
+      ['learning','learnings','aprendizaje','aprendizajes','conocimiento']
+    ];
+
+    function searchTokens(query){
+      const normalized=normalizeText(query)
+        .replace(/[^\p{L}\p{N}+\-/]+/gu,' ')
+        .replace(/\s+/g,' ')
+        .trim();
+      if(!normalized)return [];
+      const raw=normalized.split(' ').filter(Boolean);
+      return [...new Set(raw.filter(token=>token.length>1&&!searchStopWords.has(token)))];
+    }
+
+    function expandSearchTokens(tokens){
+      const expanded=new Set(tokens);
+      const normalizedGroups=searchSynonymGroups.map(group=>group.map(normalizeText));
+      tokens.forEach(token=>{
+        normalizedGroups.forEach(group=>{
+          if(group.some(term=>term===token||term.split(' ').includes(token))){
+            group.forEach(term=>term.split(' ').forEach(piece=>{if(piece.length>1&&!searchStopWords.has(piece))expanded.add(piece);}));
+          }
+        });
+      });
+      return [...expanded];
+    }
+
+    function searchableArray(value){
+      if(Array.isArray(value))return value.flatMap(searchableArray);
+      if(value&&typeof value==='object')return Object.values(value).flatMap(searchableArray);
+      return [String(value??'')];
+    }
+
+    function searchBlob(parts){
+      return normalizeText(searchableArray(parts).join(' ')).replace(/\s+/g,' ').trim();
+    }
+
+    function tokenCoverage(blob,tokens){
+      if(!tokens.length)return 0;
+      const matched=tokens.filter(token=>blob.includes(token)).length;
+      return matched/tokens.length;
+    }
+
+    function weightedScore(query,tokens,sections){
+      const nq=normalizeText(query).trim();
+      let score=0;
+      let covered=new Set();
+      sections.forEach(({value,weight=1})=>{
+        const blob=searchBlob(value);
+        if(!blob)return;
+        if(nq&&blob.includes(nq))score+=weight*4;
+        tokens.forEach(token=>{
+          if(blob.includes(token)){score+=weight;covered.add(token);}
+        });
+      });
+      if(tokens.length){
+        const coverage=covered.size/tokens.length;
+        if(coverage===1)score+=18;
+        else if(coverage>=.67)score+=7;
+        else if(coverage<.5)score-=4;
+      }
+      return score;
+    }
+
+    function searchGroups(query){
+      const q=normalizeText(query).trim();
+      const baseTokens=searchTokens(query);
+      if(q.length<2||!baseTokens.length)return [];
+      const tokens=expandSearchTokens(baseTokens);
+      const structured=currentStructuredRecords();
+
+      const learningMatches=learnings.map(item=>{
+        const score=weightedScore(query,tokens,[
+          {value:[item.title],weight:8},
+          {value:[item.know,item.text],weight:6},
+          {value:[item.applications,item.forEvidence,item.contrary,item.noProof,item.open],weight:3},
+          {value:[item.product,item.funnel,item.minifunnel,item.screen,item.component,item.components,item.element,item.device,item.market,item.impactUx,item.initiative,item.initiatives,item.area],weight:4},
+          {value:[item.sourceNames],weight:2}
+        ]);
+        return {item,score};
+      }).filter(entry=>entry.score>0)
+        .sort((a,b)=>b.score-a.score||String(a.item.title).localeCompare(String(b.item.title),'es'))
+        .slice(0,5)
+        .map(entry=>entry.item);
+
+      const structuredMatches=structured.map(item=>{
+        const score=weightedScore(query,tokens,[
+          {value:[item.insight],weight:7},
+          {value:[item.uxImplication||item.implication,item.recommendation,item.openQuestion],weight:5},
+          {value:[item.evidence],weight:4},
+          {value:[item.product,item.funnel,item.minifunnel,item.screen,item.component,item.element,item.device,item.market,item.region,item.origin,item.recordType,item.uxLine,item.initiative],weight:3}
+        ]);
+        return {item,score};
+      }).filter(entry=>entry.score>0)
+        .sort((a,b)=>b.score-a.score||String(a.item.insight||'').localeCompare(String(b.item.insight||''),'es'))
+        .slice(0,6)
+        .map(entry=>entry.item);
+
+      const documentMatches=sourceItems.map(item=>{
+        const score=weightedScore(query,tokens,[
+          {value:[item.name,item.originalName],weight:7},
+          {value:[item.initiative,item.initiatives,item.product,item.funnel,item.minifunnel,item.screen,item.component,item.element,item.type],weight:4},
+          {value:[searchContext(item)],weight:3}
+        ]);
+        return {item,score};
+      }).filter(entry=>entry.score>0)
+        .sort((a,b)=>b.score-a.score||String(a.item.name).localeCompare(String(b.item.name),'es'))
+        .slice(0,5)
+        .map(entry=>entry.item);
+
+      const contexts=taxonomyContexts().map(item=>{
+        const score=weightedScore(query,tokens,[
+          {value:[pathOf(item)],weight:5},
+          {value:[item.product,item.screen,item.component,item.element],weight:4}
+        ]);
+        return {item,score};
+      }).filter(entry=>entry.score>0)
+        .sort((a,b)=>b.score-a.score||pathOf(a.item).localeCompare(pathOf(b.item),'es'))
+        .slice(0,5)
+        .map(entry=>({...entry.item,id:JSON.stringify(entry.item)}));
+
+      const contextCount=item=>structured.filter(row=>{
+        const current=globalThis.UXGovernedTaxonomy?.normalizeRecord?.(row)||row;
+        return ['product','funnel','minifunnel','component'].every(level=>
+          !item[level]||normalizeText(current[level])===normalizeText(item[level])
+        );
+      }).length;
+
+      return [
+        ...(learningMatches.length?[{
+          label:'Learnings consolidados',
+          kind:'learning',
+          items:learningMatches,
+          title:item=>item.title,
+          meta:item=>`${pathOf(item)||'Sin contexto'} · Impacto UX ${String(item.impactUx||'No informado').toLowerCase()}`
+        }]:[]),
+        ...(structuredMatches.length?[{
+          label:'Registros relacionados',
+          kind:'simple-record',
+          items:structuredMatches,
+          title:item=>item.insight||item.evidence||'Registro UX',
+          meta:item=>`${compactJourneyValues(item).join(' › ')||'Sin contexto'} · ${item.recordType||'Registro UX'}`
+        }]:[]),
+        ...(documentMatches.length?[{
+          label:'Fuentes',
+          kind:'source',
+          items:documentMatches,
+          title:item=>item.name,
+          meta:item=>`${documentApplicationPath(item)||item.initiative||'Sin clasificar'} · ${item.supportingDocument?'PDF de apoyo':item.simpleKnowledgeActive&&item.insightRegister?'Excel revisado':item.type}`
+        }]:[]),
+        ...(contexts.length?[{
+          label:'Contextos de producto',
+          kind:'context',
+          items:contexts,
+          title:item=>pathOf(item),
+          meta:item=>{const count=contextCount(item);return count?`${count} ${count===1?'registro disponible':'registros disponibles'} en Explorar`:'Sin registros cargados para este contexto';}
+        }]:[])
+      ];
+    }
+
+    function searchMarkup(query){
+      const groups=searchGroups(query);
+      return groups.length
+        ? groups.map(group=>`<div class="search-group" role="presentation">${escapeHtml(group.label)}</div>${group.items.map(item=>`<button type="button" role="option" tabindex="-1" class="search-result" data-search-kind="${group.kind}" data-search-id="${escapeHtml(item.id)}"><strong>${escapeHtml(group.title(item))}</strong><span>${escapeHtml(group.meta(item))}</span></button>`).join('')}`).join('')
+        : '<div class="empty-state">No hay conocimiento relacionado con esta consulta. Prueba con otro término o contexto.</div>';
+    }
+
+    function searchOptions(popover){return [...popover.querySelectorAll('[data-search-kind]')];}
+    function focusSearchOption(popover,index){
+      const options=searchOptions(popover);
+      if(!options.length)return;
+      const safeIndex=(index+options.length)%options.length;
+      options.forEach((option,i)=>option.tabIndex=i===safeIndex?0:-1);
+      options[safeIndex].focus();
+    }
+    function searchKeyboard(event,input,popover){
+      if(event.key==='Escape'){closeSearch();input.focus();return;}
+      const options=searchOptions(popover);
+      if(!options.length)return;
+      const current=options.indexOf(document.activeElement);
+      if(event.key==='ArrowDown'){
+        event.preventDefault();
+        focusSearchOption(popover,current<0?0:current+1);
+      }else if(event.key==='ArrowUp'){
+        event.preventDefault();
+        focusSearchOption(popover,current<0?options.length-1:current-1);
+      }else if(event.key==='Enter'&&document.activeElement===input&&popover.classList.contains('open')){
+        event.preventDefault();
+        options[0]?.click();
+      }
+    }
+
+    function renderSearch(input,popover){
+      const query=input.value;
+      input.parentElement.querySelector('.search-clear')?.classList.toggle('visible',Boolean(query));
+      if(query.trim().length<2){
+        popover.classList.remove('open');
+        popover.innerHTML='';
+        input.setAttribute('aria-expanded','false');
+        return;
+      }
+      popover.innerHTML=searchMarkup(query);
+      popover.classList.add('open');
+      input.setAttribute('aria-expanded','true');
+    }
+    function closeSearch(){searchPopover.classList.remove('open');overviewResults?.classList.remove('open');searchInput.setAttribute('aria-expanded','false');overviewInput?.setAttribute('aria-expanded','false');}
+    searchInput.addEventListener('input',()=>renderSearch(searchInput,searchPopover));
+    overviewInput?.addEventListener('input',()=>renderSearch(overviewInput,overviewResults));
+    searchInput.addEventListener('keydown',event=>searchKeyboard(event,searchInput,searchPopover));
+    overviewInput?.addEventListener('keydown',event=>searchKeyboard(event,overviewInput,overviewResults));
+    document.querySelectorAll('.search-clear').forEach(button=>button.addEventListener('click',()=>{const input=button.parentElement.querySelector('input');input.value='';button.classList.remove('visible');closeSearch();input.focus();}));
+    function chooseSearch(event){
+      const result=event.target.closest('[data-search-kind]');if(!result)return;closeSearch();
+      if(result.dataset.searchKind==='simple-record'){showPanel('explore');(globalThis.__uxOpenExploreRecord||globalThis.UXSimpleKnowledge?.openById)?.(result.dataset.searchId);}
+      else if(result.dataset.searchKind==='context')goToKnowledgeContext(JSON.parse(result.dataset.searchId));
+      else if(result.dataset.searchKind==='learning'){showPanel('learnings');openLearning(result.dataset.searchId);taxonomyAddDrawerAction('learning',result.dataset.searchId);}
+      else if(result.dataset.searchKind==='evidence'){showPanel('evidence');openEvidence(result.dataset.searchId);taxonomyAddDrawerAction('evidence',result.dataset.searchId);}
+      else if(result.dataset.searchKind==='pattern'){showPanel('patterns');openPattern(result.dataset.searchId);taxonomyAddDrawerAction('pattern',result.dataset.searchId);}
+      else if(result.dataset.searchKind==='knowledge')openKnowledgeUnit(result.dataset.searchId);
+      else {showPanel('sources');openSource(result.dataset.searchId);}
+    }
+    searchPopover.addEventListener('click',chooseSearch);overviewResults?.addEventListener('click',chooseSearch);
+    document.addEventListener('click',event=>{if(!event.target.closest('.global-search')&&!event.target.closest('.overview-search'))closeSearch();});
+  </script>
+
+<script>
+(function(){
+  function countInsightRows(){
+    try{
+      if (Array.isArray(globalThis.sourceItems)) {
+        return globalThis.sourceItems.reduce((sum,item)=>sum + (item?.insightRegister?.rows?.length || 0),0);
+      }
+      return 0;
+    }catch(e){ return 0; }
+  }
+  function updateBaseCounters(){
+    // V6: Resumen ya calcula sus métricas con la semántica actual
+    // (registros, Excel revisados, PDF de apoyo e iniciativas). No sobrescribirlas
+    // con los contadores heredados de la arquitectura anterior.
+    try{ if(typeof renderOverview==='function') renderOverview(); }catch(e){}
+  }
+
+  function text(v){return String(v??'').replace(/\s+/g,' ').trim();}
+  function csvCell(v){return '"' + text(v).replace(/"/g,'""') + '"';}
+
+  function exportExplore(){
+    const root=document.getElementById('explore-content');
+    if(!root){ alert('No hay resultados disponibles para exportar.'); return; }
+    const candidates=[...root.querySelectorAll('article, details, .cluster-card, .compact-item, .knowledge-card, [data-detail], [data-learning]')];
+    const rows=[];
+    const seen=new Set();
+    for(const el of candidates){
+      const t=text(el.innerText);
+      if(!t || t.length<20 || seen.has(t)) continue;
+      seen.add(t);
+      rows.push([t]);
+    }
+    if(!rows.length){
+      alert('No hay resultados visibles para exportar con los filtros actuales.');
+      return;
+    }
+    const csv=[['Resultado visible'],...rows].map(r=>r.map(csvCell).join(';')).join('\n');
+    const blob=new Blob(["\ufeff"+csv],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='UX_Intelligence_resultados_filtrados.csv';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+
+  document.addEventListener('click',e=>{
+    const jump=e.target.closest('[data-panel-jump]');
+    if(jump && typeof showPanel==='function'){
+      e.preventDefault();
+      showPanel(jump.dataset.panelJump);
+    }
+    if(e.target.closest('#export-explore-xlsx')) exportExplore();
+  });
+
+  window.addEventListener('load',()=>setTimeout(updateBaseCounters,250));
+  setTimeout(updateBaseCounters,700);
+})();
+</script>
+
+
+<script id="ux-explore-simple-script">
+(function(){
+  const ids = [
+    ['initiative','uxs-initiative'],
+    ['product','uxs-product'],['funnel','uxs-funnel'],['minifunnel','uxs-minifunnel'],
+    ['component','uxs-component'],
+    ['device','uxs-device'],['market','uxs-market'],['origin','uxs-origin'],
+    ['recordType','uxs-type'],['impactUx','uxs-impact'],['region','uxs-region']
+  ];
