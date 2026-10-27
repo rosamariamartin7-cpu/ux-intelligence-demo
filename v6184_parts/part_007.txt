@@ -925,6 +925,57 @@ text:"Pedir o recuperar la identificación dentro del booking tiene sentido cuan
     openQuestionItems.push(...(persistedPilot.openQuestionItems||[]));
     if(Array.isArray(persistedPilot.learningState))learnings.splice(0,learnings.length,...persistedPilot.learningState);
 
+    // Las copias públicas deben conservar los 16 learnings ya validados.
+    // El workspace histórico público contiene 14, por lo que restauramos únicamente
+    // los dos learnings SUMA ya aprobados si faltan. No se infieren learnings nuevos.
+    if(['ux-intelligence-consulta.onrender.com','ux-intelligence-preview.onrender.com'].includes(location.hostname)){
+      const requiredPublicLearnings=[
+        {
+          id:'L-SUMA-04',
+          initiative:'SUMA Frequent Flyer',
+          initiatives:['SUMA Frequent Flyer'],
+          product:'Booking',
+          funnel:'Passengers',
+          minifunnel:'',
+          component:'Card Datos del pasajero',
+          components:['Card Datos del pasajero'],
+          impactUx:'Alto',
+          title:'Si el usuario ya está logado en SUMA, aprovechemos los datos que ya tenemos',
+          know:'Si ya conocemos sus datos y beneficios, volver a pedirlos añade esfuerzo.',
+          text:'Podemos recuperar la información disponible y aplicar sus ventajas, dejando claro qué se ha recuperado o aplicado.',
+          forEvidence:[
+            'DEMO-051 · La identificación SUMA puede reducir esfuerzo si evita volver a introducir datos ya conocidos.',
+            'DEMO-077 · La recuperación automática de datos personales y número SUMA reduce esfuerzo en Paxes.'
+          ],
+          sourceNames:['UX_Intelligence_CRO_master_final.xlsx'],
+          status:'Learning consolidado'
+        },
+        {
+          id:'L-SUMA-05',
+          initiative:'SUMA Frequent Flyer',
+          initiatives:['SUMA Frequent Flyer'],
+          product:'Booking',
+          funnel:'Shopping Cart',
+          minifunnel:'',
+          component:'Slider de Millas',
+          components:['Slider de Millas'],
+          impactUx:'Alto',
+          title:'No queda claro qué representa la cifra de Millas',
+          know:'La cifra puede parecer el saldo total cuando quizá sea el máximo que se puede usar en esa reserva. Esa diferencia cambia cómo se entiende el canje.',
+          text:'Antes de usar el slider, tiene que quedar claro qué significa esa cifra y qué cantidad puede aplicarse realmente.',
+          forEvidence:[
+            'DEMO-059 · El mensaje inicial no deja claro si las Millas mostradas son saldo total o máximo aplicable a la reserva.'
+          ],
+          sourceNames:['UX_Intelligence_CRO_master_final.xlsx'],
+          status:'Learning consolidado'
+        }
+      ];
+      requiredPublicLearnings.forEach(spec=>{
+        const exists=learnings.some(item=>String(item?.id||'')===spec.id);
+        if(!exists)learnings.push(JSON.parse(JSON.stringify(spec)));
+      });
+    }
+
     const LEARNING_COPY_REVIEW_20261022_KEY='ae-ux-intel-learning-copy-review-20261022-v1';
     const LEARNING_COPY_REVIEW_20261022={"L-BUS-01":{"title":"El buscador debe ser lo primero que se entienda en Home","text":"En el primer impacto de Home, buscar un vuelo debe ser la tarea más clara. Autoservicio, promoción y avisos pueden seguir visibles, pero con una jerarquía secundaria.","know":"Auditoría, Quantum Metric, benchmark y desk research coinciden en que el buscador concentra la interacción principal y es la puerta de entrada al booking.","open":["¿Qué jerarquía concreta mejora el paso a Disponibilidad sin perjudicar el autoservicio ni la comunicación relevante?"]},"L-BUS-02":{"title":"Simplificar el buscador es ordenar mejor, no quitar opciones","text":"Los campos esenciales deben verse primero y las opciones secundarias aparecer cuando hacen falta, sin perder encontrabilidad.","know":"La evidencia revisada muestra que cuando demasiadas decisiones tienen el mismo peso aumenta la carga visual. La oportunidad está en priorizar, agrupar y mostrar progresivamente.","open":["¿Qué opciones deben estar visibles desde el inicio y cuáles pueden aparecer bajo demanda en cada dispositivo?"]},"L-BUS-03":{"title":"El buscador mobile necesita una lógica propia","text":"En mobile no basta con encoger desktop: hay menos espacio, más densidad y más necesidad de guiar, revisar y corregir la búsqueda.","know":"Auditoría, benchmark, desk research y Quantum Metric apuntan a una construcción más progresiva en mobile. Los datos también muestran un comportamiento de avance distinto al de desktop.","open":["¿Qué secuencia reduce esfuerzo en mobile sin dificultar revisar, corregir o volver atrás?"]},"L-BUS-04":{"title":"El calendario debe ayudar a decidir, no solo a elegir fechas","text":"Fechas es uno de los puntos con más interacción del buscador. El calendario debe facilitar comparar, modificar y entender la selección sin obligar a empezar de nuevo.","know":"La evidencia revisada confirma que el calendario forma parte de la decisión de viaje y no es un campo secundario.","open":["¿Qué ayudas de decisión aportan valor antes de Disponibilidad sin añadir complejidad ni problemas técnicos?"]},"L-BUS-05":{"title":"Buscar vuelos debe seguir siendo el CTA principal","text":"El CTA de búsqueda debe destacar claramente frente a opciones secundarias, promociones y otros elementos del primer impacto.","know":"Las fuentes revisadas sitúan Buscar vuelos como la acción que cierra la configuración y hace avanzar al usuario hacia resultados.","open":["¿Qué tratamiento del CTA mejora el avance dentro del buscador completo?"]},"L-BUS-06":{"title":"El autoservicio debe ser fácil de encontrar sin competir con Buscar vuelos","text":"Check-in, Gestionar reserva e Información de vuelos son tareas importantes en Home, pero deben tener una jerarquía secundaria respecto a la búsqueda.","know":"Los datos y el research confirman que estas tareas tienen uso real. El reto no es ocultarlas, sino hacerlas accesibles sin restar claridad a la intención principal.","open":["¿Qué ubicación y jerarquía mantienen estas tareas visibles sin competir con Buscar vuelos?","¿Qué ocurre después del clic y cuánto esfuerzo ahorran realmente?"]},"L-BUS-07":{"title":"La última búsqueda reduce esfuerzo si el usuario puede revisarla y editarla","text":"Recuperar una búsqueda anterior puede ahorrar pasos, siempre que quede claro qué datos se han recuperado y sea fácil cambiarlos o borrarlos.","know":"Auditoría y benchmark respaldan la última búsqueda como un patrón útil de continuidad, especialmente cuando el usuario mantiene el control.","open":["¿Cuántos usuarios recuperan una búsqueda y cuánto editan antes de continuar?","¿Qué reglas de persistencia y privacidad necesita este patrón?"]},"L-BUS-08":{"title":"Promociones, avisos y ayuda no deberían competir siempre con el buscador","text":"Cada capa tiene una función distinta. Su peso debe cambiar según el contexto, la urgencia y el valor para el usuario.","know":"La evidencia revisada muestra que banners, avisos y ayudas pueden aportar valor, pero necesitan reglas de prioridad distintas para no saturar el primer impacto.","open":["¿Qué reglas de prioridad, caducidad y peso visual necesita cada tipo de contenido?","¿Cómo medimos si ayudan o interfieren con la búsqueda principal?"]},"L-HEAD-01":{"title":"Los nombres del Header deben decir claramente qué encontrará el usuario","text":"La navegación funciona mejor cuando sus etiquetas hablan de tareas y contenidos reconocibles, evitando categorías ambiguas.","know":"Research y análisis de Header muestran que Gestionar reserva y Check-in se entienden bien, mientras que etiquetas más genéricas como «Antes de volar» orientan peor y pueden empujar al usuario hacia Ayuda.","open":["¿Qué nombres funcionan mejor por mercado e idioma sin perder consistencia global?","¿Qué necesidades llegan a Ayuda porque la navegación principal no las hace fáciles de encontrar?"]},"L-HEAD-02":{"title":"Un Header no es más simple por tener menos opciones","text":"La clave está en organizar bien: separar navegación, tareas operativas y utilidades, y dar a cada cosa la prioridad adecuada.","know":"La evidencia muestra que la complejidad aparece sobre todo cuando se mezclan tipos de contenido y demasiadas opciones comparten el mismo nivel.","open":["¿Qué tareas deben estar en primer nivel y cuáles pueden pasar a una segunda capa según el dispositivo?","¿Cómo integramos necesidades de negocio y SEO sin empeorar la jerarquía de tareas?"]},"L-HEAD-03":{"title":"El Header no funciona igual en mobile, desktop y todos los mercados","text":"Podemos mantener una arquitectura común, pero la prioridad y el comportamiento deben adaptarse al contexto.","know":"Los datos y tests muestran diferencias por dispositivo y mercado. Mobile amplifica algunas fricciones y los resultados de una solución no deben extrapolarse automáticamente a desktop.","open":["¿Qué diferencias por mercado son suficientemente importantes como para cambiar la prioridad o la arquitectura?","¿Qué partes del Header deben mantenerse globales y cuáles pueden adaptarse al contexto?"]},"L-SUMA-01":{"title":"El login aporta más valor cuando aparece en el momento adecuado y explica el beneficio","text":"Pedir o recuperar la identificación dentro del booking tiene sentido cuando ayuda a hacer algo mejor en ese momento: completar datos, usar Millas o mostrar beneficios SUMA.","know":"El benchmark muestra que varias aerolíneas permiten iniciar sesión durante el booking y lo vinculan a beneficios concretos, no solo al acceso a la cuenta.","open":["¿En qué puntos del booking aporta más valor ofrecer el login?","¿Qué beneficio motiva más la identificación: recuperar datos, acumular Millas, usar saldo o acceder a ventajas de nivel?","¿Qué datos del perfil SUMA podemos recuperar de forma fiable durante el booking?"]},"L-SUMA-02":{"title":"En Fare Families hay que separar claramente lo que da la tarifa de lo que da SUMA","text":"Millas, puntos de estatus y beneficios por nivel pueden ayudar a comparar tarifas, pero no deben confundirse con lo que incluye la propia Fare Family.","know":"El benchmark muestra que algunas aerolíneas incorporan recompensa futura y beneficios de fidelización en la comparación de tarifas. Puede aportar valor si la jerarquía deja claro el origen de cada beneficio.","open":["¿Mostrar Millas o beneficios SUMA influye en la elección de Fare Family?","¿Los usuarios entienden qué ventajas vienen de la tarifa y cuáles de su nivel SUMA?","¿Qué información aporta valor antes de elegir tarifa y cuál debería quedar en el detalle?"]},"L-SUMA-03":{"title":"Los beneficios SUMA deben explicar qué gana cada pasajero y por qué","text":"No basta con mostrar el nivel SUMA. Cuando un beneficio aplica, el usuario debería entender a qué pasajero corresponde y si viene de SUMA, de la tarifa o de otra condición.","know":"El benchmark y los registros revisados muestran que el estatus por sí solo no siempre explica el beneficio. En Air Europa, cuando el usuario está logado podemos identificar si un servicio gratuito viene de la tarifa, de SUMA o de otra condición; la incertidumbre puede estar en el valor exacto en Millas, no en el origen del beneficio.","open":["¿Cómo mostramos los beneficios cuando varios pasajeros tienen situaciones SUMA diferentes?","¿En qué extras aporta valor mostrar información de fidelización?","¿Cómo diferenciamos el origen del beneficio sin añadir ruido?"]}};
     function applyLearningCopyReview20261022(){
