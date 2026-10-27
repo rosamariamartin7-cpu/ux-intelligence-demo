@@ -237,8 +237,32 @@ taxonomy_runtime_js = f"""
     }}
   }}
 
+  let taxonomyRepairing=false;
+  function taxonomyLooksEmpty(){{
+    const tree=document.getElementById('taxonomy-tree');
+    if(!tree)return false;
+    return !tree.querySelector('[data-ro-taxonomy-id]');
+  }}
+
+  function keepReadonlyTaxonomyStable(){{
+    const tree=document.getElementById('taxonomy-tree');
+    const detail=document.getElementById('taxonomy-detail');
+    if(!tree||!detail)return;
+    const observer=new MutationObserver(()=>{{
+      if(taxonomyRepairing||!taxonomyLooksEmpty())return;
+      taxonomyRepairing=true;
+      queueMicrotask(()=>{{
+        try{{ renderReadonlyTaxonomy(); }}
+        finally{{ taxonomyRepairing=false; }}
+      }});
+    }});
+    observer.observe(tree,{{childList:true,subtree:true}});
+    observer.observe(detail,{{childList:true,subtree:true}});
+  }}
+
   function run(){{
     restoreTaxonomy();
+    keepReadonlyTaxonomyStable();
   }}
 
   if(document.readyState==='loading'){{
@@ -247,9 +271,10 @@ taxonomy_runtime_js = f"""
     setTimeout(run,250);
   }}
   window.addEventListener('load',()=>{{
-    setTimeout(run,600);
-    setTimeout(run,1600);
-    setTimeout(run,3200);
+    setTimeout(restoreTaxonomy,600);
+    setTimeout(restoreTaxonomy,1600);
+    setTimeout(restoreTaxonomy,3200);
+    setTimeout(restoreTaxonomy,6000);
   }},{{once:true}});
 }})();
 </script>
