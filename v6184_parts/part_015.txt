@@ -1,0 +1,1000 @@
+      const cell=event.target.closest('[data-date]');
+      if(!cell||cell.disabled)return;
+      const selected=parseIso(cell.dataset.date);
+      if(!selected)return;
+      const pair=rangePair(input);
+
+      if(pair.role==='from'){
+        input.value=toIso(selected);
+        const currentEnd=parseIso(pair.to?.value||'');
+        if(currentEnd&&beforeDay(currentEnd,selected)&&pair.to){
+          pair.to.value='';
+          pair.to.dispatchEvent(new Event('change',{bubbles:true}));
+        }
+      }else{
+        const currentStart=parseIso(pair.from?.value||'');
+        if(currentStart&&beforeDay(selected,currentStart))return;
+        input.value=toIso(selected);
+      }
+
+      picker.pending=selected;
+      syncTrigger(picker);
+      input.dispatchEvent(new Event('change',{bubbles:true}));
+      closePicker(picker,{restoreFocus:false});
+    });
+
+    input.addEventListener('change',()=>syncTrigger(picker));
+    syncTrigger(picker);
+  }
+
+  function init(){
+    document.querySelectorAll('input.filter-date-input[type="date"]').forEach(enhance);
+  }
+
+  document.addEventListener('click',event=>{
+    if(!activePicker)return;
+    if(activePicker.menu.contains(event.target)||activePicker.trigger.contains(event.target))return;
+    closePicker(activePicker,{restoreFocus:false});
+  });
+  document.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&activePicker)closePicker(activePicker);
+  });
+  window.addEventListener('resize',()=>activePicker&&positionMenu(activePicker));
+  window.addEventListener('scroll',()=>activePicker&&positionMenu(activePicker),true);
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
+
+
+<script id="ux-taxonomy-governance-guard">
+(function(){
+  function enforce(){
+    try{
+      const terms=taxonomyProject?.state?.terms;
+      if(!Array.isArray(terms))return;
+      let changed=false;
+      terms.forEach(term=>{
+        const origin=String(term?.origin||'').trim();
+        if(/^Excel revisado\s*·/i.test(origin)&&term?.governed!==true&&term?.status==='canonical'){
+          term.status='pending';
+          changed=true;
+        }
+      });
+      if(changed){
+        globalThis.__uxSimpleExploreRefresh?.();
+        globalThis.__dsSyncSelects?.();
+      }
+    }catch(_){}
+  }
+  window.addEventListener('load',()=>{enforce();setTimeout(enforce,400);setTimeout(enforce,1400);});
+  document.addEventListener('click',event=>{
+    if(event.target.closest('[data-source-action],[data-learning-suggestion-confirm],[data-propose-taxonomy],[data-taxonomy-edit]')){
+      setTimeout(enforce,300);
+      setTimeout(enforce,1200);
+    }
+  });
+})();
+</script>
+
+<script id="ux-dimension-governance">
+(function(){
+  const DIMENSIONS=['Usabilidad e interacción','Accesibilidad','Arquitectura de información','Contenido y copy','Navegación y flujo','Interfaz y jerarquía visual','Personalización','Negocio y conversión','Tecnología y restricciones','Datos y medición'];
+  const LEGACY_HINTS=new Set([
+    'arquitectura de información','arquitectura de informacion','claridad y comprensión','claridad y comprension','consistencia','contenido y copy','control y autonomía','control y autonomia','encontrabilidad','feedback y estado','flujo y secuenciación','flujo y secuenciacion','fricción y eficiencia','friccion y eficiencia','jerarquía visual','jerarquia visual','navegación','navegacion','orientación y ayuda','orientacion y ayuda','personalización','personalizacion',
+    'above the fold','adaptación por dispositivo','adaptacion por dispositivo','agrupación','agrupacion','arquitectura','autoservicio','ayuda futura','buscador','búsqueda','busqueda','capacidad de resolución','capacidad de resolucion','check-in','claridad','complejidad','condicionantes estratégicos','condicionantes estrategicos','contenido prioritario','contexto','contexto de uso','continuidad','control','conversión','conversion','copy','dependencia de navegación','dependencia de navegacion','dirección estratégica','direccion estrategica','encontrabilidad','escalabilidad','gestión de complejidad','gestion de complejidad','gestión de reserva','gestion de reserva','gestión del viaje','gestion del viaje','identidad','jerarquía','jerarquia','jerarquía del above the fold','jerarquia del above the fold','jerarquía del buscador','jerarquia del buscador','mercados','modelo mental','naming','navegación principal','navegacion principal','necesidades del pasajero','ofertas','orientación','orientacion','orientación a tareas','orientacion a tareas','primera capa','prioridad estratégica','prioridad estrategica','prioridad operativa','promoción','promocion','propósito del header','proposito del header','responsive','restricciones de negocio','restricciones técnicas y datos','restricciones tecnicas y datos','restricción técnica del componente','restriccion tecnica del componente','rendimiento','secuenciación','secuenciacion','suma','sistema home','tareas operativas','territorios ux','uso del header','utilidades','personalización y reducción de fricción','personalizacion y reduccion de friccion','login contextual y recuperación de sesión','login contextual y recuperacion de sesion','login contextual y propuesta de valor','captación contextual y recompensa potencial','captacion contextual y recompensa potencial','fidelización en fare families','fidelizacion en fare families','beneficios por nivel en fare families','fidelización en upsell','fidelizacion en upsell','fidelización multipasajero','fidelizacion multipasajero','valor económico de millas','valor economico de millas','beneficios suma en asientos','beneficios suma en equipaje','fidelización en ancillaries','fidelizacion en ancillaries','continuidad de fidelización','continuidad de fidelizacion','proveniencia y comunicación de beneficios','proveniencia y comunicacion de beneficios','acceso e identificación suma','acceso e identificacion suma','beneficios suma en fare families','canje de millas','beneficios suma en ancillaries','resultado económico y millas','resultado economico y millas'
+  ]);
+  const norm=value=>String(value||'').trim().toLocaleLowerCase('es');
+  let patching=false;
+
+  function findDimensionCard(){
+    const root=document.getElementById('taxonomy-controlled');
+    if(!root)return null;
+    const headings=[...root.querySelectorAll('h2,h3,h4,strong,[class*=title],[class*=heading]')];
+    const heading=headings.find(node=>['línea ux','linea ux','dimensión ux','dimension ux','dimensión','dimension'].includes(norm(node.textContent)));
+    if(!heading)return null;
+    let card=heading.parentElement;
+    while(card&&card!==root){
+      const text=norm(card.textContent);
+      const legacyHits=[...LEGACY_HINTS].filter(value=>text.includes(value)).length;
+      if(legacyHits>=3||card.querySelector('button'))break;
+      card=card.parentElement;
+    }
+    return card&&card!==root?{card,heading}:null;
+  }
+
+  function chipContainer(card){
+    const candidates=[...card.querySelectorAll('div,section')].filter(node=>{
+      if(node.querySelector('h2,h3,h4'))return false;
+      const children=[...node.children];
+      if(children.length<3)return false;
+      const short=children.filter(child=>{
+        const text=String(child.textContent||'').trim();
+        return text&&text.length<70&&!/^\+?\s*añadir$/i.test(text);
+});
+      return short.length>=3;
+    });
+    const scored=candidates.map(node=>({node,hits:[...node.children].filter(child=>LEGACY_HINTS.has(norm(child.textContent))||DIMENSIONS.some(value=>norm(value)===norm(child.textContent))).length})).sort((a,b)=>b.hits-a.hits);
+    return scored[0]?.hits?scored[0].node:null;
+  }
+
+  function patchVocabularyCard(){
+    if(patching)return;
+    const found=findDimensionCard();
+    if(!found)return;
+    patching=true;
+    try{
+      if(found.heading.textContent!=='Dimensión UX') found.heading.textContent='Dimensión UX';
+      const container=chipContainer(found.card);
+      if(!container)return;
+      const existing=[...container.children];
+      const managed=existing.filter(child=>{
+        const text=norm(child.textContent);
+        return LEGACY_HINTS.has(text)||DIMENSIONS.some(value=>norm(value)===text);
+      });
+      const current=managed.map(child=>String(child.textContent||'').trim());
+      const alreadyCanonical=current.length===DIMENSIONS.length&&DIMENSIONS.every(label=>current.some(value=>norm(value)===norm(label)))&&!current.some(value=>LEGACY_HINTS.has(norm(value))&&!DIMENSIONS.some(label=>norm(label)===norm(value)));
+      if(alreadyCanonical)return;
+      const template=managed[0];
+      if(!template)return;
+      managed.forEach(child=>child.remove());
+      DIMENSIONS.forEach(label=>{
+        const chip=template.cloneNode(true);
+        chip.removeAttribute('data-value');
+        chip.removeAttribute('data-taxonomy-controlled-value');
+        chip.textContent=label;
+        container.appendChild(chip);
+      });
+    }finally{
+      patching=false;
+    }
+  }
+
+  // Mantiene compatibilidad con taxonomy.js sin permitir que el vocabulario histórico vuelva a Explorar.
+  const previous=globalThis.taxonomyControlledValues;
+  if(typeof previous==='function'){
+    globalThis.taxonomyControlledValues=function(label){
+      if(['línea ux','linea ux','dimensión ux','dimension ux','dimensión','dimension'].includes(norm(label)))return DIMENSIONS.slice();
+      return previous.apply(this,arguments);
+    };
+  }
+
+  const observe=()=>{
+    const root=document.getElementById('taxonomy-controlled');
+    if(!root)return;
+    patchVocabularyCard();
+    new MutationObserver(()=>patchVocabularyCard()).observe(root,{childList:true,subtree:true,characterData:true});
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(observe,0));
+  else setTimeout(observe,0);
+  window.addEventListener('load',()=>{setTimeout(patchVocabularyCard,250);setTimeout(patchVocabularyCard,1000);});
+})();
+</script>
+
+
+<script id="ux-origin-governance">
+(function(){
+  const ORIGINS=['Test con usuarios','Quantum Metric','A/B Test','CRO','Auditoría UX','Heurística','Benchmark','Desk research','Data','Negocio','CSAT'];
+  const LEGACY_HINTS=new Set([
+    'ux research / test de usuarios','quantum metric','a/b test / cro','auditoría ux / heurística','auditoria ux / heuristica',
+    'benchmark','desk research','análisis conductual / sesgos','analisis conductual / sesgos','análisis conductual','analisis conductual','data','negocio','seo / contenidos',
+    'csat','soporte / atención al cliente','soporte / atencion al cliente','síntesis ux','sintesis ux','auditoría ux','auditoria ux',
+    'quantum metric + análisis heurístico','quantum metric + analisis heuristico','quantum metric / data','mckinsey + bcg',
+    'deloitte + mckinsey','mckinsey','mckinsey + iata','investigación académica sobre frequent flyer',
+    'investigacion academica sobre frequent flyer','collinson + caso km malta','condiciones suma revisadas en el desk research',
+    'desk research suma','revisión de contenidos oficiales air europa','revision de contenidos oficiales air europa',
+    'síntesis del desk research','sintesis del desk research','conclusiones del desk research',
+    'aplicación propuesta en el desk research','aplicacion propuesta en el desk research','caso km malta / proveedor tecnológico',
+    'caso km malta / proveedor tecnologico','condición air europa recogida en el desk research',
+    'condicion air europa recogida en el desk research','desk research suma / condicionante técnico',
+    'desk research suma / condicionante tecnico'
+  ]);
+  const norm=value=>String(value||'').trim().toLocaleLowerCase('es');
+  let patching=false;
+
+  function findOriginCard(){
+    const root=document.getElementById('taxonomy-controlled');
+    if(!root)return null;
+    const headings=[...root.querySelectorAll('h2,h3,h4,strong,[class*=title],[class*=heading]')];
+    const heading=headings.find(node=>['origen del hallazgo'].includes(norm(node.textContent)));
+    if(!heading)return null;
+    let card=heading.parentElement;
+    while(card&&card!==root){
+      const text=norm(card.textContent);
+      const hits=[...LEGACY_HINTS].filter(value=>text.includes(value)).length;
+      if(hits>=3||card.querySelector('button'))break;
+      card=card.parentElement;
+    }
+    return card&&card!==root?{card,heading}:null;
+  }
+
+  function chipContainer(card){
+    const candidates=[...card.querySelectorAll('div,section')].filter(node=>{
+      if(node.querySelector('h2,h3,h4'))return false;
+      const children=[...node.children];
+      if(children.length<3)return false;
+      const short=children.filter(child=>{
+        const text=String(child.textContent||'').trim();
+        return text&&text.length<80&&!/^\+?\s*añadir$/i.test(text);
+      });
+      return short.length>=3;
+    });
+    const scored=candidates.map(node=>({
+      node,
+      hits:[...node.children].filter(child=>LEGACY_HINTS.has(norm(child.textContent))||ORIGINS.some(value=>norm(value)===norm(child.textContent))).length
+    })).sort((a,b)=>b.hits-a.hits);
+    return scored[0]?.hits?scored[0].node:null;
+  }
+
+  function patchVocabularyCard(){
+    if(patching)return;
+    const found=findOriginCard();
+    if(!found)return;
+    patching=true;
+    try{
+      const container=chipContainer(found.card);
+      if(!container)return;
+      const existing=[...container.children];
+      const managed=existing.filter(child=>{
+        const text=norm(child.textContent);
+        return LEGACY_HINTS.has(text)||ORIGINS.some(value=>norm(value)===text);
+      });
+      const current=managed.map(child=>String(child.textContent||'').trim());
+      const alreadyCanonical=current.length===ORIGINS.length&&ORIGINS.every(label=>current.some(value=>norm(value)===norm(label)))&&!current.some(value=>LEGACY_HINTS.has(norm(value))&&!ORIGINS.some(label=>norm(label)===norm(value)));
+      if(alreadyCanonical)return;
+      const template=managed[0];
+      if(!template)return;
+      managed.forEach(child=>child.remove());
+      ORIGINS.forEach(label=>{
+        const chip=template.cloneNode(true);
+        chip.removeAttribute('data-value');
+        chip.removeAttribute('data-taxonomy-controlled-value');
+        chip.textContent=label;
+        container.appendChild(chip);
+      });
+    }finally{
+      patching=false;
+    }
+  }
+
+  // Fuerza el vocabulario controlado para filtros y evita que etiquetas históricas vuelvan a aparecer.
+  const previous=globalThis.taxonomyControlledValues;
+  if(typeof previous==='function'){
+    globalThis.taxonomyControlledValues=function(label){
+      if(norm(label)==='origen del hallazgo')return ORIGINS.slice();
+      return previous.apply(this,arguments);
+    };
+  }
+
+  const observe=()=>{
+    const root=document.getElementById('taxonomy-controlled');
+    if(!root)return;
+    patchVocabularyCard();
+    new MutationObserver(()=>patchVocabularyCard()).observe(root,{childList:true,subtree:true,characterData:true});
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(observe,0));
+  else setTimeout(observe,0);
+  window.addEventListener('load',()=>{setTimeout(patchVocabularyCard,250);setTimeout(patchVocabularyCard,1000);});
+})();
+</script>
+
+<script id="ux-controlled-vocabulary-governance-v2">
+(function(){
+  const VOCABULARIES={
+    'tipo de registro':['Hecho','Evidencia interna','Evidencia externa','Hipótesis','Inferencia','Oportunidad','Restricción','Decisión','Pregunta abierta'],
+    'origen del hallazgo':['Test con usuarios','Quantum Metric','A/B Test','CRO','Auditoría UX','Heurística','Benchmark','Desk research','Data','Negocio','CSAT'],
+    'dispositivo':['Desktop','Mobile','Desktop + mobile','App','No especificado'],
+    'mercado':['Alemania','Argentina','Bolivia','Brasil','Bélgica','Chile','Colombia','Ecuador','España','Estados Unidos','Francia','Israel','Italia','México','Panamá','Paraguay','Países Bajos','Perú','Portugal','Reino Unido','República Dominicana','Suiza','Turquía','Uruguay','World (EUR)','World (USD)','Multimercado','No especificado'],
+    'región':['España','Europa','África','Oriente Medio','Norteamérica','Caribe','América Central','América del Sur','Global','No especificado'],
+    'region':['España','Europa','África','Oriente Medio','Norteamérica','Caribe','América Central','América del Sur','Global','No especificado'],
+    'estado usuario':['No logado','Logado no SUMA','Logado SUMA','Logado (SUMA no especificado)','Ambos','No especificado'],
+    'sistema / plataforma':['Air Europa / propio','Amadeus','Magnolia','Comarch','Pluto','Responsys','Proveedor externo','No especificado'],
+    'resultado':['No aplica','No testado','Positivo','Neutral','Negativo','Mixto','Inconcluso'],
+    'implementación':['Implementado','Parcialmente implementado','No implementado','Implementación desconocida'],
+    'implementacion':['Implementado','Parcialmente implementado','No implementado','Implementación desconocida'],
+    'dimensión':['Usabilidad e interacción','Accesibilidad','Arquitectura de información','Contenido y copy','Navegación y flujo','Interfaz y jerarquía visual','Personalización','Negocio y conversión','Tecnología y restricciones','Datos y medición'],
+    'dimension':['Usabilidad e interacción','Accesibilidad','Arquitectura de información','Contenido y copy','Navegación y flujo','Interfaz y jerarquía visual','Personalización','Negocio y conversión','Tecnología y restricciones','Datos y medición'],
+    'dimensión ux':['Usabilidad e interacción','Accesibilidad','Arquitectura de información','Contenido y copy','Navegación y flujo','Interfaz y jerarquía visual','Personalización','Negocio y conversión','Tecnología y restricciones','Datos y medición'],
+    'dimension ux':['Usabilidad e interacción','Accesibilidad','Arquitectura de información','Contenido y copy','Navegación y flujo','Interfaz y jerarquía visual','Personalización','Negocio y conversión','Tecnología y restricciones','Datos y medición'],
+    'impacto ux':['Alto','Medio','Bajo']
+  };
+  const DISPLAY_LABELS={'dimensión ux':'Dimensión UX','dimension ux':'Dimensión UX'};
+  const norm=value=>String(value||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+  const keyFor=label=>norm(label);
+  const vocabularyFor=label=>VOCABULARIES[keyFor(label)]||null;
+  let patching=false;
+
+  // Policy metadata for future AI/agent classification. It is deliberately machine-readable and independent of UI copy.
+  globalThis.UXControlledVocabularyPolicy={
+    version:'2026-10-22-v2',
+    rules:{
+      recordType:'Una sola categoría epistemológica por registro. No usar Insight UX como cajón de sastre.',
+      origin:'Uno o varios orígenes cuando la evidencia realmente combine métodos o fuentes.',
+      dimension:'Una dimensión principal; máximo dos solo cuando existan dos mecanismos independientes. Producto, dispositivo, mercado, SUMA y sistema no son dimensiones.',
+      market:'Usar un mercado canónico. Si el conocimiento cruza varios mercados, usar Multimercado; no crear combinaciones ad hoc.',
+      region:'Derivar de Mercado siempre que sea posible. Global describe alcance, no una restricción técnica.',
+      userState:'Clasificar el estado de autenticación/relación SUMA sin mezclarlo con segmento, mercado o producto.',
+      result:'Resultado de validación o experimento. No confundir No testado con No aplica ni con implementación.',
+      implementation:'Estado real de producción, separado del resultado del test y de la recomendación.',
+      impactUx:'Magnitud del impacto en la experiencia, no prioridad de negocio ni nivel de evidencia.'
+    },
+    dimensions:{
+      'Usabilidad e interacción':'Interacción local, comprensión de uso, feedback, control, esfuerzo y eficiencia.',
+      'Accesibilidad':'Barreras y requisitos de acceso, percepción, operación y comprensión inclusiva.',
+      'Arquitectura de información':'Organización, agrupación, estructura y modelo mental del contenido o funcionalidad.',
+      'Contenido y copy':'Naming, microcopy, mensajes, instrucciones y comprensión lingüística.',
+      'Navegación y flujo':'Movimiento entre pasos, continuidad, orientación, encontrabilidad y secuenciación del journey.',
+      'Interfaz y jerarquía visual':'Prioridad visual, composición, consistencia UI, legibilidad estructural y saliencia.',
+      'Personalización':'Adaptación al usuario, historial, perfil, contexto o comportamiento previo.',
+      'Negocio y conversión':'Mecánicas comerciales, presión promocional, monetización y objetivos de conversión cuando son la causa principal.',
+      'Tecnología y restricciones':'Limitaciones o capacidades de sistemas, proveedores, rendimiento e implementación técnica cuando condicionan la solución.',
+      'Datos y medición':'Instrumentación, calidad de métrica, tracking, atribución y disponibilidad de datos.'
+    }
+  };
+
+  const previous=globalThis.taxonomyControlledValues;
+  if(typeof previous==='function'){
+    globalThis.taxonomyControlledValues=function(label){
+      const vocabulary=vocabularyFor(label);
+      if(vocabulary)return vocabulary.slice();
+      return previous.apply(this,arguments);
+    };
+  }
+
+  function findCard(root,heading){
+    let card=heading.parentElement;
+    while(card&&card!==root){
+      if(card.querySelector('button')&&card.children.length>=2)return card;
+      card=card.parentElement;
+    }
+    return null;
+  }
+  function findChipContainer(card,vocabulary){
+    const canonical=new Set(vocabulary.map(norm));
+    const candidates=[...card.querySelectorAll('div,section')].filter(node=>{
+      if(node.querySelector('h2,h3,h4'))return false;
+      const children=[...node.children];
+      if(children.length<1)return false;
+      const chipLike=children.filter(child=>{
+        const text=String(child.textContent||'').trim();
+        return text&&text.length<90&&!/^\+?\s*añadir$/i.test(text)&&!/^gestionar/i.test(text);
+      });
+      return chipLike.length>=1;
+    });
+    const scored=candidates.map(node=>{
+      const children=[...node.children];
+      const short=children.filter(child=>String(child.textContent||'').trim().length<90);
+      const canonicalHits=short.filter(child=>canonical.has(norm(child.textContent))).length;
+      return {node,score:canonicalHits*10+Math.min(short.length,12)};
+    }).sort((a,b)=>b.score-a.score);
+    return scored[0]?.node||null;
+  }
+  function patchCards(){
+    if(patching)return;
+    const root=document.getElementById('taxonomy-controlled');if(!root)return;
+    patching=true;
+    try{
+      const headings=[...root.querySelectorAll('h2,h3,h4,strong,[class*=title],[class*=heading]')];
+      headings.forEach(heading=>{
+        const raw=String(heading.textContent||'').trim();
+        const vocabulary=vocabularyFor(raw);if(!vocabulary)return;
+        const display=DISPLAY_LABELS[keyFor(raw)];if(display&&raw!==display)heading.textContent=display;
+        const card=findCard(root,heading);if(!card)return;
+        const container=findChipContainer(card,vocabulary);if(!container)return;
+        const children=[...container.children].filter(child=>{
+          const text=String(child.textContent||'').trim();
+          return text&&text.length<90&&!/^\+?\s*añadir$/i.test(text)&&!/^gestionar/i.test(text);
+        });
+        if(!children.length)return;
+        const current=children.map(child=>String(child.textContent||'').trim());
+        const isExact=current.length===vocabulary.length&&vocabulary.every((label,index)=>norm(current[index])===norm(label));
+        if(isExact)return;
+        const template=children[0];
+        children.forEach(child=>child.remove());
+        vocabulary.forEach(label=>{
+          const chip=template.cloneNode(true);
+          chip.removeAttribute('data-value');chip.removeAttribute('data-taxonomy-controlled-value');
+          chip.textContent=label;
+          container.appendChild(chip);
+        });
+      });
+    }finally{patching=false;}
+  }
+  const observe=()=>{
+    const root=document.getElementById('taxonomy-controlled');if(!root)return;
+    patchCards();
+    new MutationObserver(()=>patchCards()).observe(root,{childList:true,subtree:true,characterData:true});
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(observe,0));
+  else setTimeout(observe,0);
+  window.addEventListener('load',()=>{setTimeout(patchCards,250);setTimeout(patchCards,1100);});
+})();
+</script>
+
+
+
+<script id="ux-taxonomy-intro-cleanup">
+(function(){
+  const norm=value=>String(value||'').replace(/\s+/g,' ').trim().toLocaleLowerCase('es');
+  let patching=false;
+
+  function removeVocabularyDuplicate(){
+    const root=document.getElementById('taxonomy-controlled');
+    if(!root)return;
+
+    const candidates=[...root.querySelectorAll('section,article,div,header')];
+    const duplicate=candidates
+      .filter(node=>{
+        const text=norm(node.textContent);
+        return text.includes('vocabularios controlados') &&
+               text.includes('listas de referencia para mantener consistencia entre excel, filtros y conocimiento.');
+      })
+      .sort((a,b)=>a.querySelectorAll('*').length-b.querySelectorAll('*').length)[0];
+
+    if(duplicate)duplicate.remove();
+  }
+
+  function pruneEmptyAncestors(node,stopAt){
+    let current=node;
+    while(current && current!==stopAt){
+      const parent=current.parentElement;
+      const hasMeaningfulText=String(current.textContent||'').trim().length>0;
+      const hasMeaningfulChildren=[...current.children].some(child=>{
+        if(child.matches('script,style'))return false;
+        return String(child.textContent||'').trim().length>0 ||
+               child.matches('button,input,select,textarea,table,ul,ol,details');
+      });
+
+      if(!hasMeaningfulText && !hasMeaningfulChildren){
+        current.remove();
+      }
+      current=parent;
+    }
+  }
+
+  function mergeGlossaryIntro(){
+    const panel=document.getElementById('taxonomy-view-glossary');
+    const root=document.getElementById('taxonomy-glossary');
+    if(!panel||!root)return;
+
+    const intro=panel.querySelector(':scope > .ux-taxonomy-view-intro');
+    if(!intro)return;
+
+    const isCreateTermButton=button=>{
+      const text=norm(button?.textContent);
+      return text.includes('crear término') || text.includes('crear termino');
+    };
+
+    // El glosario se vuelve a renderizar al editar un término.
+    // taxonomy.js crea entonces un botón nuevo dentro de #taxonomy-glossary.
+    // Antes se movía cada botón nuevo a la cabecera sin retirar el anterior,
+    // por eso "+ Crear término" se multiplicaba.
+    const freshButtons=[...root.querySelectorAll('button')].filter(isCreateTermButton);
+    const freshButton=freshButtons[freshButtons.length-1]||null;
+
+    let actions=intro.querySelector(':scope > .ux-taxonomy-header-actions');
+    if(!actions){
+      actions=document.createElement('div');
+      actions.className='ux-taxonomy-header-actions';
+      [...intro.children]
+        .filter(child=>child.tagName==='BUTTON')
+        .forEach(button=>actions.appendChild(button));
+      intro.appendChild(actions);
+    }
+
+    if(freshButton){
+      // Conservamos siempre el botón recién creado por taxonomy.js porque
+      // contiene los listeners actuales. Cualquier versión anterior se elimina.
+      [...intro.querySelectorAll('button')]
+        .filter(button=>isCreateTermButton(button))
+        .forEach(button=>button.remove());
+
+      const oldParent=freshButton.parentElement;
+      actions.appendChild(freshButton);
+      pruneEmptyAncestors(oldParent,root);
+
+      // Si por un re-render intermedio aparecieron varios, solo sobrevive el último.
+      freshButtons.slice(0,-1).forEach(button=>{
+        const parent=button.parentElement;
+        button.remove();
+        pruneEmptyAncestors(parent,root);
+      });
+    }else{
+      // Estado estable: nunca puede haber más de un "+ Crear término" en cabecera.
+      const headerButtons=[...intro.querySelectorAll('button')].filter(isCreateTermButton);
+      headerButtons.slice(1).forEach(button=>button.remove());
+      if(headerButtons[0]&&headerButtons[0].parentElement!==actions){
+        actions.appendChild(headerButtons[0]);
+      }
+    }
+
+    const candidates=[...root.querySelectorAll('section,article,div,header')];
+    const duplicate=candidates
+      .filter(node=>{
+        const text=norm(node.textContent);
+        return text.includes('glosario ux intel') &&
+               text.includes('fuente de verdad editable para el lenguaje de la plataforma.');
+      })
+      .sort((a,b)=>a.querySelectorAll('*').length-b.querySelectorAll('*').length)[0];
+
+    if(duplicate)duplicate.remove();
+
+    [...root.children].forEach(child=>{
+      const text=String(child.textContent||'').trim();
+      const interactive=child.querySelector('button,input,select,textarea,table,ul,ol,details');
+      if(!text && !interactive)child.remove();
+    });
+  }
+
+  function patch(){
+    if(patching)return;
+    patching=true;
+    try{
+      removeVocabularyDuplicate();
+      mergeGlossaryIntro();
+    }finally{
+      patching=false;
+    }
+  }
+
+  function observe(){
+    patch();
+    const taxonomy=document.getElementById('taxonomy');
+    if(!taxonomy)return;
+    new MutationObserver(()=>patch()).observe(taxonomy,{childList:true,subtree:true});
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(observe,0));
+  }else{
+    setTimeout(observe,0);
+  }
+
+  window.addEventListener('load',()=>{
+    setTimeout(patch,150);
+    setTimeout(patch,500);
+    setTimeout(patch,1200);
+  });
+})();
+</script>
+
+
+<script id="ux-vocabulary-create-entry">
+(function(){
+  const openButton=document.getElementById('taxonomy-vocabulary-create');
+  const modal=document.getElementById('taxonomy-vocabulary-create-modal');
+  const select=document.getElementById('taxonomy-vocabulary-create-select');
+  const confirm=document.getElementById('taxonomy-vocabulary-create-confirm');
+  if(!openButton||!modal||!select||!confirm)return;
+
+  const norm=value=>String(value||'').replace(/\s+/g,' ').trim();
+
+  function vocabularyActions(){
+    const root=document.getElementById('taxonomy-controlled');
+    if(!root)return [];
+
+    const buttons=[...root.querySelectorAll('button')].filter(button=>{
+      const text=norm(button.textContent).toLocaleLowerCase('es');
+      return text==='+ añadir' || text==='añadir' || text==='+ anadir' || text==='anadir';
+    });
+
+    return buttons.map((button,index)=>{
+      let card=button.parentElement;
+      while(card&&card!==root){
+        const heading=card.querySelector('h2,h3,h4,strong,[class*=title],[class*=heading]');
+        if(heading && norm(heading.textContent) && norm(heading.textContent)!==norm(button.textContent)){
+          return {id:String(index),label:norm(heading.textContent),button};
+        }
+        card=card.parentElement;
+      }
+      return {id:String(index),label:`Vocabulario ${index+1}`,button};
+    }).filter((item,pos,all)=>all.findIndex(other=>other.label===item.label)===pos);
+  }
+
+  function close(){
+    modal.hidden=true;
+    select.value='';
+    confirm.disabled=true;
+  }
+
+  function open(){
+    const actions=vocabularyActions();
+    select.innerHTML='<option value="">Seleccionar vocabulario</option>'+
+      actions.map(item=>`<option value="${item.id}">${item.label}</option>`).join('');
+    modal.hidden=false;
+    setTimeout(()=>select.focus(),0);
+  }
+
+  openButton.addEventListener('click',open);
+  select.addEventListener('change',()=>{confirm.disabled=!select.value;});
+
+  confirm.addEventListener('click',()=>{
+    const actions=vocabularyActions();
+    const selected=actions.find(item=>item.id===select.value);
+    if(!selected)return;
+    close();
+    selected.button.click();
+  });
+
+  modal.addEventListener('click',event=>{
+    if(event.target===modal || event.target.closest('[data-vocabulary-create-close]'))close();
+  });
+
+  document.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&!modal.hidden)close();
+  });
+})();
+</script>
+
+<script id="ux-taxonomy-manager-v2">
+(function(){
+  const KEY='ae-ux-intel-taxonomy-governance-v2';
+  const norm=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLocaleLowerCase('es');
+  const clean=value=>String(value||'').replace(/\s+/g,' ').trim();
+  const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+  const LEVELS={product:'Producto',funnel:'Funnel',minifunnel:'Minifunnel',component:'Componente'};
+
+  const manager=document.getElementById('taxonomy-manager-v2-modal');
+  const managerTitle=document.getElementById('taxonomy-manager-v2-title');
+  const managerCopy=document.getElementById('taxonomy-manager-v2-copy');
+  const managerToolbar=document.getElementById('taxonomy-manager-v2-toolbar');
+  const managerLevelField=document.getElementById('taxonomy-manager-v2-level-field');
+  const managerLevel=document.getElementById('taxonomy-manager-v2-level');
+  const managerSearch=document.getElementById('taxonomy-manager-v2-search');
+  const managerList=document.getElementById('taxonomy-manager-v2-list');
+
+  const editModal=document.getElementById('taxonomy-manager-v2-edit');
+  const editMeta=document.getElementById('taxonomy-manager-v2-edit-meta');
+  const editInput=document.getElementById('taxonomy-manager-v2-edit-input');
+  const editAction=document.getElementById('taxonomy-manager-v2-edit-action');
+
+  const mergeModal=document.getElementById('taxonomy-manager-v2-merge');
+  const mergeMeta=document.getElementById('taxonomy-manager-v2-merge-meta');
+  const mergeTarget=document.getElementById('taxonomy-manager-v2-merge-target');
+  const mergeAction=document.getElementById('taxonomy-manager-v2-merge-action');
+
+  const confirmModal=document.getElementById('taxonomy-manager-v2-confirm');
+  const confirmTitle=document.getElementById('taxonomy-manager-v2-confirm-title');
+  const confirmCopy=document.getElementById('taxonomy-manager-v2-confirm-copy');
+  const confirmMeta=document.getElementById('taxonomy-manager-v2-meta');
+  const confirmAction=document.getElementById('taxonomy-manager-v2-confirm-action');
+
+  let activeSection='';
+  let entries=[];
+  let pending=null;
+  let pendingEdit=null;
+  let pendingMerge=null;
+
+  function readState(){
+    try{
+      const state=JSON.parse(localStorage.getItem(KEY)||'null');
+      if(state&&typeof state==='object')return {
+        version:3,
+        product:Array.isArray(state.product)?state.product:[],
+        vocabularies:Array.isArray(state.vocabularies)?state.vocabularies:[],
+        glossary:Array.isArray(state.glossary)?state.glossary:[],
+        renames:Array.isArray(state.renames)?state.renames:[],
+        merges:Array.isArray(state.merges)?state.merges:[]
+      };
+    }catch(_){}
+    return {version:3,product:[],vocabularies:[],glossary:[],renames:[],merges:[]};
+  }
+  function writeState(state){
+    state.version=3;
+    try{localStorage.setItem(KEY,JSON.stringify(state));}catch(_){}
+    try{if(typeof safeStorageWrite==='function')safeStorageWrite({project:true});}catch(_){}
+  }
+
+  function projectTerms(){
+    try{
+      const all=Array.isArray(taxonomyProject?.state?.terms)?taxonomyProject.state.terms:[];
+      return all.filter(term=>{
+        const origin=String(term?.origin||'').trim();
+        return term?.governed===true||!/^excel revisado\s*·/i.test(origin);
+      });
+    }catch(_){return [];}
+  }
+  function rawTerms(){
+    try{return globalThis.UXGovernedTaxonomy?.terms?.()||[];}catch(_){return [];}
+  }
+  function termId(term){return clean(term?.id||term?.termId||term?.key);}
+  function parentId(term){return clean(term?.parentId||term?.parentTermId||term?.parent?.id||term?.parent);}
+  function setParentId(term,value){
+    if('parentId' in term||!('parentTermId' in term))term.parentId=value;
+    else term.parentTermId=value;
+  }
+  function termName(term){return clean(term?.canonicalName||term?.name||term?.label||term?.value);}
+  function termLevel(term){return clean(term?.level);}
+  function termAliases(term){
+    const raw=term?.aliases||term?.alias||term?.historicalNames||[];
+    return Array.isArray(raw)?raw.map(clean).filter(Boolean):(clean(raw)?[clean(raw)]:[]);
+  }
+  function setAliases(term,values){
+    const out=[];
+    values.map(clean).filter(Boolean).forEach(value=>{if(!out.some(item=>norm(item)===norm(value)))out.push(value);});
+    term.aliases=out;
+  }
+  function canonical(term){return ['canonical','canonico'].includes(norm(term?.status||'canonical'));}
+
+  function applyRenameState(state,all){
+    state.renames.forEach(change=>{
+      const term=all.find(item=>termId(item)===change.id);
+      if(!term)return;
+      const current=termName(term);
+      const aliases=[...termAliases(term),...(change.aliases||[]),change.originalName];
+      if(current&&norm(current)!==norm(change.name))aliases.push(current);
+      setAliases(term,aliases.filter(value=>norm(value)!==norm(change.name)));
+      term.canonicalName=change.name;
+    });
+  }
+
+  function mergeInMemory(source,target,all,visited=new Set()){
+    if(!source||!target)return;
+    const sourceId=termId(source),targetId=termId(target);
+    if(!sourceId||!targetId||sourceId===targetId||visited.has(sourceId))return;
+    visited.add(sourceId);
+
+    setAliases(target,[...termAliases(target),termName(source),...termAliases(source)]);
+    const targetChildren=()=>all.filter(item=>canonical(item)&&parentId(item)===targetId);
+    const sourceChildren=all.filter(item=>canonical(item)&&parentId(item)===sourceId);
+
+    sourceChildren.forEach(child=>{
+      const duplicate=targetChildren().find(candidate=>
+        termLevel(candidate)===termLevel(child)&&norm(termName(candidate))===norm(termName(child))
+      );
+      if(duplicate)mergeInMemory(child,duplicate,all,visited);
+      else setParentId(child,targetId);
+    });
+
+    source.status='retired';
+    source.mergedIntoId=targetId;
+  }
+
+  function applyMergeState(state,all){
+    state.merges.forEach(change=>{
+      const source=all.find(item=>termId(item)===change.sourceId);
+      const target=all.find(item=>termId(item)===change.targetId);
+      if(source&&target)mergeInMemory(source,target,all);
+    });
+  }
+
+  function applyRetiredState(state,all){
+    state.product.forEach(hidden=>{
+      const term=all.find(item=>
+        (hidden.id&&hidden.id===termId(item))||
+        (!hidden.id&&hidden.level===termLevel(item)&&norm(hidden.name)===norm(termName(item)))
+      );
+      if(term&&canonical(term))term.status='retired';
+    });
+  }
+
+  function applyProductGovernance(){
+    const state=readState();
+    const all=projectTerms();
+    applyRenameState(state,all);
+    applyMergeState(state,all);
+    applyRetiredState(state,all);
+  }
+
+  function productTerms(){
+    applyProductGovernance();
+    return rawTerms().filter(term=>canonical(term)&&termLevel(term)!=='element');
+  }
+
+  function pathOf(term,terms){
+    const byId=new Map(terms.map(item=>[termId(item),item]).filter(([id])=>id));
+    const path=[],seen=new Set();
+    let current=term;
+    while(current){
+      const id=termId(current);
+      if(id&&seen.has(id))break;
+      if(id)seen.add(id);
+      if(termName(current))path.unshift(termName(current));
+      current=parentId(current)?byId.get(parentId(current)):null;
+    }
+    return path.join(' › ');
+  }
+
+  function allRows(){
+    const rows=[];
+    try{
+      (sourceItems||[]).forEach(item=>(item?.insightRegister?.rows||[]).forEach(row=>rows.push(row)));
+      (learnings||[]).forEach(item=>rows.push(item));
+    }catch(_){}
+    return rows;
+  }
+  function matches(row,field,value){
+    if(!field)return false;
+    const wanted=norm(value);
+    if(field==='component')return [row?.component,...(row?.components||[])].some(item=>norm(item)===wanted);
+    if(field==='uxLine')return [...(row?.uxLines||[]),...String(row?.uxLine||'').split(';')].some(item=>norm(item)===wanted);
+    if(field==='origin')return [...(row?.origins||[]),...String(row?.origin||'').split(/[;|]/)].some(item=>norm(item)===wanted);
+    const current=row?.[field];
+    if(Array.isArray(current))return current.some(item=>norm(item)===wanted);
+    return norm(current)===wanted;
+  }
+  function usage(field,value){return allRows().filter(row=>matches(row,field,value)).length;}
+  function usageForTerm(term){
+    const names=[termName(term),...termAliases(term)];
+    return allRows().filter(row=>names.some(name=>matches(row,termLevel(term),name))).length;
+  }
+
+  function productEntries(){
+    const terms=productTerms();
+    return terms.map(term=>{
+      const id=termId(term),name=termName(term),level=termLevel(term);
+      const children=terms.filter(item=>parentId(item)===id).length;
+      return {
+        section:'product',group:LEVELS[level]||'Estructura',
+        id,name,level,term,path:pathOf(term,terms)||name,children,usage:usageForTerm(term),
+        aliases:termAliases(term)
+      };
+    }).sort((a,b)=>a.path.localeCompare(b.path,'es'));
+  }
+
+  function vocabularyCards(){
+    const root=document.getElementById('taxonomy-controlled');
+    if(!root)return [];
+    const addButtons=[...root.querySelectorAll('button')].filter(button=>['añadir','+ añadir','anadir','+ anadir'].includes(norm(button.textContent)));
+    const cards=[];
+    addButtons.forEach(button=>{
+      let card=button.parentElement;
+      while(card&&card!==root){
+        const heading=[...card.querySelectorAll('h2,h3,h4,strong,[class*=title],[class*=heading]')]
+          .find(node=>node!==button&&clean(node.textContent)&&norm(node.textContent)!==norm(button.textContent));
+        if(heading){
+          const group=clean(heading.textContent);
+          if(!cards.some(item=>norm(item.group)===norm(group)))cards.push({group,card});
+          break;
+        }
+        card=card.parentElement;
+      }
+    });
+    return cards;
+  }
+  function vocabularyField(group){
+    const map={
+      'tipo de registro':'recordType','origen del hallazgo':'origin','dispositivo':'device','mercado':'market',
+      'region':'region','estado usuario':'login','resultado':'outcome','implementacion':'implementation',
+      'dimension':'uxLine','dimensión':'uxLine','dimension ux':'uxLine','impacto ux':'impactUx','sistema / plataforma':'system'
+    };
+    return map[norm(group)]||'';
+  }
+  function cardValues(group,card){
+    let values=[];
+    try{
+      if(typeof taxonomyControlledValues==='function'){
+        const source=taxonomyControlledValues(group);
+        if(Array.isArray(source))values=source.map(clean).filter(Boolean);
+      }
+    }catch(_){}
+    if(!values.length){
+      values=[...card.querySelectorAll('[data-taxonomy-controlled-value],span,button')]
+        .map(node=>clean(node.dataset?.taxonomyControlledValue||node.textContent))
+        .filter(value=>value&&value.length<100&&norm(value)!==norm(group)&&!['añadir','+ añadir','anadir','+ anadir'].includes(norm(value)));
+    }
+    return [...new Map(values.map(value=>[norm(value),value])).values()];
+  }
+  function vocabularyEntries(){
+    const hidden=readState().vocabularies;
+    return vocabularyCards().flatMap(({group,card})=>
+      cardValues(group,card)
+        .filter(value=>!hidden.some(item=>norm(item.group)===norm(group)&&norm(item.value)===norm(value)))
+        .map(value=>({section:'vocabularies',group,name:value,value,usage:usage(vocabularyField(group),value)}))
+    ).sort((a,b)=>a.group.localeCompare(b.group,'es')||a.name.localeCompare(b.name,'es'));
+  }
+
+  function glossaryEntries(){
+    const hidden=readState().glossary;
+    const root=document.getElementById('taxonomy-glossary');
+    if(!root)return [];
+    const out=[];
+    [...root.querySelectorAll('[data-glossary-term],article,li,details')].forEach(container=>{
+      const heading=container.matches('[data-glossary-term]')?container:container.querySelector('h3,h4,strong');
+      const paragraph=container.querySelector('p');
+      const name=clean(container.dataset?.glossaryTerm||heading?.textContent);
+      if(!name||!paragraph||hidden.some(item=>norm(item.name)===norm(name)))return;
+      if(out.some(item=>norm(item.name)===norm(name)))return;
+      out.push({section:'glossary',group:'Glosario',name,description:clean(paragraph.textContent),container,usage:0});
+    });
+    return out.sort((a,b)=>a.name.localeCompare(b.name,'es'));
+  }
+
+  function sectionEntries(section){
+    if(section==='product')return productEntries();
+    if(section==='vocabularies')return vocabularyEntries();
+    return glossaryEntries();
+  }
+
+  function ensureButton(panelSelector,section){
+    const panel=document.querySelector(panelSelector);
+    if(!panel)return;
+    const intro=panel.querySelector(':scope > .ux-taxonomy-view-intro,:scope > .ux-taxonomy-common-intro');
+    if(!intro)return;
+    let actions=intro.querySelector(':scope > .ux-taxonomy-header-actions');
+    if(!actions){
+      actions=document.createElement('div');
+      actions.className='ux-taxonomy-header-actions';
+      [...intro.children].filter(child=>child.tagName==='BUTTON').forEach(button=>actions.appendChild(button));
+      intro.appendChild(actions);
+    }
+    if(actions.querySelector(`[data-taxonomy-manager-v2="${section}"]`))return;
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='secondary-button ux-taxonomy-manage-v2';
+    button.dataset.taxonomyManagerV2=section;
+    button.textContent='Gestionar términos';
+    actions.appendChild(button);
+  }
+  function ensureButtons(){
+    ensureButton('#taxonomy-view-product','product');
+    ensureButton('#taxonomy-view-vocabularies','vocabularies');
+    ensureButton('#taxonomy-view-glossary','glossary');
+  }
+
+  function hiddenVocabulary(group,value){
+    return readState().vocabularies.some(item=>norm(item.group)===norm(group)&&norm(item.value)===norm(value));
+  }
+  const previousControlled=globalThis.taxonomyControlledValues;
+  if(typeof previousControlled==='function'){
+    globalThis.taxonomyControlledValues=function(label){
+      const values=previousControlled.apply(this,arguments);
+      return Array.isArray(values)?values.filter(value=>!hiddenVocabulary(label,value)):values;
+    };
+  }
+
+  function applyVocabularies(){
+    const hidden=readState().vocabularies;
+    if(!hidden.length)return;
+    vocabularyCards().forEach(({group,card})=>{
+      [...card.querySelectorAll('[data-taxonomy-controlled-value],span,button')].forEach(node=>{
+        const value=clean(node.dataset?.taxonomyControlledValue||node.textContent);
+        if(value&&hidden.some(item=>norm(item.group)===norm(group)&&norm(item.value)===norm(value))){
+          if(!['añadir','+ añadir','anadir','+ anadir'].includes(norm(node.textContent)))node.hidden=true;
+        }
+      });
+    });
+  }
+  function applyGlossary(){
+    const hidden=readState().glossary;
+    if(!hidden.length)return;
+    const root=document.getElementById('taxonomy-glossary');
+    if(!root)return;
+    [...root.querySelectorAll('[data-glossary-term],article,li,details')].forEach(container=>{
+      const heading=container.matches('[data-glossary-term]')?container:container.querySelector('h3,h4,strong');
+      const name=clean(container.dataset?.glossaryTerm||heading?.textContent);
+      if(name&&hidden.some(item=>norm(item.name)===norm(name)))container.hidden=true;
+    });
+  }
+  function applyState(){
+    ensureButtons();
+    applyProductGovernance();
+    applyVocabularies();
+    applyGlossary();
+  }
+
+  function copyFor(section){
+    if(section==='product')return ['Gestionar estructura de producto','Puedes editar el nombre, fusionar duplicados o eliminar términos creados por error. Los IDs se mantienen y los nombres anteriores se conservan como alias.'];
+    if(section==='vocabularies')return ['Gestionar vocabularios','Cada valor aparece dentro de su vocabulario real. Si ya está utilizado, se retira para nuevas clasificaciones sin borrar el histórico.'];
+    return ['Gestionar Glosario UX Intel','Se muestran únicamente las definiciones reales del glosario.'];
+  }
+
+  function renderList(){
+    const query=norm(managerSearch.value);
+    const level=activeSection==='product'?managerLevel.value:'';
+    const filtered=entries.filter(entry=>{
+      if(level&&entry.level!==level)return false;
+      return !query||norm([entry.group,entry.name,entry.path,entry.description].filter(Boolean).join(' ')).includes(query);
+    });
+    if(!filtered.length){
+      managerList.innerHTML='<div class="taxonomy-manager-v2-empty">No hay términos para esta búsqueda.</div>';
+      return;
+    }
+    const groups=new Map();
+    filtered.forEach(entry=>{
+      const group=entry.group||'Términos';
+      if(!groups.has(group))groups.set(group,[]);
+      groups.get(group).push(entry);
+    });
+    managerList.innerHTML=[...groups.entries()].map(([group,items])=>`
