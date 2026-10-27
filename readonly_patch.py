@@ -94,7 +94,7 @@ taxonomy_runtime_js = f"""
 
   function restoreTaxonomy(){{
     try{{
-      if(!globalThis.taxonomyProject) return;
+      if(typeof taxonomyProject==='undefined' || !taxonomyProject) return;
       taxonomyProject.state = taxonomyProject.state || {{}};
       taxonomyProject.state.terms = JSON.parse(JSON.stringify(TERMS));
       if(!taxonomyProject.state.controlledVocabularies && typeof publicTaxonomyState!=='undefined'){{
@@ -114,7 +114,7 @@ taxonomy_runtime_js = f"""
 
   function ensureHistoricalLearnings(){{
     try{{
-      if(!Array.isArray(globalThis.learnings)) return;
+      if(typeof learnings==='undefined' || !Array.isArray(learnings)) return;
 
       const specs = [
         {{
