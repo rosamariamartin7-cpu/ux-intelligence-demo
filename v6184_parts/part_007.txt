@@ -1,0 +1,1000 @@
+    ];
+
+
+    const defaultSumaLearnings = [
+      {
+        id:"L-SUMA-01",initiative:"Usuarios SUMA",initiatives:["Usuarios SUMA"],area:"SUMA / Frequent Flyer",impactUx:"Alto",confidence:"Media",validity:"Vigente",
+        product:"Booking",funnel:"Transversal",minifunnel:"",screen:"Multipantalla",component:"Login / autenticación",element:"",device:"No especificado",market:"No especificado",
+        title:"El login aporta más valor cuando aparece en el momento adecuado y explica el beneficio",
+text:"Pedir o recuperar la identificación dentro del booking tiene sentido cuando ayuda a hacer algo mejor en ese momento: completar datos, usar Millas o mostrar beneficios SUMA.",
+        know:"El benchmark muestra que varias aerolíneas permiten iniciar sesión durante el booking y lo vinculan a beneficios concretos, no solo al acceso a la cuenta.",
+        forEvidence:[
+          "Benchmark externo: las cinco aerolíneas analizadas permiten iniciar sesión una vez iniciado el proceso en uno o varios puntos; Disponibilidad, resumen y pasajeros son los momentos más recurrentes.",
+          "Benchmark externo: Vueling, Air France, Qatar y British Airways vinculan el acceso a beneficios concretos como compra más rápida, Millas/Avios, descuentos, extras o ahorro.",
+          "Benchmark externo: las aerolíneas revisadas recuperan datos personales y, en varios casos, el número de viajero frecuente para usuarios identificados."
+        ],
+        contrary:[
+          "El patrón no es continuo en todo el funnel: Vueling y Qatar dejan de ofrecer login visible al llegar a Extras.",
+          "La recurrencia competitiva no demuestra qué punto ni qué propuesta de valor funcionan mejor en Air Europa."
+        ],
+        noProof:[
+          "No demuestra impacto en conversión, tasa de login, finalización del booking o satisfacción.",
+          "No valida un punto único de login ni un mensaje concreto.",
+          "No confirma la viabilidad técnica de recuperar sesión, perfil o beneficios dentro de Amadeus."
+        ],
+        open:["¿En qué puntos del booking aporta más valor ofrecer el login?","¿Qué beneficio motiva más la identificación: recuperar datos, acumular Millas, usar saldo o acceder a ventajas de nivel?","¿Qué datos del perfil SUMA podemos recuperar de forma fiable durante el booking?"],
+        applications:["Login contextual en Booking","Pasajeros / autocompletado","Propuesta de valor de SUMA","Persistencia de sesión","Personalización"],
+        sourceNames:["benchmark_Frequent_Flyer.xlsx","benchmark_booking_frequentflyer_sep26.pdf"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      },
+      {
+        id:"L-SUMA-02",initiative:"Usuarios SUMA",initiatives:["Usuarios SUMA"],area:"SUMA / Frequent Flyer",impactUx:"Alto",confidence:"Media",validity:"Vigente",
+        product:"Booking",funnel:"Availability",minifunnel:"",screen:"Disponibilidad / Fare Families",component:"Fare Families",element:"",device:"No especificado",market:"No especificado",
+        title:"En Fare Families hay que separar claramente lo que da la tarifa de lo que da SUMA",
+        text:"Millas, puntos de estatus y beneficios por nivel pueden ayudar a comparar tarifas, pero no deben confundirse con lo que incluye la propia Fare Family.",
+        know:"El benchmark muestra que algunas aerolíneas incorporan recompensa futura y beneficios de fidelización en la comparación de tarifas. Puede aportar valor si la jerarquía deja claro el origen de cada beneficio.",
+        forEvidence:[
+          "Iberia muestra Avios y Puntos Elite por Fare Family.",
+          "Air France incorpora Millas, XP y beneficios vinculados al nivel.",
+          "Qatar muestra los Avios generados dentro del detalle de tarifa.",
+          "El benchmark también identifica casos donde la fidelización se utiliza como argumento adicional de valor durante el upsell."
+        ],
+        contrary:[
+          "La presencia de fidelización no es homogénea entre aerolíneas ni Fare Families.",
+          "Añadir más información a una comparación ya densa puede aumentar carga si no existe una jerarquía clara."
+        ],
+        noProof:[
+          "No demuestra que mostrar Millas o beneficios SUMA cambie la elección de Fare Family.",
+          "No demuestra impacto en conversión o revenue.",
+          "No valida una representación visual concreta ni una cantidad óptima de información."
+        ],
+        open:["¿Mostrar Millas o beneficios SUMA influye en la elección de Fare Family?","¿Los usuarios entienden qué ventajas vienen de la tarifa y cuáles de su nivel SUMA?","¿Qué información aporta valor antes de elegir tarifa y cuál debería quedar en el detalle?"],
+        applications:["Availability / Dispo","Fare Families","Comparación de tarifas","Acumulación de Millas","Beneficios por nivel","Upsell"],
+        sourceNames:["benchmark_Frequent_Flyer.xlsx","benchmark_booking_frequentflyer_sep26.pdf"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      },
+      {
+        id:"L-SUMA-03",initiative:"Usuarios SUMA",initiatives:["Usuarios SUMA"],area:"SUMA / Frequent Flyer",impactUx:"Alto",confidence:"Media",validity:"Vigente",
+        product:"Booking",funnel:"Transversal",minifunnel:"",screen:"Multipantalla",component:"",element:"",device:"No especificado",market:"No especificado",scope:"Transversal",
+        title:"Los beneficios SUMA deben explicar qué gana cada pasajero y por qué",
+        text:"No basta con mostrar el nivel SUMA. Cuando un beneficio aplica, el usuario debería entender a qué pasajero corresponde y si viene de SUMA, de la tarifa o de otra condición.",
+        know:"El benchmark y los registros revisados muestran que el estatus por sí solo no siempre explica el beneficio. En Air Europa, cuando el usuario está logado podemos identificar si un servicio gratuito viene de la tarifa, de SUMA o de otra condición; la incertidumbre puede estar en el valor exacto en Millas, no en el origen del beneficio.",
+        forEvidence:[
+          "Air France identifica ventajas derivadas de Flying Blue y vincula determinadas ventajas al estatus.",
+          "British Airways muestra el nivel en Asientos, pero el benchmark detecta que no siempre explica qué beneficio produce.",
+          "Los registros revisados señalan que la fidelización debe asociarse al pasajero correcto cuando una reserva incluye varias personas.",
+          "En equipaje y otros ancillaries, la aplicación del beneficio depende de la asociación y del contexto; los patrones observados no son homogéneos entre productos.",
+          "Evidencia interna: con el usuario logado podemos identificar si un servicio gratuito viene de la tarifa, de SUMA o de otra condición. El dato que puede faltar es la cuantificación exacta en Millas."],
+        contrary:[
+          "Los ancillaries no son productos equivalentes: asientos, equipaje y otros extras pueden requerir patrones distintos.",
+          "El benchmark ofrece referencias externas, pero no datos de comprensión o comportamiento de usuarios de Air Europa."
+        ],
+        noProof:[
+          "No demuestra que todos los ancillaries deban mostrar fidelización de la misma forma.",
+          "No valida mostrar más mensajes SUMA en cada paso del booking.",
+          "No resuelve cómo deben gestionarse reservas con varios pasajeros y niveles diferentes."
+        ],
+        open:["¿Cómo mostramos los beneficios cuando varios pasajeros tienen situaciones SUMA diferentes?","¿En qué extras aporta valor mostrar información de fidelización?","¿Cómo diferenciamos el origen del beneficio sin añadir ruido?"],
+        applications:["Pasajeros","Asientos","Equipaje","Extras / ancillaries","Multipasajero","Origen del beneficio","Mensajería de estatus"],
+        sourceNames:["benchmark_Frequent_Flyer.xlsx","benchmark_booking_frequentflyer_sep26.pdf"],
+        status:"Learning consolidado",createdAt:"2026-09-19",updatedAt:"2026-09-19"
+      }
+    ];
+
+    // Los learnings consolidados se tratan como datos persistentes. Esta copia
+    // solo sirve para una migración controlada desde el prototipo anterior.
+    const learnings = [];
+
+    const evidence = [
+      {id:"E-01",name:"Interacciones del buscador y above the fold",type:"Interna",context:"Home ES/ES · desktop + mobile",contribution:"Volumen por campos, CTA, autogestión y promoción.",source:"Buscador · Datos QM · 22/05–22/06/2026"},
+      {id:"E-02",name:"Paso de búsqueda a Disponibilidad",type:"Interna",context:"Home → Dispo · por dispositivo",contribution:"Abandono mobile 11,67% vs desktop 7,22%.",source:"Buscador · Datos QM"},
+      {id:"E-03",name:"Test A/B nueva arquitectura mobile",type:"Experimento",context:"Header mobile · 13 días",contribution:"Autoservicio mejora; Buscar estable (-0,03%).",source:"CRO original → síntesis UX mobile"},
+      {id:"E-04",name:"Test A/B nueva arquitectura desktop",type:"Experimento",context:"Header desktop · 14 días",contribution:"Autoservicio mejora; Buscar -1,69%; transacción neutral.",source:"CRO original → síntesis UX desktop"},
+      {id:"E-05",name:"Validación de arquitectura y naming",type:"Interna",context:"Header · research con usuarios",contribution:"Gestionar reserva se entiende; Check-in debe conservar acceso propio.",source:"Header · Test de usuarios"},
+      {id:"E-06",name:"Uso operativo del Header",type:"Interna",context:"Home · desktop + mobile",contribution:"Confirma valor de gestión, cuenta y Check-in.",source:"Header · Inputs y datos internos"},
+      {id:"E-07",name:"Principios de flight booking",type:"Externa",context:"Buscador · sector travel",contribution:"Simplicidad, mobile first, flexibilidad, edición y accesibilidad.",source:"Buscador · Desk research"},
+      {id:"E-08",name:"Patrones comparados de  aerolíneas",type:"Externa",context:"Desktop + mobile",contribution:"Jerarquía, secuencia, calendarios, autoservicio y promoción.",source:"Buscador · Benchmark"},
+      {id:"E-09",name:"Benchmark de navegación global",type:"Externa",context:"Header · referentes",contribution:"Genera hipótesis y se cruza con research interno.",source:"Header · Benchmark + síntesis"},
+      {id:"E-10",name:"Lectura heurística de QM",type:"Inferencia",context:"Buscador + Header + Home",contribution:"Traduce interacción a prioridades y oportunidades UX.",source:"Buscador · Análisis QM + heurístico"},
+      {id:"E-11",name:"Principios conductuales aplicados",type:"Inferencia",context:"Above the fold",contribution:"Fluidez, saliencia, Hick, disclosure y control percibido.",source:"Buscador · Análisis conductual"},
+      {id:"E-12",name:"Auditoría del estado actual",type:"Inferencia",context:"Buscador · Home",contribution:"Densidad, jerarquía, SEO, Magnolia y responsive.",source:"Buscador · Auditoría UX"},
+      {id:"E-13",name:"Síntesis UX de resultados CRO",type:"Inferencia",context:"Header · por dispositivo",contribution:"Separa arquitectura de integración visual y limita causalidad.",source:"Análisis A/B mobile + desktop"},
+      {id:"E-14",name:"Evolución del Above the Fold",type:"Decisión",context:"Home · siguiente iniciativa",contribution:"Conecta aprendizajes y abre rediseño sistémico.",source:"Header · Siguiente paso"}
+    ];
+
+    const sources = [
+      {id:"S-01",name:"Header · Plan y alcance",area:"Header",role:"Contexto",kind:"Metodología",relation:"Origina la iniciativa",date:"2026"},
+      {id:"S-02",name:"Header · Desk research",area:"Header",role:"Primaria",kind:"Evidencia externa",relation:"Alimenta hipótesis",date:"2026"},
+      {id:"S-03",name:"Header · Auditoría del estado actual",area:"Header",role:"Primaria",kind:"Inferencia experta",relation:"Define problemas",date:"2026"},
+      {id:"S-04",name:"Header · Inputs y datos internos",area:"Header",role:"Primaria",kind:"Evidencia interna",relation:"Prioriza necesidades",date:"2026"},
+      {id:"S-05",name:"Header · Test de usuarios",area:"Header",role:"Primaria",kind:"Research interno",relation:"Valida arquitectura y naming",date:"2026"},
+      {id:"S-06",name:"Header · Benchmark + síntesis",area:"Header",role:"Síntesis",kind:"Externa + research",relation:"Contrasta hipótesis",date:"2026"},
+      {id:"S-07",name:"Header · Análisis test A/B mobile",area:"Header",role:"Síntesis",kind:"Interpretación UX de CRO",relation:"Resume experimento original",date:"Ago 2026"},
+      {id:"S-08",name:"Header · Análisis test A/B desktop",area:"Header",role:"Síntesis",kind:"Interpretación UX de CRO",relation:"Resume experimento original",date:"Ago 2026"},
+      {id:"S-09",name:"Header · Evolución del Above the Fold",area:"Header",role:"Decisión",kind:"Decisión / oportunidad",relation:"Deriva siguiente iniciativa",date:"Ago 2026"},
+      {id:"S-10",name:"Buscador · Plan de diseño, análisis y validación",area:"Buscador",role:"Contexto",kind:"Metodología",relation:"Define fases y alcance",date:"May 2026"},
+      {id:"S-11",name:"Buscador · Auditoría UX",area:"Buscador",role:"Primaria",kind:"Inferencia experta",relation:"Define problemas",date:"Jun 2026"},
+      {id:"S-12",name:"Buscador · Desk research",area:"Buscador",role:"Primaria",kind:"Evidencia externa",relation:"Alimenta criterios",date:"Jun 2026"},
+      {id:"S-13",name:"Buscador · Análisis QM + heurístico",area:"Buscador",role:"Síntesis",kind:"Interna + inferencia",relation:"Interpreta comportamiento",date:"Jun 2026"},
+      {id:"S-14",name:"Buscador · Análisis conductual",area:"Buscador",role:"Síntesis",kind:"Inferencia",relation:"Explica mecanismos plausibles",date:"Jun 2026"},
+      {id:"S-15",name:"Buscador · Benchmark",area:"Buscador",role:"Primaria",kind:"Evidencia externa",relation:"Contrasta patrones",date:"Jun 2026"},
+      {id:"S-16",name:"Buscador · Datos QM",area:"Buscador",role:"Primaria",kind:"Evidencia interna",relation:"Cuantifica uso y funnel",date:"Jun 2026"}
+    ];
+
+    const patterns = [
+      {id:"P-01",status:"Recomendado",confidence:"Alta",title:"Jerarquía dominante de búsqueda",description:"La búsqueda de vuelos gobierna el primer impacto; autoservicio, promoción y avisos asumen roles explícitos.",do:"Mantener Buscar vuelos inequívoco y medir avance a Disponibilidad.",avoid:"Hacer competir varios CTAs principales por el mismo nivel de atención.",scope:"Home · Above the fold",proof:"5 fuentes · L-01"},
+      {id:"P-02",status:"Testado",confidence:"Alta",title:"Navegación específica por dispositivo",description:"La priorización responde al contexto de uso y no replica literalmente la estructura entre desktop y mobile.",do:"Diseñar profundidad y shortcuts según frecuencia, urgencia y espacio.",avoid:"Comprimir desktop dentro de un menú mobile sin replantear prioridades.",scope:"Header · responsive",proof:"A/B mobile + desktop · L-02"},
+      {id:"P-03",status:"Recomendado",confidence:"Media",title:"Mostrar las opciones avanzadas cuando hagan falta",description:"Los datos esenciales aparecen primero; moneda, millas o código promocional reducen peso hasta el momento adecuado.",do:"Preservar acceso claro y mostrar opciones avanzadas bajo demanda.",avoid:"Confundir menor jerarquía con eliminación de funcionalidad.",scope:"Buscador",proof:"Desk + QM + conductual"},
+      {id:"P-04",status:"Oportunidad",confidence:"Media",title:"Calendario de decisión",description:"La selección ayuda a comparar y ajustar fechas, especialmente en mobile, sin convertir el calendario en una mini Disponibilidad.",do:"Priorizar edición, rango y navegación táctil; testar flexibilidad.",avoid:"Añadir precios o señales sin validar viabilidad, rendimiento y comprensión.",scope:"Buscador · fechas",proof:"3 fuentes · L-04"},
+      {id:"P-05",status:"Recomendado",confidence:"Media",title:"Comunicación con prioridad contextual",description:"Campañas y avisos operativos utilizan reglas distintas de peso, urgencia, duración y acción.",do:"Escalar visibilidad según criticidad o valor, con caducidad definida.",avoid:"Aplicar una jerarquía rígida idéntica a una huelga y a una promoción.",scope:"Home · comunicación",proof:"QM + auditoría + decisión"},
+      {id:"P-06",status:"Conservar y medir",confidence:"Media",title:"Continuidad con control",description:"La última búsqueda puede precargarse o recuperarse si el usuario reconoce, edita y borra fácilmente sus datos.",do:"Hacer visibles el origen de los datos y las acciones de editar o limpiar.",avoid:"Avanzar con información antigua sin que el usuario la revise.",scope:"Buscador recurrente",proof:"Auditoría + benchmark · L-08"}
+    ];
+
+    // Master product taxonomy: approved contexts remain selectable even with zero records.
+    const taxonomy = {
+      Home:{
+        Home:{Header:["Acceso Check-in","Accesos de autogestión"],Buscador:["CTA Buscar vuelos","Calendario","Pestañas de producto","Última búsqueda"],"Banner promocional":[],Avisos:[]}
+      },
+      Booking:{
+        Disponibilidad:{"Fare Families":[]},
+        "Shopping Cart":{}, Pasajeros:{}, Extras:{}, Pago:{}
+      },
+      "Check-in":{},
+      MMB:{}
+    };
+    // Current navigation follows the canonical taxonomy; the historic chart remains separate.
+    const homeOverviewTaxonomy = {
+      Home:{Home:{}},
+      Booking:{Disponibilidad:{},"Shopping Cart":{},Pasajeros:{},Extras:{},Pago:{}},
+      "Check-in":{},
+      MMB:{}
+    };
+    const homeCoverageProducts=["Booking","Check-in","MMB"];
+    function taxonomyTermIsGoverned(term){
+      if(!term)return false;
+      if(['screen','element'].includes(String(term.level||'').trim()))return false;
+      const status=normalizeText(term.status||'canonical');
+      if(!['canonical','canonico'].includes(status))return false;
+      if(term.governed===true)return true;
+      const origin=String(term.origin||'').trim();
+      return !/^excel revisado\s*·/i.test(origin);
+    }
+    function governedTaxonomyTerms(level=''){
+      try{
+        const terms=Array.isArray(taxonomyProject?.state?.terms)?taxonomyProject.state.terms:[];
+        return terms.filter(term=>taxonomyTermIsGoverned(term)&&(!level||term.level===level));
+      }catch(_){return [];}
+    }
+    function governedTermName(term){return String(term?.canonicalName||term?.name||term?.label||'').trim();}
+    function governedTermAliases(term){return Array.isArray(term?.aliases)?term.aliases.map(value=>String(value||'').trim()).filter(Boolean):[];}
+    function governedTermMatches(term,value){
+      const target=normalizeText(value||'');if(!target)return false;
+      return [governedTermName(term),...governedTermAliases(term)].some(candidate=>normalizeText(candidate)===target);
+    }
+    function governedTermContext(term){
+      if(!term)return {};
+      const terms=governedTaxonomyTerms();
+      const byId=new Map(terms.map(item=>[String(item.id||''),item]).filter(([id])=>id));
+      const chain=[];const seen=new Set();let current=term;
+      while(current){
+        const id=String(current.id||'');
+        if(id&&seen.has(id))break;
+        if(id)seen.add(id);
+        chain.unshift(current);
+        const pid=String(current.parentId||'');
+        current=pid?byId.get(pid):null;
+      }
+      const context={};
+      chain.forEach(node=>{
+        const level=String(node.level||'');
+        const name=governedTermName(node);
+        if(name&&['product','funnel','minifunnel','component'].includes(level))context[level]=name;
+      });
+      if(term.transversal===true){
+        Object.keys(context).forEach(level=>{if(level!==term.level)delete context[level];});
+      }
+      return context;
+    }
+    function isLearningCatalogItem(item){
+      const id=String(item?.id||'').trim(),status=normalizeText(item?.status||item?.type||'');
+      return /^L(?:-|$)/.test(id)||status==='learning consolidado';
+    }
+    function governedTaxonomyRecord(item){
+      const source=item||{};
+      // Si la taxonomía gobernada aún no ha cargado, mostramos la clasificación
+      // existente. El canon normaliza cuando está disponible, pero nunca vacía
+      // metadata válida por una carrera de inicialización.
+      if(!governedTaxonomyTerms().length){
+        const raw={
+          product:String(source.product||'').trim(),
+          funnel:String(source.funnel||'').trim(),
+          minifunnel:String(source.minifunnel||'').trim(),
+          component:String(source.component||'').trim()
+        };
+        if(normalizeText(raw.product)==='home'){raw.funnel='';raw.minifunnel='';}
+        if(normalizeText(raw.funnel)!=='extras')raw.minifunnel='';
+        return {...source,...raw};
+      }
+      const resolved={product:'',funnel:'',minifunnel:'',component:''};
+
+      const candidates=(level,value)=>governedTaxonomyTerms(level).filter(term=>governedTermMatches(term,value));
+      const compatible=(term,expected={})=>{
+        const context=governedTermContext(term);
+        return Object.entries(expected).every(([level,value])=>
+          !String(value||'').trim()||normalizeText(context[level]||'')===normalizeText(value)
+        );
+      };
+      const match=(level,value,expected={})=>{
+        if(!String(value||'').trim())return null;
+        const all=candidates(level,value);
+        if(!all.length)return null;
+        const scoped=all.filter(term=>compatible(term,expected));
+        if(scoped.length)return scoped[0];
+        return all.length===1?all[0]:null;
+      };
+      const applyContext=term=>{
+        const context=governedTermContext(term);
+        Object.entries(context).forEach(([key,value])=>{
+          if(['product','funnel','minifunnel','component'].includes(key)&&!resolved[key])resolved[key]=value;
+        });
+      };
+
+      const productTerm=match('product',source.product);
+      if(productTerm)applyContext(productTerm);
+
+      const funnelTerm=match('funnel',source.funnel,{product:resolved.product||source.product});
+      if(funnelTerm)applyContext(funnelTerm);
+
+      if(normalizeText(resolved.funnel||source.funnel)==='extras'){
+        const miniTerm=match('minifunnel',source.minifunnel,{
+          product:resolved.product||source.product,
+          funnel:resolved.funnel||source.funnel
+        });
+        if(miniTerm)applyContext(miniTerm);
+      }
+
+      const rawComponents=isLearningCatalogItem(source)
+        ? [source.component].filter(Boolean)
+        : [...(Array.isArray(source.components)?source.components:[]),source.component].filter(Boolean);
+
+      for(const value of rawComponents){
+        const componentTerm=match('component',value,{
+          product:resolved.product||source.product,
+          funnel:resolved.funnel||source.funnel,
+          minifunnel:resolved.minifunnel||source.minifunnel
+        });
+        if(componentTerm){applyContext(componentTerm);break;}
+      }
+
+      if(!resolved.product&&source.component){
+        const unique=candidates('component',source.component);
+        if(unique.length===1)applyContext(unique[0]);
+      }
+
+      if(normalizeText(resolved.product)==='home'){
+        resolved.funnel='';
+        resolved.minifunnel='';
+      }
+      if(normalizeText(resolved.funnel)!=='extras')resolved.minifunnel='';
+
+      const legacy={};
+      for(const level of ['product','funnel','minifunnel','component']){
+        const raw=String(source[level]||'').trim();
+        const canonical=String(resolved[level]||'').trim();
+        if(raw&&normalizeText(raw)!==normalizeText(canonical)){
+          const key='legacy'+level.charAt(0).toUpperCase()+level.slice(1);
+          legacy[key]=source[key]||raw;
+        }
+      }
+      return {...source,...legacy,...resolved};
+    }
+    function governedComponentNames(item){
+      const learning=isLearningCatalogItem(item);
+
+      // Un learning consolidado representa un único componente vigente.
+      // Si existe `component`, NO mezclamos `legacyComponent` ni antiguos `components[]`
+      // en UI, filtros o rutas. Esos valores históricos pueden seguir existiendo
+      // para trazabilidad, pero no forman parte de la clasificación actual.
+      if(learning){
+        const current=String(item?.component||'').trim();
+
+        // "Beneficio de fidelización" es una etiqueta conceptual histórica,
+        // no un componente canónico. En el learning transversal SUMA no debe
+        // mostrarse ni participar en filtros.
+        if(
+          String(item?.id||'')==='L-SUMA-03' ||
+          (
+            normalizeText(item?.funnel||'')==='transversal' &&
+            normalizeText(current)==='beneficio de fidelizacion'
+          )
+        ){
+          return [];
+        }
+
+        if(current){
+          const terms=governedTaxonomyTerms('component');
+          const currentContext=governedTaxonomyRecord(item);
+          const compatibleTerm=terms.find(candidate=>{
+            if(!governedTermMatches(candidate,current))return false;
+            const context=governedTermContext(candidate);
+            const same=(a,b)=>!String(b||'').trim()||normalizeText(a||'')===normalizeText(b);
+            return same(context.product,currentContext.product||item?.product)&&
+              same(context.funnel,currentContext.funnel||item?.funnel)&&
+              same(context.minifunnel,currentContext.minifunnel||item?.minifunnel);
+          });
+
+          // Regla estricta: cuando la taxonomía gobernada está disponible,
+          // un learning solo puede mostrar un componente que exista en el canon
+          // y sea compatible con su contexto. Nunca inventamos ni reutilizamos
+          // una etiqueta histórica como clasificación actual.
+          if(terms.length){
+            return compatibleTerm?[governedTermName(compatibleTerm)||current]:[];
+          }
+
+          // Antes de que el canon termine de cargar, conservamos temporalmente
+          // el valor actual para evitar parpadeos; se revalida al refrescar filtros/render.
+          return [current];
+        }
+
+        // Solo si falta realmente el componente actual recuperamos un histórico,
+        // priorizando un valor gobernado y sin devolver más de uno.
+        const fallback=[item?.legacyComponent,...(Array.isArray(item?.components)?item.components:[])]
+          .map(value=>String(value||'').trim()).filter(Boolean);
+        const governed=fallback.find(value=>governedTaxonomyTerms('component').some(candidate=>governedTermMatches(candidate,value)));
+        const chosen=governed||fallback[0]||'';
+        if(!chosen)return [];
+        const term=governedTaxonomyTerms('component').find(candidate=>governedTermMatches(candidate,chosen));
+        return [governedTermName(term)||chosen].filter(Boolean);
+      }
+
+      const raw=[...(Array.isArray(item?.components)?item.components:[]),item?.component].filter(Boolean);
+      const out=[];
+      raw.forEach(value=>{
+        const rawName=String(value||'').trim();
+        if(!rawName)return;
+        const term=governedTaxonomyTerms('component').find(candidate=>governedTermMatches(candidate,rawName));
+        const name=governedTermName(term)||'';
+        if(name&&!out.some(existing=>normalizeText(existing)===normalizeText(name)))out.push(name);
+      });
+      return out;
+    }
+    function governedTaxonomyDisplay(item,level){
+      if(level==='component')return governedComponentNames(item).join(' · ');
+      const governed=governedTaxonomyRecord(item)?.[level]||'';
+      if(governed)return governed;
+      // En learnings preservamos la metadata consolidada aunque la taxonomía aún
+      // no haya resuelto ese término. No convierte el valor en canónico.
+      if(isLearningCatalogItem(item))return String(item?.[level]||'').trim();
+      return '';
+    }
+    globalThis.UXGovernedTaxonomy={
+      normalizeRecord:governedTaxonomyRecord,
+      values:level=>[...new Set(governedTaxonomyTerms(level).map(governedTermName).filter(Boolean))],
+      componentNames:governedComponentNames,
+      terms:governedTaxonomyTerms
+    };
+    function componentsOf(item){return governedComponentNames(item);}
+    function canonicalComponentName(value){
+      const raw=String(value||'').trim();
+      if(!raw)return '';
+      const term=governedTaxonomyTerms('component').find(candidate=>governedTermMatches(candidate,raw));
+      return governedTermName(term)||'';
+    }
+    function learningComponentOptions(item){
+      const product=String(item?.product||'').trim(),screen=String(item?.screen||'').trim();
+      const isBroadScreen=/^(multipantalla|transversal|no especificad[oa])$/i.test(screen);
+      const contexts=taxonomyContexts().filter(context=>String(context?.component||'').trim());
+      const compatible=contexts.filter(context=>
+        (!product||normalizeText(context.product||'')===normalizeText(product))&&
+        (isBroadScreen||!screen||normalizeText(context.screen||'')===normalizeText(screen))
+      );
+      const source=compatible.length?compatible:contexts;
+      const names=[...new Set(source.map(context=>String(context.component||'').trim()).filter(Boolean))]
+        .filter(name=>canonicalComponentName(name))
+        .sort((a,b)=>a.localeCompare(b,'es'));
+      return names;
+    }
+    function normalizeLearningSingleComponentState(){
+      let changed=false;
+      learnings.forEach(item=>{
+        const legacy=Array.isArray(item.components)?item.components.map(value=>String(value||'').trim()).filter(Boolean):[];
+        const current=String(item.component||'').trim();
+        let primary=current;
+        if(!primary){
+          primary=legacy.find(value=>canonicalComponentName(value))||legacy[0]||'';
+          if(primary){item.component=primary;changed=true;}
+        }
+        const secondary=legacy.filter(value=>normalizeText(value)!==normalizeText(primary));
+        if(secondary.length){
+          mergeUnique(item,'applications',secondary);
+          changed=true;
+        }
+        if(Object.prototype.hasOwnProperty.call(item,'components')){
+          delete item.components;
+          changed=true;
+        }
+      });
+      return changed;
+    }
+    function repairKnownLearningMetadata(){
+      const defaults=new Map([...defaultBuscadorLearnings,...defaultHeaderLearnings,...defaultSumaLearnings].map(item=>[String(item.id||''),item]));
+      let changed=false;
+      learnings.forEach(item=>{
+        // 1) Recuperación genérica desde trazabilidad previa: nunca inferimos.
+        const history=Array.isArray(item?.classificationHistory)?item.classificationHistory:[];
+        const lastHistoryValue=field=>{
+          for(let i=history.length-1;i>=0;i--){
+            const entry=history[i];
+            if(String(entry?.field||'')!==field)continue;
+            const value=String(entry?.to||'').trim();
+            if(value)return value;
+          }
+          return '';
+        };
+        const legacyByField={
+          product:String(item?.legacyProduct||'').trim(),
+          screen:String(item?.legacyScreen||'').trim(),
+          component:String(item?.legacyComponent||'').trim(),
+          device:String(item?.legacyDevice||'').trim(),
+          market:String(item?.legacyMarket||'').trim(),
+          impactUx:String(item?.legacyImpactUx||'').trim()
+        };
+        for(const field of ['product','screen','component','device','market','impactUx']){
+          if(String(item?.[field]??'').trim())continue;
+          const traced=lastHistoryValue(field)||legacyByField[field];
+          if(traced){item[field]=traced;changed=true;}
+        }
+
+        // 2) Para los learnings base, la definición consolidada es una fuente de
+        // recuperación segura. Solo cubre ausencias reales y nunca sobreescribe
+        // una decisión posterior ni "No especificado".
+        const seed=defaults.get(String(item?.id||''));
+        if(!seed)return;
+        for(const field of ['product','screen','component','device','market','impactUx']){
+          const current=String(item?.[field]??'').trim();
+          const fallback=String(seed?.[field]??'').trim();
+          if(!current&&fallback){item[field]=fallback;changed=true;}
+        }
+      });
+      return changed;
+    }
+
+    function taxonomyContexts(){
+      const levels=['product','funnel','minifunnel','component'];
+      const clean=value=>String(value??'').trim();
+      const termId=term=>clean(term?.id||term?.termId||term?.key);
+      const parentId=term=>clean(term?.parentId||term?.parentTermId||term?.parent?.id||term?.parent);
+      const termName=term=>clean(term?.canonicalName||term?.name||term?.label||term?.value);
+      const status=term=>normalizeText(term?.status||'canonical');
+      const isCanonical=term=>['canonical','canonico'].includes(status(term));
+
+      try{
+        const terms=Array.isArray(taxonomyProject?.state?.terms)
+          ? taxonomyProject.state.terms.filter(term=>isCanonical(term)&&taxonomyTermIsGoverned(term))
+          : [];
+        if(terms.length){
+          const byId=new Map(terms.map(term=>[termId(term),term]).filter(([id])=>id));
+          const contexts=new Map();
+          terms.forEach(term=>{
+            const chain=[];
+            const seen=new Set();
+            let current=term;
+            while(current){
+              const id=termId(current);
+              if(id&&seen.has(id))break;
+              if(id)seen.add(id);
+              chain.unshift(current);
+              const pid=parentId(current);
+              current=pid?byId.get(pid):null;
+            }
+            const context={};
+            chain.forEach(node=>{
+              const level=clean(node?.level);
+              const name=termName(node);
+              if(levels.includes(level)&&name)context[level]=name;
+            });
+            if(!Object.keys(context).length)return;
+            const key=levels.map(level=>normalizeText(context[level]||'')).join('|');
+            contexts.set(key,context);
+          });
+          if(contexts.size)return [...contexts.values()];
+        }
+      }catch(_){}
+
+      // Sin taxonomía gobernada cargada no inferimos estructura desde datos históricos.
+      // El canon es fuente de verdad; los registros nunca crean términos por sí solos.
+      return [];
+    }
+
+    const evidenceMeta = {
+      "E-01":{product:"Booking",screen:"Home",component:"Buscador",element:"",kind:"Quantum Metric",confidence:"Alta",device:"Desktop + mobile"},
+      "E-02":{product:"Booking",screen:"Home",component:"Buscador",element:"CTA Buscar vuelos",kind:"Quantum Metric",confidence:"Media",device:"Desktop + mobile"},
+      "E-03":{product:"Booking",screen:"Home",component:"Header",element:"Accesos de autogestión",kind:"Test A/B",confidence:"Media",device:"Mobile"},
+      "E-04":{product:"Booking",screen:"Home",component:"Header",element:"Accesos de autogestión",kind:"Test A/B",confidence:"Media",device:"Desktop"},
+      "E-05":{product:"Booking",screen:"Home",component:"Header",element:"Accesos de autogestión",kind:"Test de usuarios",confidence:"Media",device:"Desktop + mobile"},
+      "E-06":{product:"Booking",screen:"Home",component:"Header",element:"",kind:"Data",confidence:"Media",device:"Desktop + mobile"},
+      "E-07":{product:"Booking",screen:"Home",component:"Buscador",element:"",kind:"Desk research",confidence:"Media",device:"Desktop + mobile"},
+      "E-08":{product:"Booking",screen:"Home",component:"Buscador",element:"",kind:"Benchmark",confidence:"Media",device:"Desktop + mobile"},
+      "E-09":{product:"Booking",screen:"Home",component:"Header",element:"",kind:"Benchmark",confidence:"Media",device:"Desktop + mobile"},
+      "E-10":{product:"Booking",screen:"Home",component:"",element:"",zone:"Above the fold",scope:"Transversal",contextConcepts:["Jerarquía de componentes"],kind:"Análisis heurístico",confidence:"Media",device:"Desktop + mobile"},
+      "E-11":{product:"Booking",screen:"Home",component:"",element:"",zone:"Above the fold",scope:"Transversal",contextConcepts:["Jerarquía de componentes"],kind:"Análisis conductual",confidence:"Media",device:"Desktop + mobile"},
+      "E-12":{product:"Booking",screen:"Home",component:"Buscador",element:"",kind:"Auditoría UX",confidence:"Media",device:"Desktop + mobile"},
+      "E-13":{product:"Booking",screen:"Home",component:"Header",element:"",kind:"Análisis UX de CRO",confidence:"Media",device:"Desktop + mobile"},
+      "E-14":{exclude:true}
+    };
+    const evidenceItems = evidence.filter(item=>!evidenceMeta[item.id]?.exclude).map(item=>({...item,...evidenceMeta[item.id],evidenceDate:'',ingestedAt:''}));
+
+    const experiments = [
+      {id:"AB-01",title:"Nueva arquitectura del Header · mobile",product:"Booking",screen:"Home",component:"Header",element:"Accesos de autogestión",device:"Mobile",duration:"13 días",outcome:"Positivo",pro:"No implementado",hypothesis:"La nueva estructura facilitaría las tareas principales de navegación en mobile sin introducir fricción sobre Buscar vuelos.",result:"Mejora el acceso a tareas de autogestión y Buscar vuelos se mantiene estable (-0,03%).",metrics:[{label:"Check-in",value:"+15,28%"},{label:"Mi Cuenta",value:"+12,77%"},{label:"Gestionar reserva",value:"+198,80%"},{label:"Buscar vuelos",value:"−0,03%"}],interpretation:"La hipótesis se considera validada en mobile: las tareas operativas ganan visibilidad sin una pérdida relevante en la acción principal. Los tres accesos de autoservicio alcanzan un 100% de probabilidad de superar al control según el informe; Buscar obtiene un 48,97%.",recommendation:"Mantener la priorización directa de Check-in y las tareas principales, conservar una solución específica para mobile y validar de nuevo el conjunto antes de llevarlo a producción.",limits:["El incremento de Gestionar reserva es relativo frente al control y no informa del volumen absoluto.","La muestra y la instrumentación detallada no constan en la documentación disponible.","El resultado corresponde a mobile y no debe extenderse a desktop."],learningIds:["L-02","L-03"]},
+      {id:"AB-02",title:"Nueva arquitectura del Header · desktop",product:"Booking",screen:"Home",component:"Header",element:"Accesos de autogestión",device:"Desktop",duration:"14 días",outcome:"Mixto",pro:"No implementado",hypothesis:"La nueva arquitectura mejoraría la encontrabilidad del autoservicio sin desplazar la búsqueda ni afectar a la conversión final.",result:"Mejora el acceso a autogestión, Buscar vuelos cae un 1,69% y la transacción queda neutral.",metrics:[{label:"Check-in",value:"+56,52%"},{label:"Gestiona mi reserva",value:"+34,15%"},{label:"Mi Cuenta",value:"+11,23%"},{label:"Buscar vuelos",value:"−1,69%"},{label:"Transacción final",value:"+0,66% · neutral"}],interpretation:"La hipótesis queda parcialmente validada. La arquitectura mejora la encontrabilidad del autoservicio, pero la composición completa del above the fold no protege suficientemente Buscar vuelos. La probabilidad de que la variante supere al control en Buscar es del 2,49%.",recommendation:"Conservar la dirección de arquitectura, reforzar Buscar vuelos como acción dominante, revisar los elementos que compiten en el primer impacto y volver a validar el conjunto.",limits:["La variante incluía varios cambios visuales, por lo que no puede aislarse una única causa.","La muestra y la instrumentación detallada no constan en la documentación disponible.","Una transacción final neutral no elimina el problema observado en el KPI más cercano a la intervención."],learningIds:["L-02","L-03"]}
+    ];
+
+    const DOCUMENT_ANALYSIS_TYPES=[
+      'Auditoría UX','Test con usuarios','Análisis conductual','Análisis de datos',
+      'Experimentación / CRO','Benchmark','Desk research','Voz del cliente / CSAT','Síntesis estratégica'
+    ];
+    const DOCUMENT_ANALYSIS_TYPE_MAP=new Map([
+      ['auditoria ux','Auditoría UX'],['auditoría ux','Auditoría UX'],['analisis heuristico','Auditoría UX'],['análisis heurístico','Auditoría UX'],['auditoria heuristica','Auditoría UX'],['auditoría heurística','Auditoría UX'],
+      ['ux research','Test con usuarios'],['test de usuarios','Test con usuarios'],['test con usuarios','Test con usuarios'],['research interno','Test con usuarios'],
+      ['analisis conductual','Análisis conductual'],['análisis conductual','Análisis conductual'],['quantum metric','Análisis conductual'],['qm','Análisis conductual'],
+      ['analisis de datos','Análisis de datos'],['análisis de datos','Análisis de datos'],['data','Análisis de datos'],['datos','Análisis de datos'],
+      ['experimentacion / cro','Experimentación / CRO'],['experimentación / cro','Experimentación / CRO'],['cro','Experimentación / CRO'],['a/b test','Experimentación / CRO'],['test a/b','Experimentación / CRO'],['ab test','Experimentación / CRO'],
+      ['benchmark','Benchmark'],['desk research','Desk research'],
+      ['voz del cliente / csat','Voz del cliente / CSAT'],['csat','Voz del cliente / CSAT'],['voz del cliente','Voz del cliente / CSAT'],
+      ['sintesis estrategica','Síntesis estratégica'],['síntesis estratégica','Síntesis estratégica'],['analisis estrategico','Síntesis estratégica'],['análisis estratégico','Síntesis estratégica']
+    ]);
+    function normalizeDocumentAnalysisType(value){
+      const raw=String(value||'').trim();if(!raw)return '';
+      const exact=DOCUMENT_ANALYSIS_TYPES.find(item=>normalizeText(item)===normalizeText(raw));
+      if(exact)return exact;
+      return DOCUMENT_ANALYSIS_TYPE_MAP.get(normalizeText(raw))||'';
+    }
+    const DOCUMENT_ANALYSIS_EXCEL_CLASSIFICATION_KEY='ae-ux-intel-document-analysis-excel-classification-v1';
+    function documentAnalysisFilename(item){
+      return String(item?.originalName||item?.insightRegister?.file?.name||item?.fileMeta?.name||item?.name||'').trim();
+    }
+    function isExcelAnalysisDocument(item){
+      const filename=normalizeText(documentAnalysisFilename(item));
+      return /\.(xlsx?|csv)$/.test(filename)||Boolean(item?.insightRegister?.rows?.length);
+    }
+    function inferAnalysisTypeFromDocumentName(item){
+      const name=normalizeText([documentAnalysisFilename(item),item?.name,item?.initiative].filter(Boolean).join(' '));
+      if(!name)return '';
+      if(name.includes('test a/b')||name.includes('a/b')||name.includes('ab test')||name.includes(' cro')||name.includes('experiment'))return 'Experimentación / CRO';
+      if(name.includes('test de usuarios')||name.includes('test con usuarios')||name.includes('ux research')||name.includes('research usuario'))return 'Test con usuarios';
+      if(name.includes('benchmark'))return 'Benchmark';
+      if(name.includes('desk research'))return 'Desk research';
+      if(name.includes('quantum metric')||name.includes('datos qm')||name.includes('analisis qm')||name.includes(' qm ')||name.endsWith(' qm')||name.includes('conductual'))return 'Análisis conductual';
+      if(name.includes('csat')||name.includes('voz del cliente')||name.includes('nps'))return 'Voz del cliente / CSAT';
+      if(name.includes('auditoria')||name.includes('auditoría')||name.includes('heuristic')||name.includes('heuríst'))return 'Auditoría UX';
+      if(name.includes('datos internos')||name.includes('inputs y datos')||name.includes('recogida de inputs')||name.includes('analisis de datos')||name.includes('análisis de datos'))return 'Análisis de datos';
+      if(name.includes('sintesis estrateg')||name.includes('síntesis estratég')||name.includes('final insights')||name.includes('evolucion del above the fold')||name.includes('evolución del above the fold'))return 'Síntesis estratégica';
+      return '';
+    }
+    function inferAnalysisTypeFromRegisterOrigins(item){
+      const rows=Array.isArray(item?.insightRegister?.rows)?item.insightRegister.rows:[];
+      if(!rows.length)return '';
+      const scores=new Map(DOCUMENT_ANALYSIS_TYPES.map(value=>[value,0]));
+      const add=(type,weight=1)=>{if(type)scores.set(type,(scores.get(type)||0)+weight);};
+      rows.forEach(row=>{
+        const origin=normalizeText(row?.origin||'');
+        if(!origin)return;
+        if(origin.includes('ux research')||origin.includes('test de usuarios')||origin.includes('test con usuarios')||origin.includes('research interno'))add('Test con usuarios');
+        if(origin.includes('quantum metric')||/(^|[ ;|])qm($|[ ;|])/.test(origin))add('Análisis conductual');
+        if(origin.includes('a/b test')||origin.includes('ab test')||origin.includes('test a/b')||/(^|[ ;|])cro($|[ ;|])/.test(origin))add('Experimentación / CRO');
+        if(origin.includes('auditoria ux')||origin.includes('auditoría ux')||origin.includes('heuristica')||origin.includes('heurística'))add('Auditoría UX');
+        if(origin.includes('benchmark'))add('Benchmark');
+        if(origin.includes('desk research'))add('Desk research');
+        if(origin==='data'||origin==='datos'||origin.includes('analisis de datos')||origin.includes('análisis de datos'))add('Análisis de datos');
+        if(origin.includes('csat')||origin.includes('voz del cliente'))add('Voz del cliente / CSAT');
+      });
+      const ranked=[...scores.entries()].filter(([,score])=>score>0).sort((a,b)=>b[1]-a[1]);
+      if(!ranked.length)return '';
+      if(ranked.length===1)return ranked[0][0];
+      const [first,second]=ranked;
+      return first[1]>=second[1]*1.5?first[0]:'';
+    }
+    function inferExistingExcelAnalysisType(item){
+      if(!isExcelAnalysisDocument(item))return '';
+      return inferAnalysisTypeFromDocumentName(item)||inferAnalysisTypeFromRegisterOrigins(item)||'';
+    }
+    function documentAnalysisType(item){
+      const explicit=normalizeDocumentAnalysisType(item?.analysisType);if(explicit)return explicit;
+      const candidates=[item?.documentProfile?.analysisType,item?.analysis?.metadata?.detectedType,item?.type];
+      for(const candidate of candidates){const mapped=normalizeDocumentAnalysisType(candidate);if(mapped)return mapped;}
+      return inferAnalysisTypeFromDocumentName(item)||inferAnalysisTypeFromRegisterOrigins(item)||'';
+    }
+    function classifyExistingExcelAnalysisTypes(){
+      if(localStorage.getItem(DOCUMENT_ANALYSIS_EXCEL_CLASSIFICATION_KEY)==='1')return 0;
+      let changed=0;
+      sourceItems.forEach(item=>{
+        if(!isExcelAnalysisDocument(item))return;
+        const inferred=inferExistingExcelAnalysisType(item);
+        if(!inferred)return;
+        if(normalizeDocumentAnalysisType(item.analysisType)!==inferred){item.analysisType=inferred;changed++;}
+        if(item.documentProfile&&item.documentProfile.analysisType!==inferred)item.documentProfile.analysisType=inferred;
+      });
+      try{localStorage.setItem(DOCUMENT_ANALYSIS_EXCEL_CLASSIFICATION_KEY,'1');}catch(_){}
+      return changed;
+    }
+    function documentAnalysisTypeOptions(item){
+      const current=documentAnalysisType(item);
+      return `<option value="" ${current?'':'selected'}>Sin clasificar</option>`+DOCUMENT_ANALYSIS_TYPES.map(value=>`<option value="${escapeHtml(value)}" ${value===current?'selected':''}>${escapeHtml(value)}</option>`).join('');
+    }
+    function setDocumentAnalysisTypeFilter(selected='Todos'){
+      optionSet(document.getElementById('source-type'),'Todos',DOCUMENT_ANALYSIS_TYPES,selected);
+    }
+    const sourceType = item => {
+      const name=normalizeText(item.name);
+      if(name.includes('quantum')||name.includes(' qm')) return 'Quantum Metric';
+      if(name.includes('benchmark')) return 'Benchmark';
+      if(name.includes('desk research')) return 'Desk research';
+      if(name.includes('test de usuarios')) return 'Test de usuarios';
+      if(name.includes('test a/b')) return 'Test A/B';
+      if(name.includes('auditoria')) return 'Auditoría UX';
+      if(name.includes('conductual')) return 'Análisis conductual';
+      if(name.includes('plan')) return 'Plan de trabajo';
+      if(name.includes('inputs')) return 'Data';
+      if(name.includes('evolucion')) return 'Decisión de diseño';
+      return 'Análisis UX';
+    };
+    const sourceItems = sources.map(item=>{const type=sourceType(item);return {...item,product:"Booking",screen:"Home",component:item.area,element:"",initiative:item.area,type,analysisType:documentAnalysisType({...item,type}),catalogDate:item.date||'',exactDate:item.date||"No indicada",documentDate:temporalValue(item.date,'catálogo'),ingestedAt:'',status:'Disponible'};});
+
+    // Visible document titles use sentence case while preserving real acronyms.
+    // Header research phases also have canonical UX-facing titles so PDF and Excel siblings stay aligned.
+    const DOCUMENT_TITLE_OVERRIDES=new Map([
+      ['final insights designs','Final insights designs'],
+      ['resultados test a/b desktop','Resultados test A/B desktop'],
+      ['resultados test a/b mobile','Resultados test A/B mobile'],
+      ['benchmark','Benchmark'],
+      ['test con usuarios','Test con usuarios'],
+      ['analisis y recogida de inputs','Análisis y recogida de inputs'],
+      ['auditoria heuristica','Auditoría heurística'],
+      ['desk research','Desk research']
+    ]);
+    function canonicalDocumentTitle(value){
+      const raw=String(value||'').trim();if(!raw)return raw;
+      const normalized=normalizeText(raw);
+      if(DOCUMENT_TITLE_OVERRIDES.has(normalized))return DOCUMENT_TITLE_OVERRIDES.get(normalized);
+      const letters=(raw.match(/[A-Za-zÁÉÍÓÚÜÑ]/g)||[]).join('');
+      if(!letters||letters!==letters.toLocaleUpperCase('es-ES'))return raw;
+      let next=raw.toLocaleLowerCase('es-ES');
+      next=next.charAt(0).toLocaleUpperCase('es-ES')+next.slice(1);
+      const replacements=[
+        [/\ba\/b\b/gi,'A/B'],[/\bux\b/gi,'UX'],[/\bsuma\b/gi,'SUMA'],[/\bcro\b/gi,'CRO'],
+        [/\bqm\b/gi,'QM'],[/\bpdf\b/gi,'PDF'],[/\bseo\b/gi,'SEO'],[/\bcsat\b/gi,'CSAT'],
+        [/\bmmb\b/gi,'MMB'],[/\bcta\b/gi,'CTA'],[/\bui\b/gi,'UI'],[/\bab\b/gi,'AB'],[/\bexcel\b/gi,'Excel']
+      ];
+      replacements.forEach(([pattern,label])=>{next=next.replace(pattern,label);});
+      return next;
+    }
+    function normalizeVisibleDocumentNames(){
+      const renamed=new Map();
+      sourceItems.forEach(item=>{
+        const before=String(item?.name||'').trim(),after=canonicalDocumentTitle(before);
+        if(before&&after!==before){item.name=after;renamed.set(before,after);if(item.documentProfile?.title===before)item.documentProfile.title=after;}
+      });
+      if(renamed.size){
+        learnings.forEach(item=>{if(Array.isArray(item.sourceNames))item.sourceNames=item.sourceNames.map(name=>renamed.get(name)||name);});
+        safeStorageWrite({project:false});
+      }
+      return renamed.size;
+    }
+
+    function insightRegisterDocumentDateFromFileName(fileName){
+      const raw=String(fileName||'').replace(/\.[^.]+$/,'').trim();
+      if(!raw)return null;
+      const monthMatch=raw.match(/(?:^|[_\-\s])(ene(?:ro)?|feb(?:rero)?|mar(?:zo)?|abr(?:il)?|may(?:o)?|jun(?:io)?|jul(?:io|y)?|ago(?:sto)?|sep(?:t(?:iembre)?)?|oct(?:ubre)?|nov(?:iembre)?|dic(?:iembre)?|jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[_\-\s]?(20\d{2}|\d{2})(?=$|[_\-\s])/i);
+      if(monthMatch){
+        const monthAliases={jan:'ene',january:'ene',feb:'feb',february:'feb',mar:'mar',march:'mar',apr:'abr',april:'abr',may:'may',jun:'jun',june:'jun',jul:'jul',july:'jul',aug:'ago',august:'ago',sep:'sep',sept:'sep',september:'sep',oct:'oct',october:'oct',nov:'nov',november:'nov',dec:'dic',december:'dic'};
+        const token=normalizeText(monthMatch[1]);
+        const base=Object.keys(monthAliases).find(key=>token.startsWith(key))||token.slice(0,3);
+        const month=monthAliases[base]||base;
+        const year=String(monthMatch[2]).length===2?`20${monthMatch[2]}`:String(monthMatch[2]);
+        return temporalValue(`${month} ${year}`,'excel-filename');
+      }
+      const yearMonth=raw.match(/(?:^|[_\-\s])(20\d{2})[_\-](0?[1-9]|1[0-2])(?=$|[_\-\s])/);
+      if(yearMonth)return temporalValue(`${yearMonth[1]}-${String(yearMonth[2]).padStart(2,'0')}`,'excel-filename');
+      const monthYear=raw.match(/(?:^|[_\-\s])(0?[1-9]|1[0-2])[_\-](20\d{2})(?=$|[_\-\s])/);
+      if(monthYear)return temporalValue(`${String(monthYear[1]).padStart(2,'0')}/${monthYear[2]}`,'excel-filename');
+      return null;
+    }
+
+    function shouldApplyInsightRegisterFileDate(item,inferred){
+      if(!inferred)return false;
+      const current=temporalValue(item?.documentDate||item?.exactDate);
+      if(!current)return true;
+      if(current.value===inferred.value&&current.precision===inferred.precision)return false;
+      if(item?.documentDate?.source!=='manual')return true;
+      // A previous metadata edit could accidentally convert the ingestion month into a
+      // "manual" document date even when the user only edited taxonomy/scope. If the
+      // current manual date is exactly the ingestion month and the filename carries an
+      // explicit document date, prefer the explicit filename date once.
+      const ingestion=temporalValue(item?.ingestedAt);
+      if(!ingestion)return false;
+      return String(current.value||'').slice(0,7)===String(ingestion.value||'').slice(0,7);
+    }
+
+    function repairReviewedInsightRegisterMetadata(){
+      let changed=false;
+      sourceItems.forEach(item=>{
+        const register=item?.insightRegister;if(!register)return;
+        if(register.reviewedByUx!==true){register.reviewedByUx=true;changed=true;}
+        if(item.documentProfile&&item.documentProfile.reviewedByUx!==true){item.documentProfile.reviewedByUx=true;changed=true;}
+        const inferred=insightRegisterDocumentDateFromFileName(register.file?.name||item.originalName||item.fileMeta?.name||'');
+        if(shouldApplyInsightRegisterFileDate(item,inferred)){
+          item.documentDate=inferred;
+          item.exactDate=formatDateEs(inferred);
+          if(item.documentProfile)item.documentProfile.date=item.exactDate;
+          changed=true;
+        }
+      });
+      if(changed)safeStorageWrite({project:false});
+      return changed;
+    }
+
+    // Clean Excel-first workspace: legacy demo/seed knowledge stays in code/archive only, never in the active base.
+    learnings.splice(0);
+    evidenceItems.splice(0);
+    experiments.splice(0);
+    sourceItems.splice(0);
+
+    const PILOT_SOURCE_ID='S-11';
+    // New empty workspace. The previous browser state remains untouched under
+    // ae-ux-intel-pilot-v1 and can be recovered together with the archived files.
+    const PILOT_STORAGE_KEY='ae-ux-intel-excel-v3-clean-20260918';
+    const WORKSPACE_INIT_KEY='ae-ux-intel-workspace-initialized-v1';
+    const WORKSPACE_SCHEMA_VERSION=3;
+    const LEARNING_DECISIONS_STORAGE_KEY='ae-ux-intel-learning-decisions-v1';
+    const TAXONOMY_GOVERNANCE_STORAGE_KEY='ae-ux-intel-taxonomy-governance-v2';
+    const workspaceStorageExisted=localStorage.getItem(PILOT_STORAGE_KEY)!==null;
+    const workspaceWasInitialized=localStorage.getItem(WORKSPACE_INIT_KEY)==='1'||workspaceStorageExisted;
+    if(workspaceStorageExisted)localStorage.setItem(WORKSPACE_INIT_KEY,'1');
+    const knowledgeUnits=[];
+    const openQuestionItems=[];
+    // Declared before any bootstrap-time safeStorageWrite call to avoid temporal-dead-zone errors.
+    let patternItems=[];
+    let activeReviewDocumentId=null;
+    let uploadTargetId=null;
+    let uploadIntent='new';
+    let pendingSourceUpdate=null;
+    let insightRegisterTargetId=null;
+    let insightRegisterUploadIntent='attach';
+
+    function safeStorageRead(){try{return JSON.parse(localStorage.getItem(PILOT_STORAGE_KEY)||'{}');}catch{return {};}}
+    function learningDecisionRowsKey(rows){
+      return [...(rows||[])].map(value=>String(value)).sort((a,b)=>a.localeCompare(b,'es')).join('|');
+    }
+    function learningDecisionLogRead(){
+      try{
+        const parsed=JSON.parse(localStorage.getItem(LEARNING_DECISIONS_STORAGE_KEY)||'[]');
+        return Array.isArray(parsed)?parsed:[];
+      }catch{return [];}
+    }
+    function learningDecisionLogWrite(entries){
+      try{localStorage.setItem(LEARNING_DECISIONS_STORAGE_KEY,JSON.stringify(entries||[]));}catch(_){}
+    }
+    function rememberLearningSuggestionDecision(item,candidate,status,learningId=''){
+      if(!item?.id||!candidate)return;
+      const rowsKey=learningDecisionRowsKey(candidate.rowRefs);
+      const log=learningDecisionLogRead();
+      const next={
+        documentId:String(item.id),
+        candidateId:String(candidate.id||''),
+        fingerprint:String(candidate.fingerprint||''),
+        rowsKey,
+        rowRefs:[...(candidate.rowRefs||[])],
+        status:String(status||candidate.status||''),
+        action:String(candidate.action||''),
+        learningId:String(learningId||candidate.appliedLearningId||candidate.targetLearningId||''),
+        title:String(candidate.title||''),
+        know:String(candidate.know||''),
+        text:String(candidate.text||''),
+        edited:Boolean(candidate.edited),
+        savedAt:new Date().toISOString()
+      };
+      const index=log.findIndex(entry=>
+        String(entry.documentId||'')===next.documentId&&
+        ((next.rowsKey&&entry.rowsKey===next.rowsKey)||(next.fingerprint&&entry.fingerprint===next.fingerprint))
+      );
+      if(index>=0)log[index]={...log[index],...next};
+      else log.push(next);
+      learningDecisionLogWrite(log.slice(-500));
+    }
+    function seedLearningDecisionLogFromWorkspace(state){
+      const log=learningDecisionLogRead();
+      let changed=false;
+      (state?.documents||[]).forEach(documentItem=>{
+        const suggestions=documentItem?.insightRegister?.learningSuggestions;
+        if(!suggestions)return;
+        (suggestions.candidates||[]).forEach(candidate=>{
+          if(!candidate?.status||candidate.status==='pending')return;
+          const rowsKey=learningDecisionRowsKey(candidate.rowRefs);
+          if(log.some(entry=>String(entry.documentId||'')===String(documentItem.id||'')&&((rowsKey&&entry.rowsKey===rowsKey)||(candidate.fingerprint&&entry.fingerprint===candidate.fingerprint))))return;
+          log.push({
+            documentId:String(documentItem.id||''),
+            candidateId:String(candidate.id||''),
+            fingerprint:String(candidate.fingerprint||''),
+            rowsKey,
+            rowRefs:[...(candidate.rowRefs||[])],
+            status:String(candidate.status||''),
+            action:String(candidate.action||''),
+            learningId:String(candidate.appliedLearningId||candidate.targetLearningId||''),
+            title:String(candidate.title||''),
+            know:String(candidate.know||''),
+            text:String(candidate.text||''),
+            edited:Boolean(candidate.edited),
+            savedAt:String(candidate.resolvedAt||new Date().toISOString())
+          });
+          changed=true;
+        });
+      });
+      if(changed)learningDecisionLogWrite(log.slice(-500));
+    }
+    let storageWriteFailureToastQueued=false;
+    function updateStorageWriteStatus(hasFailure,error){
+      const indicator=document.getElementById('storage-save-status');
+      if(indicator){
+        indicator.hidden=!hasFailure;
+        if(hasFailure){
+          const detail='El último cambio no se ha podido guardar. No recargues la página hasta que el guardado vuelva a funcionar.';
+          indicator.title=detail;
+          indicator.setAttribute('aria-label',`Cambios sin guardar. ${detail}`);
+        }else{
+          indicator.removeAttribute('title');
+          indicator.setAttribute('aria-label','Todos los cambios están guardados');
+        }
+      }
+      if(!hasFailure){storageWriteFailureToastQueued=false;return;}
+      if(storageWriteFailureToastQueued)return;
+      storageWriteFailureToastQueued=true;
+      queueMicrotask(()=>{
+        storageWriteFailureToastQueued=false;
+        const current=document.getElementById('storage-save-status');
+        if(!current||current.hidden)return;
+        if(typeof showToast==='function')showToast('Cambios sin guardar','El último cambio no se ha podido guardar. No recargues la página hasta que vuelva a guardarse correctamente.');
+      });
+    }
+
+    const DUPLICATE_REVIEW_STORAGE_KEY='ux-intel-duplicate-review-v1';
+    function duplicateReviewWorkspaceRead(){
+      try{
+        const value=JSON.parse(localStorage.getItem(DUPLICATE_REVIEW_STORAGE_KEY)||'{}');
+        return value&&typeof value==='object'?value:{};
+      }catch(_){return {};}
+    }
+    function buildWorkspaceState(){
+      let taxonomyGovernance=null;
+      try{taxonomyGovernance=JSON.parse(localStorage.getItem(TAXONOMY_GOVERNANCE_STORAGE_KEY)||'null');}catch(_){}
+      return {
+        workspaceInitialized:true,
+        workspaceSchemaVersion:WORKSPACE_SCHEMA_VERSION,
+        duplicateReviewState:duplicateReviewWorkspaceRead(),
+        taxonomyGovernance,
+        documents:sourceItems.map(item=>({
+          id:item.id,name:item.name,originalName:item.originalName||'',product:item.product,funnel:item.funnel||'',minifunnel:item.minifunnel||'',screen:item.screen,component:item.component,components:item.components||[],documentScopeMode:item.documentScopeMode||'',
+          initiative:item.initiative,initiatives:item.initiatives||[],zone:item.zone||"",scope:item.scope||"",market:item.market||"",type:item.type,exactDate:item.exactDate,documentDate:item.documentDate||null,ingestedAt:item.ingestedAt||'',status:item.status,fileMeta:item.fileMeta||null,
+          simpleKnowledgeActive:Boolean(item.simpleKnowledgeActive),supportingDocument:Boolean(item.supportingDocument),
+          documentProfile:item.documentProfile||null,insightRegister:item.insightRegister||null,exportDimensions:item.exportDimensions||null,
+          hasAnalysis:Boolean(item.analysis)||Boolean(item.hasAnalysis),analysisSummary:item.analysis?{pages:item.analysis.pages||0,findings:item.analysis.findings?.length||0,relations:item.analysis.relations?.length||0,pagesRead:item.analysis.extraction?.pagesRead||0}:item.analysisSummary||null,
+          analysisError:item.analysisError||'',analysisStack:item.analysisStack||'',analysisFailure:item.analysisFailure||null,processing:item.processing||null,
+          sourceHistory:item.sourceHistory||[],sourceUpdateFailure:item.sourceUpdateFailure||null
+        })),
+        knowledgeUnits,
+        openQuestionItems,
+        learningState:learnings,
+        patternState:patternItems
+      };
+    }
+    function safeStorageWrite({project=true}={}){
+      try{
+        const state=buildWorkspaceState();
+        localStorage.setItem(PILOT_STORAGE_KEY,JSON.stringify(state));
+        localStorage.setItem(WORKSPACE_INIT_KEY,'1');
+        if(project){
+          sourceItems.filter(item=>item.analysis&&['Pendiente de revisión','Procesado'].includes(item.status)).forEach(item=>saveDocumentAnalysis(item.id,item.analysis).catch(error=>console.error('No se pudo guardar el análisis en IndexedDB',error)));
+          queueProjectHistory();
+        }
+        updateStorageWriteStatus(false);
+        return true;
+      }catch(error){
+        console.error('No se pudo guardar el estado local',error);
+        updateStorageWriteStatus(true,error);
+        return false;
+      }
+    }
+    const persistedPilot=safeStorageRead();
+    if(persistedPilot?.duplicateReviewState&&!localStorage.getItem(DUPLICATE_REVIEW_STORAGE_KEY)){
+      try{localStorage.setItem(DUPLICATE_REVIEW_STORAGE_KEY,JSON.stringify(persistedPilot.duplicateReviewState));}catch(_){}
+    }
+
+    seedLearningDecisionLogFromWorkspace(persistedPilot);
+    if(persistedPilot?.taxonomyGovernance&&!localStorage.getItem(TAXONOMY_GOVERNANCE_STORAGE_KEY)){
+      try{localStorage.setItem(TAXONOMY_GOVERNANCE_STORAGE_KEY,JSON.stringify(persistedPilot.taxonomyGovernance));}catch(_){}
+    }
+    (persistedPilot.documents||[]).forEach(saved=>{
+      const existing=sourceItems.find(item=>item.id===saved.id);
+      if(existing)Object.assign(existing,saved);else sourceItems.unshift(saved);
+    });
+    const classifiedExistingExcelDocuments=classifyExistingExcelAnalysisTypes();
+    if(classifiedExistingExcelDocuments){
+      safeStorageWrite({project:false});
+      console.info(`[UX Intel] ${classifiedExistingExcelDocuments} Excel clasificado${classifiedExistingExcelDocuments===1?'':'s'} por tipo de análisis.`);
+    }
+    knowledgeUnits.push(...(persistedPilot.knowledgeUnits||[]));
+    openQuestionItems.push(...(persistedPilot.openQuestionItems||[]));
+    if(Array.isArray(persistedPilot.learningState))learnings.splice(0,learnings.length,...persistedPilot.learningState);
+
+    const LEARNING_COPY_REVIEW_20261022_KEY='ae-ux-intel-learning-copy-review-20261022-v1';
+    const LEARNING_COPY_REVIEW_20261022={"L-BUS-01":{"title":"El buscador debe ser lo primero que se entienda en Home","text":"En el primer impacto de Home, buscar un vuelo debe ser la tarea más clara. Autoservicio, promoción y avisos pueden seguir visibles, pero con una jerarquía secundaria.","know":"Auditoría, Quantum Metric, benchmark y desk research coinciden en que el buscador concentra la interacción principal y es la puerta de entrada al booking.","open":["¿Qué jerarquía concreta mejora el paso a Disponibilidad sin perjudicar el autoservicio ni la comunicación relevante?"]},"L-BUS-02":{"title":"Simplificar el buscador es ordenar mejor, no quitar opciones","text":"Los campos esenciales deben verse primero y las opciones secundarias aparecer cuando hacen falta, sin perder encontrabilidad.","know":"La evidencia revisada muestra que cuando demasiadas decisiones tienen el mismo peso aumenta la carga visual. La oportunidad está en priorizar, agrupar y mostrar progresivamente.","open":["¿Qué opciones deben estar visibles desde el inicio y cuáles pueden aparecer bajo demanda en cada dispositivo?"]},"L-BUS-03":{"title":"El buscador mobile necesita una lógica propia","text":"En mobile no basta con encoger desktop: hay menos espacio, más densidad y más necesidad de guiar, revisar y corregir la búsqueda.","know":"Auditoría, benchmark, desk research y Quantum Metric apuntan a una construcción más progresiva en mobile. Los datos también muestran un comportamiento de avance distinto al de desktop.","open":["¿Qué secuencia reduce esfuerzo en mobile sin dificultar revisar, corregir o volver atrás?"]},"L-BUS-04":{"title":"El calendario debe ayudar a decidir, no solo a elegir fechas","text":"Fechas es uno de los puntos con más interacción del buscador. El calendario debe facilitar comparar, modificar y entender la selección sin obligar a empezar de nuevo.","know":"La evidencia revisada confirma que el calendario forma parte de la decisión de viaje y no es un campo secundario.","open":["¿Qué ayudas de decisión aportan valor antes de Disponibilidad sin añadir complejidad ni problemas técnicos?"]},"L-BUS-05":{"title":"Buscar vuelos debe seguir siendo el CTA principal","text":"El CTA de búsqueda debe destacar claramente frente a opciones secundarias, promociones y otros elementos del primer impacto.","know":"Las fuentes revisadas sitúan Buscar vuelos como la acción que cierra la configuración y hace avanzar al usuario hacia resultados.","open":["¿Qué tratamiento del CTA mejora el avance dentro del buscador completo?"]},"L-BUS-06":{"title":"El autoservicio debe ser fácil de encontrar sin competir con Buscar vuelos","text":"Check-in, Gestionar reserva e Información de vuelos son tareas importantes en Home, pero deben tener una jerarquía secundaria respecto a la búsqueda.","know":"Los datos y el research confirman que estas tareas tienen uso real. El reto no es ocultarlas, sino hacerlas accesibles sin restar claridad a la intención principal.","open":["¿Qué ubicación y jerarquía mantienen estas tareas visibles sin competir con Buscar vuelos?","¿Qué ocurre después del clic y cuánto esfuerzo ahorran realmente?"]},"L-BUS-07":{"title":"La última búsqueda reduce esfuerzo si el usuario puede revisarla y editarla","text":"Recuperar una búsqueda anterior puede ahorrar pasos, siempre que quede claro qué datos se han recuperado y sea fácil cambiarlos o borrarlos.","know":"Auditoría y benchmark respaldan la última búsqueda como un patrón útil de continuidad, especialmente cuando el usuario mantiene el control.","open":["¿Cuántos usuarios recuperan una búsqueda y cuánto editan antes de continuar?","¿Qué reglas de persistencia y privacidad necesita este patrón?"]},"L-BUS-08":{"title":"Promociones, avisos y ayuda no deberían competir siempre con el buscador","text":"Cada capa tiene una función distinta. Su peso debe cambiar según el contexto, la urgencia y el valor para el usuario.","know":"La evidencia revisada muestra que banners, avisos y ayudas pueden aportar valor, pero necesitan reglas de prioridad distintas para no saturar el primer impacto.","open":["¿Qué reglas de prioridad, caducidad y peso visual necesita cada tipo de contenido?","¿Cómo medimos si ayudan o interfieren con la búsqueda principal?"]},"L-HEAD-01":{"title":"Los nombres del Header deben decir claramente qué encontrará el usuario","text":"La navegación funciona mejor cuando sus etiquetas hablan de tareas y contenidos reconocibles, evitando categorías ambiguas.","know":"Research y análisis de Header muestran que Gestionar reserva y Check-in se entienden bien, mientras que etiquetas más genéricas como «Antes de volar» orientan peor y pueden empujar al usuario hacia Ayuda.","open":["¿Qué nombres funcionan mejor por mercado e idioma sin perder consistencia global?","¿Qué necesidades llegan a Ayuda porque la navegación principal no las hace fáciles de encontrar?"]},"L-HEAD-02":{"title":"Un Header no es más simple por tener menos opciones","text":"La clave está en organizar bien: separar navegación, tareas operativas y utilidades, y dar a cada cosa la prioridad adecuada.","know":"La evidencia muestra que la complejidad aparece sobre todo cuando se mezclan tipos de contenido y demasiadas opciones comparten el mismo nivel.","open":["¿Qué tareas deben estar en primer nivel y cuáles pueden pasar a una segunda capa según el dispositivo?","¿Cómo integramos necesidades de negocio y SEO sin empeorar la jerarquía de tareas?"]},"L-HEAD-03":{"title":"El Header no funciona igual en mobile, desktop y todos los mercados","text":"Podemos mantener una arquitectura común, pero la prioridad y el comportamiento deben adaptarse al contexto.","know":"Los datos y tests muestran diferencias por dispositivo y mercado. Mobile amplifica algunas fricciones y los resultados de una solución no deben extrapolarse automáticamente a desktop.","open":["¿Qué diferencias por mercado son suficientemente importantes como para cambiar la prioridad o la arquitectura?","¿Qué partes del Header deben mantenerse globales y cuáles pueden adaptarse al contexto?"]},"L-SUMA-01":{"title":"El login aporta más valor cuando aparece en el momento adecuado y explica el beneficio","text":"Pedir o recuperar la identificación dentro del booking tiene sentido cuando ayuda a hacer algo mejor en ese momento: completar datos, usar Millas o mostrar beneficios SUMA.","know":"El benchmark muestra que varias aerolíneas permiten iniciar sesión durante el booking y lo vinculan a beneficios concretos, no solo al acceso a la cuenta.","open":["¿En qué puntos del booking aporta más valor ofrecer el login?","¿Qué beneficio motiva más la identificación: recuperar datos, acumular Millas, usar saldo o acceder a ventajas de nivel?","¿Qué datos del perfil SUMA podemos recuperar de forma fiable durante el booking?"]},"L-SUMA-02":{"title":"En Fare Families hay que separar claramente lo que da la tarifa de lo que da SUMA","text":"Millas, puntos de estatus y beneficios por nivel pueden ayudar a comparar tarifas, pero no deben confundirse con lo que incluye la propia Fare Family.","know":"El benchmark muestra que algunas aerolíneas incorporan recompensa futura y beneficios de fidelización en la comparación de tarifas. Puede aportar valor si la jerarquía deja claro el origen de cada beneficio.","open":["¿Mostrar Millas o beneficios SUMA influye en la elección de Fare Family?","¿Los usuarios entienden qué ventajas vienen de la tarifa y cuáles de su nivel SUMA?","¿Qué información aporta valor antes de elegir tarifa y cuál debería quedar en el detalle?"]},"L-SUMA-03":{"title":"Los beneficios SUMA deben explicar qué gana cada pasajero y por qué","text":"No basta con mostrar el nivel SUMA. Cuando un beneficio aplica, el usuario debería entender a qué pasajero corresponde y si viene de SUMA, de la tarifa o de otra condición.","know":"El benchmark y los registros revisados muestran que el estatus por sí solo no siempre explica el beneficio. En Air Europa, cuando el usuario está logado podemos identificar si un servicio gratuito viene de la tarifa, de SUMA o de otra condición; la incertidumbre puede estar en el valor exacto en Millas, no en el origen del beneficio.","open":["¿Cómo mostramos los beneficios cuando varios pasajeros tienen situaciones SUMA diferentes?","¿En qué extras aporta valor mostrar información de fidelización?","¿Cómo diferenciamos el origen del beneficio sin añadir ruido?"]}};
+    function applyLearningCopyReview20261022(){
+      if(localStorage.getItem(LEARNING_COPY_REVIEW_20261022_KEY)==='1')return false;
+      let changed=false;
+      learnings.forEach(item=>{
+        const patch=LEARNING_COPY_REVIEW_20261022[item?.id];
+        if(!patch)return;
+        ['title','text','know'].forEach(key=>{if(patch[key]&&item[key]!==patch[key]){item[key]=patch[key];changed=true;}});
+        if(Array.isArray(patch.open)&&JSON.stringify(item.open||[])!==JSON.stringify(patch.open)){item.open=[...patch.open];changed=true;}
+        if(item.id==='L-SUMA-03'){
+          const fact='Evidencia interna: con el usuario logado podemos identificar si un servicio gratuito viene de la tarifa, de SUMA o de otra condición. El dato que puede faltar es la cuantificación exacta en Millas.';
+          if(!Array.isArray(item.forEvidence))item.forEvidence=[];
+          if(!item.forEvidence.includes(fact)){item.forEvidence.push(fact);changed=true;}
+        }
+        item.updatedAt='2026-10-22';
+      });
+
+      const oldQuestion='No queda confirmado que podamos identificar técnicamente el motivo exacto por el que un servicio es gratuito: tarifa, SUMA u otra condición.';
+      const oldReading='No asumir que podemos etiquetar automáticamente el origen del beneficio hasta confirmar qué dato devuelve Amadeus.';
+      const newInsight='Si el usuario está logado, podemos identificar por qué un servicio es gratuito.';
+      const newReading='Podemos explicar si el beneficio viene de la tarifa, de SUMA o de otra condición. Lo que no siempre conocemos es el valor exacto en Millas asociado al beneficio.';
+      const newQuestion='¿Podemos disponer del valor exacto en Millas asociado al beneficio cuando sea necesario comunicarlo?';
+      const patchRecord=record=>{
+        if(!record||typeof record!=='object')return;
+        const values=Object.values(record).filter(value=>typeof value==='string');
+        const matches=values.some(value=>value.trim()===oldQuestion||value.trim()===oldReading||value.includes('motivo exacto por el que un servicio es gratuito'));
+        if(!matches)return;
+        if('recordType' in record)record.recordType='Hecho';
+        if('type' in record&&normalizeText(record.type||'')==='pregunta abierta')record.type='Hecho';
+        if('insight' in record)record.insight=newInsight;
+        if('title' in record&&String(record.title||'').trim()===oldQuestion)record.title=newInsight;
+        if('implication' in record)record.implication=newReading;
+        if('uxImplication' in record)record.uxImplication=newReading;
+        if('text' in record&&String(record.text||'').trim()===oldReading)record.text=newReading;
+        if('openQuestion' in record)record.openQuestion=newQuestion;
+        changed=true;
+      };
+      sourceItems.forEach(documentItem=>{
+        (documentItem?.insightRegister?.rows||[]).forEach(patchRecord);
+      });
+      knowledgeUnits.forEach(patchRecord);
+      openQuestionItems.forEach(patchRecord);
+      if(changed)safeStorageWrite({project:false});
+      try{localStorage.setItem(LEARNING_COPY_REVIEW_20261022_KEY,'1');}catch(_){}
+      return changed;
+    }
+    applyLearningCopyReview20261022();
+
+
+    const LEARNING_NATURAL_COPY_20261022_V2_KEY='ae-ux-intel-learning-natural-copy-20261022-v2';
+    const LEARNING_NATURAL_COPY_20261022_V2={
+      "L-BUS-01":{title:"En Home, el buscador tiene que ser lo primero que se entienda",know:"El buscador concentra la mayor parte de la interacción y es la entrada al booking. Cuando demasiados elementos tienen el mismo peso, cuesta más identificar qué hacer primero.",text:"Autoservicio, promociones y avisos pueden seguir visibles, pero no deberían competir con la tarea principal: buscar un vuelo."},
+      "L-BUS-02":{title:"Simplificar el buscador es ordenar, no quitar",know:"El problema no es tener muchas opciones, sino mostrarlas todas a la vez y con el mismo peso. Priorizar y agrupar hace la búsqueda más fácil de entender.",text:"Primero lo imprescindible; lo secundario cuando hace falta. Así reducimos carga sin esconder opciones útiles."},
+      "L-BUS-03":{title:"Mobile necesita un buscador pensado para mobile",know:"En mobile hay menos espacio y más fricción cuando todo aparece a la vez. La evidencia apunta a una búsqueda más progresiva y con una secuencia propia.",text:"No basta con encoger desktop. En mobile hay que guiar mejor, permitir revisar lo elegido y facilitar correcciones."},
+      "L-BUS-04":{title:"El calendario tiene que ayudar a decidir",know:"Fechas es uno de los puntos con más interacción del buscador. No es un campo secundario: forma parte de la decisión de viaje.",text:"Además de elegir fechas, debería facilitar comparar, cambiar y entender la selección sin obligar a empezar de nuevo."},
+      "L-BUS-05":{title:"Buscar vuelos tiene que ser el CTA principal",know:"Buscar vuelos es la acción que cierra la configuración y lleva a resultados. Su jerarquía debe ser clara en desktop y mobile.",text:"Debe destacar frente a promociones y acciones secundarias para que quede claro cuándo la búsqueda está lista para continuar."},
+      "L-BUS-06":{title:"El autoservicio debe estar visible sin competir con Buscar vuelos",know:"Estas tareas se usan y tienen sentido en Home. El objetivo no es esconderlas, sino hacerlas fáciles de encontrar sin restar claridad a Buscar vuelos.",text:"Check-in, Gestionar reserva e Información de vuelos tienen valor real, pero deben quedar en un segundo nivel respecto a la búsqueda."},
+      "L-BUS-07":{title:"La última búsqueda ahorra pasos si se puede revisar y editar",know:"La última búsqueda reduce esfuerzo y facilita retomar el proceso. Funciona mejor cuando el usuario mantiene el control sobre los datos recuperados.",text:"Recuperar datos anteriores ayuda, siempre que el usuario vea qué se ha cargado y pueda cambiarlo o borrarlo fácilmente."},
+      "L-BUS-08":{title:"Promos, avisos y ayuda deben acompañar, no competir",know:"Banners, avisos y ayudas pueden aportar valor, pero si todos compiten con el buscador el primer impacto se vuelve más pesado y menos claro.",text:"Su peso debería depender del contexto, la urgencia y el valor para el usuario, no ocupar siempre el mismo espacio."},
+      "L-HEAD-01":{title:"Los nombres del Header tienen que dejar claro qué hay detrás",know:"Gestionar reserva y Check-in se entienden bien. Etiquetas más vagas, como «Antes de volar», orientan peor y pueden hacer que el usuario busque ayuda para encontrar contenido.",text:"Las etiquetas deben hablar de tareas y contenidos reconocibles. Los nombres genéricos obligan a interpretar y aumentan la dependencia de Ayuda."},
+      "L-HEAD-02":{title:"Un Header no es más simple por tener menos opciones",know:"La complejidad aparece sobre todo cuando se mezclan contenidos distintos y demasiadas opciones compiten al mismo nivel. Quitar opciones por sí solo no resuelve eso.",text:"La clave es organizar bien navegación, tareas operativas y utilidades, y dar a cada una el peso correcto."},
+      "L-HEAD-03":{title:"Mobile y desktop no necesitan exactamente el mismo Header",know:"Los tests muestran comportamientos distintos por dispositivo. Lo que funciona en mobile no se puede dar por válido automáticamente en desktop, ni al revés.",text:"Podemos mantener una estructura común, pero la prioridad y el comportamiento deben adaptarse al dispositivo y, cuando haya evidencia, al mercado."},
+      "L-SUMA-01":{title:"El login aporta valor cuando aparece justo cuando hace falta",know:"El login funciona mejor cuando se relaciona con una ventaja concreta del proceso, no como un acceso aislado a la cuenta.",text:"Identificarse dentro del booking tiene sentido si en ese momento ahorra trabajo o activa un beneficio claro: recuperar datos, usar Millas o mostrar ventajas SUMA."},
+      "L-SUMA-02":{title:"En Fare Families debe quedar claro qué aporta la tarifa y qué aporta SUMA",know:"La fidelización puede aportar valor durante la comparación de tarifas, siempre que quede claro de dónde viene cada beneficio y no se mezcle con la Fare Family.",text:"Millas, puntos y beneficios por nivel pueden ayudar a comparar, pero el usuario debe distinguirlos de lo que incluye la propia tarifa."},
+      "L-SUMA-03":{title:"Cada beneficio SUMA debe explicar a quién aplica y por qué",know:"Con el usuario logado podemos identificar el origen de una gratuidad o ventaja. Lo que puede faltar es la cuantificación exacta en Millas, no saber por qué aplica el beneficio.",text:"Cuando un beneficio aparece, el usuario debería entender qué pasajero lo recibe y si viene de SUMA, de la tarifa o de otra condición."}
+    };
+    function applyLearningNaturalCopy20261022V2(){
+      if(localStorage.getItem(LEARNING_NATURAL_COPY_20261022_V2_KEY)==='1')return false;
+      let changed=false;
+      learnings.forEach(item=>{
+        const patch=LEARNING_NATURAL_COPY_20261022_V2[item?.id];
+        if(patch){
