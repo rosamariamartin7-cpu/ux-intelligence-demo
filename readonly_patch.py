@@ -126,6 +126,119 @@ if needle not in s:
     raise SystemExit("ERROR: no se encuentra publicTaxonomyState con terms vacío")
 s = s.replace(needle, "terms:" + canonical_terms_js + ",", 1)
 
+# Taxonomía de consulta: se prerenderiza en build para no depender del renderer editable.
+def _taxonomy_ordered_rows(terms):
+    by_parent = {}
+    by_id = {str(item.get("id","")): item for item in terms}
+    for item in terms:
+        if item.get("status") != "canonical" or item.get("governed") is False:
+            continue
+        by_parent.setdefault(str(item.get("parentId","")), []).append(item)
+    level_order = {"product":0,"funnel":1,"minifunnel":2,"component":3}
+    for items in by_parent.values():
+        items.sort(key=lambda x: (level_order.get(x.get("level"),9), str(x.get("canonicalName") or x.get("name") or "").lower()))
+    rows = []
+    def visit(parent="", depth=0):
+        for item in by_parent.get(str(parent), []):
+            rows.append((item, depth))
+            visit(item.get("id",""), depth+1)
+    visit()
+    return rows, by_id
+
+_tax_rows, _tax_by_id = _taxonomy_ordered_rows(canonical_terms)
+_tax_tree_html = "".join(
+    '<button type="button" class="ux-ro-static-taxonomy-term" '
+    f'data-ro-static-taxonomy-id="{item.get("id","")}" '
+    f'data-taxonomy-level="{item.get("level","")}" '
+    f'style="--ux-ro-depth:{depth}">'
+    f'<span>{item.get("canonicalName") or item.get("name") or ""}</span></button>'
+    for item, depth in _tax_rows
+)
+_first_tax = next((item for item, _depth in _tax_rows if item.get("level")=="product"), _tax_rows[0][0] if _tax_rows else None)
+_first_name = (_first_tax or {}).get("canonicalName") or (_first_tax or {}).get("name") or ""
+_first_level = (_first_tax or {}).get("level") or ""
+_tax_detail_html = (
+    '<div class="ux-ro-static-taxonomy-detail">'
+    f'<span class="eyebrow">{_first_level.capitalize()}</span>'
+    f'<h2>{_first_name}</h2>'
+    f'<p>{_first_name}</p>'
+    '</div>'
+)
+
+s = s.replace(
+    '<nav class="taxonomy-tree" id="taxonomy-tree" aria-label="Árbol de taxonomía"></nav>',
+    '<nav class="taxonomy-tree" id="taxonomy-tree" aria-label="Árbol de taxonomía">' + _tax_tree_html + '</nav>',
+    1
+)
+s = s.replace(
+    '<article class="taxonomy-detail" id="taxonomy-detail"></article>',
+    '<article class="taxonomy-detail" id="taxonomy-detail">' + _tax_detail_html + '</article>',
+    1
+)
+
+static_taxonomy_guard_js = f"""
+<script id="ux-demo-static-taxonomy-guard">
+(() => {{
+  const TREE_HTML={json.dumps(_tax_tree_html, ensure_ascii=False)};
+  const TERMS={canonical_terms_js};
+
+  function pathFor(term){{
+    const map=new Map(TERMS.map(item=>[String(item.id||''),item]));
+    const out=[]; let current=term; let guard=0;
+    while(current&&guard++<20){{
+      out.unshift(String(current.canonicalName||current.name||''));
+      current=current.parentId?map.get(String(current.parentId)):null;
+    }}
+    return out;
+  }}
+
+  function show(term){{
+    const detail=document.getElementById('taxonomy-detail');
+    if(!detail||!term)return;
+    const aliases=Array.isArray(term.aliases)?term.aliases.filter(Boolean):[];
+    detail.innerHTML=
+      '<div class="ux-ro-static-taxonomy-detail">'+
+      '<span class="eyebrow">'+String(term.level||'')+'</span>'+
+      '<h2>'+String(term.canonicalName||term.name||'')+'</h2>'+
+      '<p>'+pathFor(term).join(' › ')+'</p>'+
+      (aliases.length?'<div class="ux-ro-static-taxonomy-aliases"><strong>Aliases</strong><p>'+aliases.join(' · ')+'</p></div>':'')+
+      '</div>';
+  }}
+
+  function ensure(){{
+    const tree=document.getElementById('taxonomy-tree');
+    if(!tree)return;
+    if(!tree.querySelector('[data-ro-static-taxonomy-id]')) tree.innerHTML=TREE_HTML;
+    if(!tree.dataset.roStaticBound){{
+      tree.dataset.roStaticBound='true';
+      tree.addEventListener('click',event=>{{
+        const btn=event.target.closest('[data-ro-static-taxonomy-id]');
+        if(!btn)return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const term=TERMS.find(item=>String(item.id||'')===String(btn.dataset.roStaticTaxonomyId||''));
+        tree.querySelectorAll('[data-ro-static-taxonomy-id]').forEach(node=>node.classList.toggle('active',node===btn));
+        show(term);
+      }},true);
+    }}
+    const active=tree.querySelector('[data-ro-static-taxonomy-id].active')||tree.querySelector('[data-ro-static-taxonomy-id]');
+    if(active&&!document.getElementById('taxonomy-detail')?.textContent?.trim()){{
+      const term=TERMS.find(item=>String(item.id||'')===String(active.dataset.roStaticTaxonomyId||''));
+      show(term);
+    }}
+  }}
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',ensure,{{once:true}});
+  else ensure();
+  window.addEventListener('load',()=>{{ensure();setTimeout(ensure,300);setTimeout(ensure,1200);setTimeout(ensure,3000);}},{{once:true}});
+  setInterval(()=>{{
+    const taxonomy=document.getElementById('taxonomy');
+    if(taxonomy&&!taxonomy.hidden)ensure();
+  }},1000);
+}})();
+</script>
+"""
+
 # Restauración robusta para la demo pública:
 # La taxonomía read-only se representa directamente desde el canon embebido.
 # No se crean, recuperan ni modifican learnings en la demo.
@@ -427,6 +540,29 @@ readonly_css = r'''
 /* Estado de guardado no tiene sentido en una demo sin escritura */
 #storage-save-status{display:none!important;}
 
+/* Taxonomía pública prerenderizada y estable */
+#taxonomy-tree .ux-ro-static-taxonomy-term{
+  display:flex;align-items:center;width:calc(100% - (var(--ux-ro-depth,0) * 14px));
+  margin-left:calc(var(--ux-ro-depth,0) * 14px);
+  min-height:42px;padding:8px 10px;border:0;border-bottom:1px solid var(--border-secondary);
+  background:transparent;text-align:left;color:var(--text-primary);font:inherit;font-weight:600;cursor:pointer;
+}
+#taxonomy-tree .ux-ro-static-taxonomy-term::before{
+  content:"";width:4px;height:22px;border-radius:999px;margin-right:10px;background:#d0d5dd;flex:0 0 auto;
+}
+#taxonomy-tree .ux-ro-static-taxonomy-term[data-taxonomy-level="product"]::before{background:#2d69e1;}
+#taxonomy-tree .ux-ro-static-taxonomy-term[data-taxonomy-level="funnel"]::before{background:#17b26a;}
+#taxonomy-tree .ux-ro-static-taxonomy-term[data-taxonomy-level="minifunnel"]::before{background:#f79009;}
+#taxonomy-tree .ux-ro-static-taxonomy-term[data-taxonomy-level="component"]::before{background:#7a5af8;}
+#taxonomy-tree .ux-ro-static-taxonomy-term:hover,
+#taxonomy-tree .ux-ro-static-taxonomy-term.active{background:#f5f8ff;}
+#taxonomy-detail .ux-ro-static-taxonomy-detail{padding:20px;}
+#taxonomy-detail .ux-ro-static-taxonomy-detail h2{margin:6px 0 8px;font-size:22px;}
+#taxonomy-detail .ux-ro-static-taxonomy-detail>p,
+#taxonomy-detail .ux-ro-static-taxonomy-aliases p{color:var(--text-secondary);}
+#taxonomy-detail .ux-ro-static-taxonomy-aliases{margin-top:18px;padding-top:14px;border-top:1px solid var(--border-secondary);}
+
+
 /* Mantener explícitamente visibles las acciones de consulta/export */
 #uxs-export,#uxs-export-cro,
 [data-download-insight-register],
@@ -473,6 +609,9 @@ if 'id="ux-demo-readonly-guard"' not in s:
     s = s.replace('</body>', readonly_js + '\n' + taxonomy_runtime_js + '\n</body>', 1)
 else:
     s = s.replace('</body>', taxonomy_runtime_js + '\n</body>', 1)
+
+if 'id="ux-demo-static-taxonomy-guard"' not in s:
+    s = s.replace('</body>', static_taxonomy_guard_js + '\n</body>', 1)
 
 target.write_text(s, encoding="utf-8")
 print("UX Intelligence consolidated UI installed in read-only mode")
