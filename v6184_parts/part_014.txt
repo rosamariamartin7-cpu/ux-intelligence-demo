@@ -1,0 +1,1000 @@
+      || REVIEWED_FULL_META_BY_UNIQUE_INSIGHT[insightKey]
+      || null;
+  }
+
+  function firstNonEmptyValue(...values){
+    for(const value of values){
+      if(Array.isArray(value)){
+        if(value.length)return value;
+        continue;
+      }
+      if(clean(value))return value;
+    }
+    return '';
+  }
+
+  function fullExportValue(record,key){
+    const reviewed=reviewedFullMeta(record)||{};
+
+    // La clasificación estructural actual debe salir únicamente del registro gobernado.
+    // Los valores históricos se conservan en sus columnas legacy, pero no se reinyectan
+    // en Producto/Funnel/Minifunnel/Componente porque pueden pertenecer a taxonomías antiguas.
+    if(key==='product')return record.product||'';
+    if(key==='funnel')return record.funnel||'';
+    if(key==='minifunnel')return record.minifunnel||'';
+    if(key==='component'){
+      const governed=typeof componentsOf==='function'?componentsOf(record):[];
+      return firstNonEmptyValue(governed,record.component);
+    }
+    if(key==='recordType'){
+      const current=clean(record.recordType);
+      if(current)return current;
+      return reviewed.sourceRecordType?normalizeRecordType(reviewed.sourceRecordType):'';
+    }
+    if(key==='origin'){
+      const current=clean(record.origin);
+      if(current)return current;
+      return reviewed.sourceAnalysisType?normalizeOrigins(reviewed.sourceAnalysisType).join(' · '):'';
+    }
+    if(key==='uxLine'){
+      // Dimensión es la clasificación UX actual. Si está vacía, se mantiene vacía.
+      // La clasificación histórica sigue disponible en 'Dimensión UX legacy'.
+      return clean(record.uxLine);
+    }
+
+    const reviewedFallbackKeys=new Set([
+      'initiative','evidence','implication','recommendation','openQuestion',
+      'platformSystem','device','market','impactUx','notes',
+      'solutionId','solutionUx','designRationale','designRef','solutionStatus','solutionRelation'
+    ]);
+    if(reviewedFallbackKeys.has(key))return firstNonEmptyValue(record[key],reviewed[key]);
+
+    if(key==='sourceRecordType')return reviewed.sourceRecordType||'';
+    if(key==='sourceAnalysisType')return reviewed.sourceAnalysisType||'';
+    if(key==='sourceRegion')return reviewed.sourceRegion||'';
+    if(key==='legacyDimension')return reviewed.legacyDimension||'';
+    if(key==='dimensionPrimary')return reviewed.dimensionPrimary||'';
+    if(key==='dimensionSecondary')return reviewed.dimensionSecondary||'';
+
+    return record[key];
+  }
+
+  function exportFiltered(){
+    const cols=[
+      // Trazabilidad
+      ['ID registro','id'],
+      ['ID documento','docId'],
+      ['Documento','docName'],
+      ['Archivo fuente','sourceFile'],
+      ['Fuente','source'],
+      ['Incluido en UX Intelligence','ingestedAt'],
+      ['Fecha fuente','date'],
+
+      // Contexto de producto
+      ['Iniciativa','initiative'],
+      ['Iniciativas relacionadas','initiatives'],
+      ['Producto','product'],
+      ['Funnel','funnel'],
+      ['Minifunnel','minifunnel'],
+      ['Componente','component'],
+
+      // Clasificación actual
+      ['Tipo de registro','recordType'],
+      ['Tipo de análisis','origin'],
+      ['Dispositivo','device'],
+      ['Mercado','market'],
+      ['Región','region'],
+      ['Estado usuario','userState'],
+      ['Impacto UX','impactUx'],
+      ['Dimensión','uxLine'],
+
+      // Valor original / trazabilidad de clasificación
+      ['Tipo fuente','sourceRecordType'],
+      ['Tipo de análisis fuente','sourceAnalysisType'],
+      ['Región fuente','sourceRegion'],
+      ['Pantalla legacy','screen'],
+      ['Elemento legacy','element'],
+      ['Dimensión UX legacy','legacyDimension'],
+      ['Dimensión principal (maestro)','dimensionPrimary'],
+      ['Dimensión secundaria (maestro)','dimensionSecondary'],
+
+      // Contenido del conocimiento
+      ['Insight / hallazgo','insight'],
+      ['Evidencia','evidence'],
+      ['Lectura UX','implication'],
+      ['Recomendación / oportunidad','recommendation'],
+      ['Pregunta abierta','openQuestion'],
+      ['Observaciones','notes'],
+
+      // Calidad / estado / restricciones
+      ['Confianza','confidence'],
+      ['Viabilidad','viability'],
+      ['Resultado','status'],
+      ['Implementación','implementation'],
+      ['Sistema / plataforma','platformSystem'],
+['Potencial de experimentación','experiment'],
+
+      // Solución UX / diseño
+      ['ID solución UX','solutionId'],
+      ['Solución UX propuesta','solutionUx'],
+      ['Fundamento de la propuesta UX','designRationale'],
+      ['Enlace Figma','designRef'],
+      ['Estado de la solución','solutionStatus'],
+      ['Relación con la solución','solutionRelation']
+    ];
+    downloadFilteredCsv(
+      cols,
+      'UX_Intelligence_base_completa.csv',
+      (value,key,record)=>{
+        const resolved=fullExportValue(record,key);
+        return Array.isArray(resolved)?resolved.join(' · '):resolved;
+      },
+      records
+    );
+  }
+
+  function cleanCroEvidence(value){
+    const text=String(value??'').trim();
+    if(!text)return '';
+    const marker=text.toLowerCase().lastIndexOf('fuente:');
+    if(marker<0)return text;
+    return text.slice(0,marker).trim().replace(/[\s.;,:-]+$/,'').trim()+'.';
+  }
+
+  function croXlsxXmlEscape(value){
+    return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
+  }
+  function croXlsxAttrEscape(value){return croXlsxXmlEscape(value).replace(/\r?\n/g,'&#10;');}
+  function croXlsxColName(n){let out='';while(n>0){n--;out=String.fromCharCode(65+(n%26))+out;n=Math.floor(n/26);}return out;}
+  const croXlsxCrcTable=(()=>{const table=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?0xEDB88320^(c>>>1):c>>>1;table[n]=c>>>0;}return table;})();
+  function croXlsxCrc32(bytes){let c=0xFFFFFFFF;for(const b of bytes)c=croXlsxCrcTable[(c^b)&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+  function croXlsxU16(v){return [v&255,(v>>>8)&255];}
+  function croXlsxU32(v){return [v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255];}
+  function croXlsxDosDateTime(date=new Date()){
+    const year=Math.max(1980,date.getFullYear());
+    return {date:((year-1980)<<9)|((date.getMonth()+1)<<5)|date.getDate(),time:(date.getHours()<<11)|(date.getMinutes()<<5)|Math.floor(date.getSeconds()/2)};
+  }
+  function croXlsxZipStore(entries){
+    const encoder=new TextEncoder(),locals=[],centrals=[];let offset=0;const dt=croXlsxDosDateTime();
+    for(const [name,data] of entries){
+      const nameBytes=encoder.encode(name),bytes=typeof data==='string'?encoder.encode(data):data,crc=croXlsxCrc32(bytes),size=bytes.length;
+      const local=new Uint8Array([0x50,0x4b,0x03,0x04,...croXlsxU16(20),...croXlsxU16(0),...croXlsxU16(0),...croXlsxU16(dt.time),...croXlsxU16(dt.date),...croXlsxU32(crc),...croXlsxU32(size),...croXlsxU32(size),...croXlsxU16(nameBytes.length),...croXlsxU16(0),...nameBytes,...bytes]);
+      locals.push(local);
+      const central=new Uint8Array([0x50,0x4b,0x01,0x02,...croXlsxU16(20),...croXlsxU16(20),...croXlsxU16(0),...croXlsxU16(0),...croXlsxU16(dt.time),...croXlsxU16(dt.date),...croXlsxU32(crc),...croXlsxU32(size),...croXlsxU32(size),...croXlsxU16(nameBytes.length),...croXlsxU16(0),...croXlsxU16(0),...croXlsxU16(0),...croXlsxU16(0),...croXlsxU32(0),...croXlsxU32(offset),...nameBytes]);
+      centrals.push(central);offset+=local.length;
+    }
+    const centralOffset=offset,centralSize=centrals.reduce((sum,item)=>sum+item.length,0);
+    const eocd=new Uint8Array([0x50,0x4b,0x05,0x06,...croXlsxU16(0),...croXlsxU16(0),...croXlsxU16(entries.length),...croXlsxU16(entries.length),...croXlsxU32(centralSize),...croXlsxU32(centralOffset),...croXlsxU16(0)]);
+    const total=locals.reduce((sum,item)=>sum+item.length,0)+centralSize+eocd.length,out=new Uint8Array(total);let pos=0;
+    for(const part of [...locals,...centrals,eocd]){out.set(part,pos);pos+=part.length;}
+    return out;
+  }
+  function croXlsxCellXml(ref,value,style=2){
+    const text=String(value??''),preserve=/^\s|\s$|\n/.test(text)?' xml:space="preserve"':'';
+    return `<c r="${ref}" s="${style}" t="inlineStr"><is><t${preserve}>${croXlsxXmlEscape(text)}</t></is></c>`;
+  }
+  function croXlsxTypeStyle(value){
+    const v=String(value||'').toLocaleLowerCase('es');
+    if(v==='restricción'||v==='restriccion')return 7;
+    if(v==='oportunidad')return 8;
+    if(v==='hipótesis'||v==='hipotesis'||v==='inferencia')return 9;
+    if(v==='decisión'||v==='decision')return 10;
+    if(v==='pregunta abierta')return 11;
+    if(v.includes('evidencia')||v==='hecho')return 12;
+    return 2;
+  }
+  function croXlsxImpactStyle(value){const v=String(value||'').toLocaleLowerCase('es');return v==='alto'?4:v==='medio'?5:v==='bajo'?6:2;}
+  function croXlsxStatusStyle(value){
+    const v=String(value||'').toLocaleLowerCase('es');
+    if(v.includes('implement'))return 14;
+    if(v.includes('propuesta'))return 13;
+    if(v.includes('test')||v.includes('valid'))return 15;
+    return 16;
+  }
+  function croXlsxFirstUrl(value){const match=String(value||'').match(/https?:\/\/[^\s]+/i);return match?match[0].replace(/[),.;]+$/,''):'';}
+  function croXlsxBuild(rows,cols){
+    const widths=[18,14,18,18,24,16,18,55,60,50,13,22,30,16,60,65,20,20];
+    let hyperlinkRels=[],hyperlinkTags=[],relId=1;const sheetRows=[];
+    sheetRows.push(`<row r="1" ht="28" customHeight="1">${cols.map((col,index)=>croXlsxCellXml(croXlsxColName(index+1)+'1',col.label,1)).join('')}</row>`);
+    rows.forEach((record,index)=>{
+      const rowNumber=index+2;
+      const cells=cols.map((col,colIndex)=>{
+        // CRO y base completa parten del mismo valor consolidado. Así los vínculos
+        // a soluciones y metadatos revisados no desaparecen en uno de los dos exports.
+        let value=fullExportValue(record,col.key)??'',style=2;
+        if(col.key==='component')value=recordComponentNames(record).join(' · ')||value;
+        if(col.key==='evidence')value=cleanCroEvidence(value);
+        if(Array.isArray(value))value=value.join(' · ');
+        if(col.key==='impactUx')style=croXlsxImpactStyle(value);
+        else if(col.key==='recordType')style=croXlsxTypeStyle(value);
+        else if(col.key==='solutionStatus')style=croXlsxStatusStyle(value);
+        else if(col.key==='designRef'){
+          const url=croXlsxFirstUrl(value);
+          if(url){
+            const count=(String(value).match(/https?:\/\//g)||[]).length;
+            value=count>1?`Abrir diseños (${count}) ↗`:'Abrir diseño ↗';style=3;
+            const id='rId'+relId++;
+            hyperlinkRels.push(`<Relationship Id="${id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="${croXlsxAttrEscape(url)}" TargetMode="External"/>`);
+            hyperlinkTags.push(`<hyperlink ref="${croXlsxColName(colIndex+1)}${rowNumber}" r:id="${id}" tooltip="Abrir diseño en Figma"/>`);
+          }
+        }
+        return croXlsxCellXml(croXlsxColName(colIndex+1)+rowNumber,value,style);
+      }).join('');
+      sheetRows.push(`<row r="${rowNumber}">${cells}</row>`);
+    });
+    const lastCell=croXlsxColName(cols.length)+String(rows.length+1);
+    const colsXml=widths.map((width,index)=>`<col min="${index+1}" max="${index+1}" width="${width}" customWidth="1"/>`).join('');
+    const hyperlinks=hyperlinkTags.length?`<hyperlinks>${hyperlinkTags.join('')}</hyperlinks>`:'';
+    const sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A2" sqref="A2"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols>${colsXml}</cols><sheetData>${sheetRows.join('')}</sheetData><autoFilter ref="A1:${lastCell}"/>${hyperlinks}<pageMargins left="0.3" right="0.3" top="0.5" bottom="0.5" header="0.3" footer="0.3"/></worksheet>`;
+    const sheetRels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hyperlinkRels.join('')}</Relationships>`;
+    const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="7"><font><sz val="10"/><name val="Arial"/><color rgb="FF172033"/></font><font><b/><sz val="10"/><name val="Arial"/><color rgb="FFFFFFFF"/></font><font><u/><sz val="10"/><name val="Arial"/><color rgb="FF245FCC"/></font><font><b/><sz val="10"/><name val="Arial"/><color rgb="FF137333"/></font><font><b/><sz val="10"/><name val="Arial"/><color rgb="FFA15C00"/></font><font><b/><sz val="10"/><name val="Arial"/><color rgb="FF6F3CC3"/></font><font><b/><sz val="10"/><name val="Arial"/><color rgb="FF425466"/></font></fonts><fills count="10"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF083B78"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEAF8F0"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFF4D6"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF3F4F6"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFF0E6"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEEF5FF"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF7F1FF"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEFF6F3"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border/><border><left/><right/><top/><bottom style="hair"><color rgb="FFD9DEE7"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="17"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="3" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" horizontal="center" wrapText="1"/></xf><xf numFmtId="0" fontId="4" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" horizontal="center" wrapText="1"/></xf><xf numFmtId="0" fontId="6" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" horizontal="center" wrapText="1"/></xf><xf numFmtId="0" fontId="4" fillId="6" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="3" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="5" fillId="8" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="7" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="6" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="7" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="5" fillId="8" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" horizontal="center" wrapText="1"/></xf><xf numFmtId="0" fontId="3" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" horizontal="center" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="7" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" horizontal="center" wrapText="1"/></xf><xf numFmtId="0" fontId="6" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" horizontal="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+    const workbook=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="24000" windowHeight="12000"/></bookViews><sheets><sheet name="CRO" sheetId="1" r:id="rId1"/></sheets><calcPr calcId="191029"/></workbook>`;
+    const workbookRels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
+    const rootRels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>`;
+    const contentTypes=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>`;
+    const now=new Date().toISOString();
+    const core=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:creator>Air Europa · UX Intelligence</dc:creator><cp:lastModifiedBy>Air Europa · UX Intelligence</cp:lastModifiedBy><dcterms:created xsi:type="dcterms:W3CDTF">${now}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${now}</dcterms:modified><dc:title>UX Intelligence · Export CRO</dc:title></cp:coreProperties>`;
+    const app=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>Air Europa UX Intelligence</Application><AppVersion>1.0</AppVersion></Properties>`;
+    return croXlsxZipStore([
+      ['[Content_Types].xml',contentTypes],['_rels/.rels',rootRels],['docProps/app.xml',app],['docProps/core.xml',core],['xl/workbook.xml',workbook],['xl/_rels/workbook.xml.rels',workbookRels],['xl/styles.xml',styles],['xl/worksheets/sheet1.xml',sheet],['xl/worksheets/_rels/sheet1.xml.rels',sheetRels]
+    ]);
+  }
+  function exportFilteredCro(){
+    if(!filtered.length){alert('No hay resultados para exportar.');return;}
+    const cols=[
+      ['Iniciativa','initiative'],['Producto','product'],['Funnel','funnel'],['Minifunnel','minifunnel'],['Componente','component'],
+      ['Dispositivo','device'],['Tipo de registro','recordType'],['Insight / hallazgo','insight'],['Evidencia','evidence'],
+      ['Posible respuesta UX','recommendation'],['Impacto UX','impactUx'],['Tipo de análisis','origin'],['Dimensión','uxLine'],
+      ['ID solución UX','solutionId'],['Solución UX propuesta','solutionUx'],['Por qué se plantea','designRationale'],
+      ['Estado de la solución','solutionStatus'],['Diseño / referencia','designRef']
+    ].map(([label,key])=>({label,key}));
+    const bytes=croXlsxBuild(filtered,cols);
+    const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob),link=document.createElement('a');
+    link.href=url;link.download='UX_Intelligence_CRO_resultados_filtrados.xlsx';link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+
+  let initialized=false;
+
+  function renderUxLineMultiselect(){
+    const root=document.getElementById('uxs-ux-line'),menu=document.getElementById('uxs-ux-line-menu'),trigger=document.getElementById('uxs-ux-line-trigger');
+    if(!root||!menu||!trigger)return;
+    const options=filterOptions('uxLine'),selected=Array.isArray(filters.uxLine)?filters.uxLine:[];
+    menu.innerHTML=options.length?options.map(value=>{const checked=selected.some(item=>norm(item)===norm(value));return `<label class="ux-line-option" role="option" aria-selected="${checked}"><input type="checkbox" value="${escapeHtml(value)}" ${checked?'checked':''}><span>${escapeHtml(value)}</span></label>`;}).join(''):'<p class="ux-line-empty">Sin dimensiones UX disponibles</p>';
+    const value=trigger.querySelector('.ux-line-trigger-value');
+    if(value)value.textContent=!selected.length?'Todos':selected.length===1?selected[0]:`${selected[0]} +${selected.length-1}`;
+  }
+  function setUxLineOpen(open){const root=document.getElementById('uxs-ux-line'),menu=document.getElementById('uxs-ux-line-menu'),trigger=document.getElementById('uxs-ux-line-trigger');if(!root||!menu||!trigger)return;root.classList.toggle('is-open',open);menu.hidden=!open;trigger.setAttribute('aria-expanded',String(open));}
+
+  function publishSharedRecords(){
+    globalThis.UXSimpleKnowledge=globalThis.UXSimpleKnowledge||{};
+    globalThis.UXSimpleKnowledge.currentNormalizedRecords=()=>records.map(record=>({...record}));
+  }
+
+  function refresh(){
+    records=normalizedRecords().map(record=>withSolutionMeta(globalThis.UXGovernedTaxonomy?.normalizeRecord?.(record)||record));
+    publishSharedRecords();
+    try{if(typeof renderOverview==='function')renderOverview();}catch(_){}
+    ids.forEach(([field,id])=>fillSelect(id,field,field));
+    try{globalThis.__dsSyncSelects?.();}catch(_){}
+    renderUxLineMultiselect();
+    apply();
+  }
+
+  globalThis.__uxSimpleExploreRefresh=refresh;
+
+  function init(){
+    if(initialized){ refresh(); return; }
+    initialized=true;
+    records=normalizedRecords().map(record=>withSolutionMeta(globalThis.UXGovernedTaxonomy?.normalizeRecord?.(record)||record));
+    publishSharedRecords();
+    try{if(typeof renderOverview==='function')renderOverview();}catch(_){}
+    ids.forEach(([field,id])=>fillSelect(id,field,field));
+    renderUxLineMultiselect();
+    ids.forEach(([field,id])=>{
+      const el=document.getElementById(id); if(!el)return;
+      el.addEventListener('change',()=>{
+        filters[field]=el.value;
+        if(field==='product'){
+          filters.funnel='';
+          filters.minifunnel='';
+          filters.component='';
+          fillSelect('uxs-funnel','funnel','funnel');
+          fillSelect('uxs-minifunnel','minifunnel','minifunnel');
+          fillSelect('uxs-component','component','component');
+          try{globalThis.__dsSyncSelects?.();}catch(_){}
+        }else if(field==='funnel'){
+          filters.minifunnel='';
+          filters.component='';
+          fillSelect('uxs-minifunnel','minifunnel','minifunnel');
+          fillSelect('uxs-component','component','component');
+          try{globalThis.__dsSyncSelects?.();}catch(_){}
+        }else if(field==='minifunnel'){
+          filters.component='';
+          fillSelect('uxs-component','component','component');
+          try{globalThis.__dsSyncSelects?.();}catch(_){}
+        }
+        apply();
+      });
+    });
+    document.getElementById('uxs-ux-line-trigger')?.addEventListener('click',event=>{event.preventDefault();const root=document.getElementById('uxs-ux-line');setUxLineOpen(!root?.classList.contains('is-open'));});
+    document.getElementById('uxs-ux-line-menu')?.addEventListener('change',event=>{const input=event.target.closest('input[type="checkbox"]');if(!input)return;const selected=new Set((filters.uxLine||[]).map(norm));if(input.checked)selected.add(norm(input.value));else selected.delete(norm(input.value));filters.uxLine=filterOptions('uxLine').filter(value=>selected.has(norm(value)));renderUxLineMultiselect();setUxLineOpen(true);apply();});
+    document.addEventListener('click',event=>{if(!event.target.closest('#uxs-ux-line'))setUxLineOpen(false);});
+    document.getElementById('uxs-ux-line')?.addEventListener('keydown',event=>{if(event.key==='Escape')setUxLineOpen(false);});
+    document.getElementById('uxs-sort')?.addEventListener('change',apply);
+    document.getElementById('uxs-included-from')?.addEventListener('change',apply);
+    document.getElementById('uxs-included-to')?.addEventListener('change',apply);
+    document.getElementById('uxs-more-filters')?.addEventListener('click',()=>{
+      const sec=document.getElementById('uxs-secondary');
+      const btn=document.getElementById('uxs-more-filters');
+      sec.hidden=!sec.hidden;
+      btn.setAttribute('aria-expanded',String(!sec.hidden));
+      btn.textContent=sec.hidden?'Más filtros':'Menos filtros';
+    });
+    document.getElementById('uxs-export')?.addEventListener('click',exportFiltered);
+    document.getElementById('uxs-export-cro')?.addEventListener('click',exportFilteredCro);
+    document.getElementById('uxs-active-filters')?.addEventListener('click',e=>{
+      const remove=e.target.closest('[data-uxs-remove]');
+      if(remove){
+        const field=remove.dataset.uxsRemove;
+        filters[field]='';
+        if(field==='product'){filters.funnel='';filters.minifunnel='';filters.component='';}
+        if(field==='funnel'){filters.minifunnel='';filters.component='';}
+        if(field==='minifunnel')filters.component='';
+        ids.forEach(([name,id])=>fillSelect(id,name,name));
+        try{globalThis.__dsSyncSelects?.();}catch(_){}
+        apply();
+        return;
+      }
+      const removeLine=e.target.closest('[data-uxs-remove-line]');
+      if(removeLine){filters.uxLine=(filters.uxLine||[]).filter(value=>norm(value)!==norm(removeLine.dataset.uxsRemoveLine));renderUxLineMultiselect();apply();return;}
+      const removeDate=e.target.closest('[data-uxs-remove-date]');
+      if(removeDate){const input=document.getElementById(removeDate.dataset.uxsRemoveDate);if(input){input.value='';input.dispatchEvent(new Event('change',{bubbles:true}));}apply();return;}
+      if(e.target.closest('[data-uxs-clear]')){
+        ids.forEach(([field,id])=>{
+          filters[field]='';
+          const select=document.getElementById(id);
+          if(select)select.value='';
+        });
+        filters.uxLine=[];renderUxLineMultiselect();
+        ids.forEach(([name,id])=>fillSelect(id,name,name));
+        try{globalThis.__dsSyncSelects?.();}catch(_){}
+        const from=document.getElementById('uxs-included-from'),to=document.getElementById('uxs-included-to');
+        if(from){from.value='';from.dispatchEvent(new Event('change',{bubbles:true}));}
+        if(to){to.value='';to.dispatchEvent(new Event('change',{bubbles:true}));}
+        apply();
+      }
+    });
+    document.getElementById('uxs-results-list')?.addEventListener('click',e=>{
+      const row=e.target.closest('[data-uxs-id]'); if(row)openDetail(row.dataset.uxsId);
+    });
+    document.getElementById('uxs-results-list')?.addEventListener('keydown',e=>{
+      if((e.key==='Enter'||e.key===' ')&&e.target.closest('[data-uxs-id]')){
+        e.preventDefault();openDetail(e.target.closest('[data-uxs-id]').dataset.uxsId);
+      }
+    });
+    document.getElementById('uxs-pagination')?.addEventListener('click',e=>{
+      const button=e.target.closest('[data-page-target="explore"]');
+      if(!button||button.disabled)return;
+      explorePage=Number(button.dataset.page)||1;
+      render();
+      const first=document.getElementById('uxs-results-list')?.querySelector('[data-uxs-id]');
+      first?.focus({preventScroll:true});
+      first?.scrollIntoView({block:'nearest'});
+    });
+    apply();
+  }
+
+  window.addEventListener('load',()=>{
+    setTimeout(init,350);
+    setTimeout(refresh,1200);
+  });
+})();
+</script>
+
+
+<script id="v6-design-system-selects-script">
+(function(){
+  let uid=0;
+  const instances=new Set();
+  function closeAll(except){
+    instances.forEach(api=>{if(api!==except)api.close(false);});
+  }
+  function enhance(select){
+    if(!select||select.dataset.dsSelect==='1'||select.multiple)return;
+    select.dataset.dsSelect='1';
+    select.classList.add('ds-native-select');
+    const wrap=document.createElement('div');wrap.className='ds-select';
+    const trigger=document.createElement('div');trigger.className='ds-select-trigger';trigger.tabIndex=select.disabled?-1:0;trigger.setAttribute('role','combobox');trigger.setAttribute('aria-haspopup','listbox');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-disabled',String(Boolean(select.disabled)));
+    const value=document.createElement('span');value.className='ds-select-value';
+    const chevron=document.createElement('span');chevron.className='ds-select-chevron';chevron.setAttribute('aria-hidden','true');
+    const menu=document.createElement('div');menu.className='ds-select-menu';menu.setAttribute('role','listbox');
+    const listId=`ds-select-list-${++uid}`;menu.id=listId;trigger.setAttribute('aria-controls',listId);
+    trigger.append(value,chevron);wrap.append(trigger,menu);select.insertAdjacentElement('afterend',wrap);
+    let optionNodes=[];
+    function selectedIndex(){return Math.max(0,select.selectedIndex);}
+    function renderOptions(){
+      menu.innerHTML='';optionNodes=[];
+      [...select.options].forEach((opt,index)=>{
+        const row=document.createElement('div');row.className='ds-select-option';row.setAttribute('role','option');row.dataset.index=String(index);row.tabIndex=-1;row.textContent=opt.textContent||opt.label||opt.value;row.classList.toggle('is-selected',index===selectedIndex());row.classList.toggle('is-disabled',Boolean(opt.disabled));row.setAttribute('aria-selected',String(index===selectedIndex()));if(opt.disabled)row.setAttribute('aria-disabled','true');menu.appendChild(row);optionNodes.push(row);
+      });
+    }
+    function sync(){
+      const opt=select.options[selectedIndex()]||select.options[0];value.textContent=opt?.textContent||'Seleccionar';trigger.tabIndex=select.disabled?-1:0;trigger.setAttribute('aria-disabled',String(Boolean(select.disabled)));renderOptions();
+    }
+    function focusOption(index){
+      const valid=optionNodes.filter(node=>!node.classList.contains('is-disabled'));if(!valid.length)return;
+      const requested=optionNodes[index];const target=requested&&!requested.classList.contains('is-disabled')?requested:valid[0];target.focus({preventScroll:true});target.scrollIntoView({block:'nearest'});
+    }
+    function open(focusSelected=false){if(select.disabled)return;closeAll(api);wrap.classList.add('is-open');trigger.setAttribute('aria-expanded','true');renderOptions();if(focusSelected)setTimeout(()=>focusOption(selectedIndex()),0);}
+    function close(returnFocus=false){wrap.classList.remove('is-open');trigger.setAttribute('aria-expanded','false');if(returnFocus)trigger.focus({preventScroll:true});}
+    function choose(index){const opt=select.options[index];if(!opt||opt.disabled)return;select.selectedIndex=index;select.dispatchEvent(new Event('change',{bubbles:true}));sync();close(true);}
+    trigger.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();wrap.classList.contains('is-open')?close(false):open(false);});
+    trigger.addEventListener('keydown',event=>{
+      if(['Enter',' ','ArrowDown','ArrowUp'].includes(event.key)){event.preventDefault();open(true);}else if(event.key==='Escape'){close(false);}
+    });
+    menu.addEventListener('click',event=>{const row=event.target.closest('.ds-select-option');if(!row)return;event.preventDefault();event.stopPropagation();choose(Number(row.dataset.index));});
+    menu.addEventListener('keydown',event=>{
+      const row=event.target.closest('.ds-select-option');if(!row)return;const index=Number(row.dataset.index);
+      if(event.key==='Enter'||event.key===' '){event.preventDefault();choose(index);return;}
+      if(event.key==='Escape'){event.preventDefault();close(true);return;}
+      if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();const direction=event.key==='ArrowDown'?1:-1;let next=index;for(let i=0;i<optionNodes.length;i++){next=(next+direction+optionNodes.length)%optionNodes.length;if(!optionNodes[next].classList.contains('is-disabled'))break;}focusOption(next);}
+    });
+    select.addEventListener('change',sync);
+    const observer=new MutationObserver(()=>queueMicrotask(sync));observer.observe(select,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
+    const api={select,wrap,trigger,sync,open,close};instances.add(api);sync();
+  }
+  function scan(root=document){
+    if(root.matches?.('select'))enhance(root);
+    root.querySelectorAll?.('select').forEach(enhance);
+  }
+  document.addEventListener('click',event=>{if(!event.target.closest('.ds-select'))closeAll();});
+  document.addEventListener('keydown',event=>{if(event.key==='Escape')closeAll();});
+  scan(document);
+  new MutationObserver(mutations=>mutations.forEach(m=>m.addedNodes.forEach(node=>{if(node.nodeType===1)scan(node);}))).observe(document.body,{childList:true,subtree:true});
+  globalThis.__dsSyncSelects=()=>instances.forEach(api=>api.sync());
+  document.querySelectorAll('select option[value="Todos"],select option[value="Todas"]').forEach(option=>{option.textContent='Todos';});
+  globalThis.__dsSyncSelects();
+  document.addEventListener('click',event=>{if(event.target.closest('[data-uxs-clear],[data-reset-filters],[data-panel-jump]'))setTimeout(()=>globalThis.__dsSyncSelects?.(),0);});
+})();
+</script>
+
+
+<script id="ux-taxonomy-source-of-truth-script">
+(function(){
+  const LEVELS=['product','funnel','minifunnel','component'];
+  const LEVEL_LABELS={product:'Producto',funnel:'Funnel',minifunnel:'Minifunnel',component:'Componente'};
+  let activeView='product';
+  let activeTermId='';
+
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+  const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
+
+  function terms(){
+    try{
+      const all=Array.isArray(taxonomyProject?.state?.terms)?taxonomyProject.state.terms:[];
+      return all.filter(term=>{
+        const origin=String(term?.origin||'').trim();
+        return term?.governed===true||!/^excel revisado\s*·/i.test(origin);
+      });
+    }catch(_){return [];}
+  }
+
+  function termId(term){return clean(term?.id||term?.termId||term?.key);}
+  function parentId(term){return clean(term?.parentId||term?.parentTermId||term?.parent?.id||term?.parent);}
+  function termName(term){return clean(term?.canonicalName||term?.name||term?.label||term?.value);}
+  function termStatus(term){return clean(term?.status||'canonical')||'canonical';}
+  function termStatusKind(term){
+    const value=norm(termStatus(term));
+    if(['canonical','canonico'].includes(value))return 'canonical';
+    if(['alias','synonym','sinonimo'].includes(value))return 'alias';
+    if(['obsolete','obsoleto','deprecated','retired','retirado'].includes(value))return 'obsolete';
+    if(['pending','pendiente','proposed','proposal','propuesta','draft','borrador'].includes(value))return 'pending';
+    return 'pending';
+  }
+  function termStatusLabel(term){
+    return {canonical:'Canónico',alias:'Alias',obsolete:'Obsoleto',pending:'Pendiente'}[termStatusKind(term)]||termStatus(term);
+  }
+  function termLevel(term){return clean(term?.level);}
+  function termAliases(term){
+    const raw=term?.aliases||term?.alias||term?.historicalNames||[];
+    return Array.isArray(raw)?raw.map(clean).filter(Boolean):clean(raw)?[clean(raw)]:[];
+  }
+
+  function findTerm(id){return terms().find(term=>termId(term)===clean(id));}
+
+  function ancestry(term){
+    if(!term)return [];
+    if(Array.isArray(term.path)&&term.path.length)return term.path.map(clean).filter(Boolean);
+    if(typeof term.path==='string'&&term.path.trim())return term.path.split(/\s*[›/>]\s*/).map(clean).filter(Boolean);
+    const byId=new Map(terms().map(item=>[termId(item),item]).filter(([id])=>id));
+    const chain=[];
+    const seen=new Set();
+    let current=term;
+    while(current&&!seen.has(termId(current))){
+      const id=termId(current);if(id)seen.add(id);
+      chain.unshift(current);
+      const pid=parentId(current);
+      current=pid?byId.get(pid):null;
+    }
+    return chain.map(termName).filter(Boolean);
+  }
+
+  function contextForTerm(term){
+    const context={};
+    if(!term)return context;
+    const byId=new Map(terms().map(item=>[termId(item),item]).filter(([id])=>id));
+    const chain=[];
+    const seen=new Set();
+    let current=term;
+    while(current&&!seen.has(termId(current))){
+      const id=termId(current);if(id)seen.add(id);
+      chain.unshift(current);
+      const pid=parentId(current);
+      current=pid?byId.get(pid):null;
+    }
+    chain.forEach(item=>{
+      const level=termLevel(item);
+      const name=termName(item);
+      if(LEVELS.includes(level)&&name)context[level]=name;
+    });
+    if(!Object.keys(context).length&&LEVELS.includes(termLevel(term)))context[termLevel(term)]=termName(term);
+    return context;
+  }
+
+  function structuredRecords(){
+    try{
+      if(typeof currentStructuredRecords==='function')return currentStructuredRecords();
+    }catch(_){}
+    try{
+      return (sourceItems||[]).flatMap(item=>(item.insightRegister?.rows||[]).map(row=>({...row,__documentId:item.id})));
+    }catch(_){return [];}
+  }
+
+  function matchesContext(item,context){
+    return LEVELS.every(level=>{
+      if(!context[level])return true;
+      if(level==='component'){
+        const values=[item?.component,...(Array.isArray(item?.components)?item.components:[])].map(norm).filter(Boolean);
+        return values.includes(norm(context[level]));
+      }
+      return norm(item?.[level])===norm(context[level]);
+    });
+  }
+
+  function knowledgeMetrics(term){
+    const context=contextForTerm(term);
+    const rows=structuredRecords().filter(row=>matchesContext(row,context));
+    let learningItems=[];
+    try{
+      learningItems=(learnings||[]).filter(item=>{
+        const candidates=[item,{...item,component:item.component||item.components?.[0]}];
+        return candidates.some(candidate=>matchesContext(candidate,context));
+      });
+    }catch(_){}
+    let docs=[];
+    try{
+      docs=(sourceItems||[]).filter(doc=>{
+        const docRows=doc.insightRegister?.rows||[];
+        return docRows.some(row=>matchesContext(row,context))||matchesContext(doc,context);
+      });
+    }catch(_){}
+    return {context,records:rows.length,learnings:learningItems.length,sources:docs.length};
+  }
+
+  function renderHealth(){
+    // La validación de gobierno queda fuera de la interfaz principal hasta que exista una acción clara para el usuario.
+  }
+
+  function renderKnowledgeBridge(){
+    const detail=document.getElementById('taxonomy-detail');
+    if(!detail)return;
+    detail.querySelector('.ux-taxonomy-knowledge-bridge')?.remove();
+    detail.querySelector('.ux-taxonomy-term-meta')?.remove();
+
+    const activeButton=detail.ownerDocument.querySelector('[data-taxonomy-term].active,[data-taxonomy-term][aria-current="true"],[data-taxonomy-term][aria-selected="true"]');
+    const id=activeTermId||activeButton?.dataset?.taxonomyTerm||'';
+    const term=findTerm(id);
+    if(!term)return;
+
+    const status=termStatus(term);
+    const aliases=termAliases(term);
+    const path=ancestry(term);
+    const metrics=knowledgeMetrics(term);
+    const levelLabel=LEVEL_LABELS[termLevel(term)]||termLevel(term)||'Término';
+
+    const statusKind=termStatusKind(term);
+    const metaItems=[];
+    if(statusKind!=='canonical')metaItems.push(`<span>${esc(termStatusLabel(term))}</span>`);
+    if(aliases.length)metaItems.push(`<span>${esc(aliases.length===1?'1 alias':`${aliases.length} aliases`)}</span>`);
+    if(metaItems.length){
+      const meta=document.createElement('div');
+      meta.className='ux-taxonomy-term-meta';
+      meta.innerHTML=metaItems.join('');
+      const heading=detail.querySelector('h1,h2,h3');
+      if(heading)heading.insertAdjacentElement('afterend',meta);else detail.prepend(meta);
+    }
+
+    const bridge=document.createElement('section');
+    bridge.className='ux-taxonomy-knowledge-bridge';
+    bridge.innerHTML=`
+      <h3>Conocimiento relacionado</h3>
+      <p>${path.length?`Contexto: ${esc(path.join(' › '))}`:'Consulta el conocimiento estructurado clasificado bajo este término.'}</p>
+      <div class="ux-taxonomy-knowledge-metrics">
+        <div class="ux-taxonomy-knowledge-metric"><strong>${metrics.records}</strong><span>${metrics.records===1?'registro estructurado':'registros estructurados'}</span></div>
+        <div class="ux-taxonomy-knowledge-metric"><strong>${metrics.learnings}</strong><span>${metrics.learnings===1?'learning relacionado':'learnings relacionados'}</span></div>
+        <div class="ux-taxonomy-knowledge-metric"><strong>${metrics.sources}</strong><span>${metrics.sources===1?'fuente estructurada':'fuentes estructuradas'}</span></div>
+      </div>
+      <button class="view-link ux-taxonomy-knowledge-action" type="button" data-taxonomy-explore-context='${esc(JSON.stringify(metrics.context))}'>Explorar conocimiento</button>`;
+    detail.appendChild(bridge);
+  }
+
+  function simplifyTaxonomyDetail(){
+    const detail=document.getElementById('taxonomy-detail');
+    if(!detail)return;
+
+    const normalized=value=>norm(String(value||'').replace(/\s+/g,' ').trim());
+    const all=[...detail.querySelectorAll('*')];
+
+    // El estado normal no necesita una etiqueta visible.
+    all.filter(node=>normalized(node.textContent)==='canonico').forEach(node=>{
+      const candidate=node.closest('.status-badge,.badge,.taxonomy-badge,.taxonomy-status')||node;
+      candidate.hidden=true;
+      candidate.setAttribute('aria-hidden','true');
+    });
+
+    // "Nivel" duplica el kicker superior (PRODUCTO / PANTALLA / COMPONENTE / ELEMENTO).
+    // Dejamos visible la relación jerárquica "Depende de", que sí aporta contexto.
+    const levelLabelNode=[...detail.querySelectorAll('span,small,dt,label,strong')].find(node=>normalized(node.textContent)==='nivel');
+    if(levelLabelNode){
+      let block=levelLabelNode.parentElement;
+      while(block&&block!==detail){
+        const copy=normalized(block.textContent);
+        if(copy.startsWith('nivel')&&copy.length<100){
+          block.hidden=true;
+          break;
+        }
+        block=block.parentElement;
+      }
+    }
+
+    // Los alias vacíos son ruido; si existen, se expresan con lenguaje más claro.
+    const aliasHeading=all.find(node=>['h2','h3','h4','strong'].includes(node.tagName.toLowerCase())&&normalized(node.textContent)==='alias');
+    if(aliasHeading){
+      let block=aliasHeading.parentElement;
+      while(block&&block!==detail){
+        const copy=normalized(block.textContent);
+        if(copy.includes('no tiene alias')){
+          block.hidden=true;
+          break;
+        }
+        if(copy.length>120)break;
+        block=block.parentElement;
+      }
+      if(!block?.hidden)aliasHeading.textContent='También puede aparecer como';
+    }
+
+    // Si existe nuestro bloque de conocimiento, la sección técnica "Uso actual" resulta redundante.
+    // Si todavía no existe, mantenemos la sección pero con lenguaje más claro.
+    const useHeading=all.find(node=>['h2','h3','h4','strong'].includes(node.tagName.toLowerCase())&&normalized(node.textContent)==='uso actual');
+    if(useHeading){
+      let block=useHeading.parentElement;
+      while(block&&block!==detail){
+        const copy=normalized(block.textContent);
+        if(copy.includes('uso actual')){
+          if(detail.querySelector('.ux-taxonomy-knowledge-bridge')){
+            block.hidden=true;
+          }else{
+            useHeading.textContent='Conocimiento relacionado';
+            [...block.querySelectorAll('p,span')].forEach(node=>{
+              if(normalized(node.textContent).includes('no hay referencias actuales')){
+                node.textContent='Este término todavía no tiene conocimiento estructurado asociado.';
+              }
+            });
+          }
+          break;
+        }
+        block=block.parentElement;
+      }
+    }
+
+    // Origen, ID estable y el resolvedor son útiles para gobierno, no para consulta diaria.
+    // Se conservan dentro de un disclosure técnico, sin perder funcionalidad.
+    let technical=detail.querySelector('.ux-taxonomy-technical');
+    if(!technical){
+      const techBlocks=[];
+      ['origen','id estable'].forEach(label=>{
+        const labelNode=[...detail.querySelectorAll('span,small,dt,label,strong')].find(node=>normalized(node.textContent)===label);
+        if(!labelNode)return;
+        let block=labelNode.parentElement;
+        while(block&&block!==detail){
+          const copy=normalized(block.textContent);
+          if(copy.startsWith(label)&&copy.length<220){
+            techBlocks.push(block);
+            break;
+          }
+          block=block.parentElement;
+        }
+      });
+
+      const resolverHeading=[...detail.querySelectorAll('summary,h2,h3,h4,strong')].find(node=>normalized(node.textContent)==='comprobar un termino');
+      if(resolverHeading){
+        const resolver=resolverHeading.closest('details')||resolverHeading.parentElement;
+        if(resolver&&resolver!==detail)techBlocks.push(resolver);
+      }
+
+      const unique=[...new Set(techBlocks)].filter(block=>block&&block.isConnected);
+      if(unique.length){
+        technical=document.createElement('details');
+        technical.className='ux-taxonomy-technical';
+        technical.innerHTML='<summary>Información técnica</summary><div class="ux-taxonomy-technical-body"></div>';
+        const body=technical.querySelector('.ux-taxonomy-technical-body');
+        unique.forEach(block=>body.appendChild(block));
+        detail.appendChild(technical);
+      }
+    }
+  }
+
+  function normalizeTaxonomyViewHeaders(){
+    const root=document.getElementById('taxonomy');
+    if(!root)return;
+    const headings=[...root.querySelectorAll('h2,h3,strong')];
+    const heading=headings.find(node=>norm(node.textContent)==='taxonomia gobernada');
+    if(!heading)return;
+
+    let candidate=heading.parentElement;
+    const productView=document.getElementById('taxonomy-view-product');
+    while(candidate&&candidate!==productView){
+      const copy=norm(candidate.textContent);
+      const hasExpectedCopy=copy.includes('los nuevos nodos se crean con id estable')||copy.includes('conservan alias');
+      if(hasExpectedCopy&&candidate.querySelector('button')){
+        candidate.classList.add('ux-taxonomy-view-intro','ux-taxonomy-common-intro');
+        break;
+      }
+      candidate=candidate.parentElement;
+    }
+  }
+
+  function setView(view){
+    activeView=view;
+    document.querySelectorAll('#taxonomy [data-taxonomy-panel]').forEach(panel=>{
+      panel.hidden=panel.dataset.taxonomyPanel!==view;
+    });
+    document.querySelectorAll('#taxonomy [data-taxonomy-view]').forEach(button=>{
+      const active=button.dataset.taxonomyView===view;
+      button.classList.toggle('active',active);
+      button.setAttribute('aria-selected',String(active));
+    });
+    if(view==='product')setTimeout(()=>{renderKnowledgeBridge();normalizeTaxonomyViewHeaders();simplifyTaxonomyDetail();},0);
+    renderHealth();
+    setTimeout(normalizeTaxonomyViewHeaders,0);
+  }
+
+
+  document.addEventListener('click',event=>{
+    const button=event.target.closest('#taxonomy [data-taxonomy-view]');
+    if(!button)return;
+    event.preventDefault();
+    event.stopPropagation();
+    setView(button.dataset.taxonomyView);
+  },true);
+
+  document.addEventListener('click',event=>{
+    const termButton=event.target.closest('#taxonomy [data-taxonomy-term]');
+    if(termButton){
+      activeTermId=termButton.dataset.taxonomyTerm||'';
+      setTimeout(()=>{renderKnowledgeBridge();renderHealth();simplifyTaxonomyDetail();},0);
+      return;
+    }
+
+    const explore=event.target.closest('[data-taxonomy-explore-context]');
+    if(explore){
+      let context={};
+      try{context=JSON.parse(explore.dataset.taxonomyExploreContext||'{}');}catch(_){}
+      if(typeof goToSimpleExploreContext==='function')goToSimpleExploreContext(context);
+      return;
+    }
+
+    if(event.target.closest('[data-taxonomy-edit],[data-propose-taxonomy]')){
+      setTimeout(()=>{renderHealth();renderKnowledgeBridge();simplifyTaxonomyDetail();},250);
+    }
+  });
+
+  function refreshTaxonomyEnhancements(){
+    renderHealth();
+    normalizeTaxonomyViewHeaders();
+    if(activeView==='product')renderKnowledgeBridge();
+    simplifyTaxonomyDetail();
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    setView('product');
+    setTimeout(refreshTaxonomyEnhancements,350);
+    setTimeout(refreshTaxonomyEnhancements,1200);
+  });
+  setTimeout(refreshTaxonomyEnhancements,2200);
+})();
+</script>
+
+
+<script id="uikit-date-picker-script">
+(function(){
+  const MONTHS=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const WEEKDAYS=['L','M','X','J','V','S','D'];
+  const pad=n=>String(n).padStart(2,'0');
+  const toIso=date=>`${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+  const parseIso=value=>{
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(value||''))return null;
+    const [y,m,d]=value.split('-').map(Number);
+    const date=new Date(y,m-1,d,12);
+    return Number.isNaN(date.getTime())?null:date;
+  };
+  const sameDay=(a,b)=>!!a&&!!b&&a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+  const formatDate=date=>date?`${date.getDate()} ${MONTHS[date.getMonth()].slice(0,4)} ${date.getFullYear()}`:'Seleccionar fecha';
+  const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+  let activePicker=null;
+
+  function rangePair(input){
+    const id=input?.id||'';
+    const base=id.replace(/-(from|to)$/,'');
+    const role=id.endsWith('-to')?'to':'from';
+    return {
+      role,
+      from:document.getElementById(`${base}-from`),
+      to:document.getElementById(`${base}-to`)
+    };
+  }
+  function beforeDay(a,b){
+    return !!a&&!!b&&toIso(a)<toIso(b);
+  }
+
+  function calendarIcon(){
+    return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 2v3M16 2v3M3.5 9h17M5.5 4.5h13a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+  function chevronIcon(direction){
+    const d=direction==='left'?'m15 18-6-6 6-6':'m9 18 6-6-6-6';
+    return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="${d}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+
+  function positionMenu(picker){
+    const {trigger,menu}=picker;
+    if(!menu||menu.hidden)return;
+    const rect=trigger.getBoundingClientRect();
+    const menuWidth=Math.min(328,window.innerWidth-32);
+    menu.style.width=`${menuWidth}px`;
+    menu.style.left=`${Math.min(Math.max(16,rect.left),Math.max(16,window.innerWidth-menuWidth-16))}px`;
+
+    menu.style.top='0px';
+    const menuHeight=Math.min(menu.scrollHeight,window.innerHeight-32);
+    const below=window.innerHeight-rect.bottom-8;
+    const top=below>=menuHeight
+      ? rect.bottom+8
+      : Math.max(16,rect.top-menuHeight-8);
+    menu.style.top=`${top}px`;
+  }
+
+  function renderCalendar(picker){
+    const {menu}=picker;
+    const year=picker.viewYear,month=picker.viewMonth;
+    const first=new Date(year,month,1,12);
+    const mondayIndex=(first.getDay()+6)%7;
+    const gridStart=new Date(year,month,1-mondayIndex,12);
+    const today=new Date(); today.setHours(12,0,0,0);
+    const pair=rangePair(picker.input);
+    const start=parseIso(pair.from?.value||'');
+    const end=parseIso(pair.to?.value||'');
+
+    const weekdays=WEEKDAYS.map(day=>`<span class="ui-date-weekday" role="columnheader">${day}</span>`).join('');
+    let days='';
+    for(let i=0;i<42;i++){
+      const date=new Date(gridStart);date.setDate(gridStart.getDate()+i);
+      const outside=date.getMonth()!==month;
+      const isStart=sameDay(date,start);
+      const isEnd=sameDay(date,end);
+      const selected=isStart||isEnd;
+      const inRange=!!start&&!!end&&beforeDay(start,date)&&beforeDay(date,end);
+      const isToday=sameDay(date,today);
+      const disabled=pair.role==='to'&&!!start&&beforeDay(date,start);
+      days+=`<button class="ui-date-day${outside?' is-outside':''}${inRange?' is-in-range':''}${isStart?' is-range-start':''}${isEnd?' is-range-end':''}${selected?' is-selected':''}${isToday?' is-today':''}${disabled?' is-disabled':''}" type="button" role="gridcell" aria-selected="${selected?'true':'false'}" aria-disabled="${disabled?'true':'false'}" ${disabled?'disabled':''} data-date="${toIso(date)}" aria-label="${esc(formatDate(date))}">${date.getDate()}</button>`;
+    }
+
+    menu.querySelector('.ui-date-month-label').textContent=`${MONTHS[month]} ${year}`;
+    menu.querySelector('.ui-date-grid').innerHTML=weekdays+days;
+  }
+
+  function closePicker(picker,{restoreFocus=true}={}){
+    if(!picker)return;
+    picker.menu.hidden=true;
+    picker.wrapper.classList.remove('is-open');
+    picker.trigger.setAttribute('aria-expanded','false');
+    if(activePicker===picker)activePicker=null;
+    if(restoreFocus)picker.trigger.focus({preventScroll:true});
+  }
+
+  function openPicker(picker){
+    if(activePicker&&activePicker!==picker)closePicker(activePicker,{restoreFocus:false});
+    const pair=rangePair(picker.input);
+    const existing=parseIso(picker.input.value);
+    const start=parseIso(pair.from?.value||'');
+    const end=parseIso(pair.to?.value||'');
+    picker.pending=existing?new Date(existing):null;
+    const base=existing||(pair.role==='to'?start:null)||start||end||new Date();
+    picker.viewYear=base.getFullYear();
+    picker.viewMonth=base.getMonth();
+    picker.menu.hidden=false;
+    picker.wrapper.classList.add('is-open');
+    picker.trigger.setAttribute('aria-expanded','true');
+    activePicker=picker;
+    renderCalendar(picker);
+    requestAnimationFrame(()=>positionMenu(picker));
+  }
+
+  function syncTrigger(picker){
+    const selected=parseIso(picker.input.value);
+    picker.value.textContent=formatDate(selected);
+    picker.trigger.classList.toggle('is-placeholder',!selected);
+  }
+
+  function enhance(input,index){
+    if(input.dataset.uiDateReady==='true')return;
+    input.dataset.uiDateReady='true';
+    input.classList.add('ui-date-source');
+    input.setAttribute('tabindex','-1');
+
+    const label=input.closest('label');
+    if(!label)return;
+
+    const wrapper=document.createElement('div');
+    wrapper.className='ui-date-picker';
+    input.parentNode.insertBefore(wrapper,input);
+    wrapper.appendChild(input);
+
+    const trigger=document.createElement('button');
+    const menuId=`ui-date-menu-${index}`;
+    trigger.type='button';
+    trigger.className='ui-date-trigger is-placeholder';
+    trigger.setAttribute('aria-haspopup','dialog');
+    trigger.setAttribute('aria-expanded','false');
+    trigger.setAttribute('aria-controls',menuId);
+    trigger.innerHTML=`<span class="ui-date-trigger-icon">${calendarIcon()}</span><span class="ui-date-trigger-value">Seleccionar fecha</span>`;
+    wrapper.appendChild(trigger);
+
+    const menu=document.createElement('div');
+    menu.id=menuId;
+    menu.className='ui-date-menu';
+    menu.hidden=true;
+    menu.setAttribute('role','dialog');
+    menu.setAttribute('aria-modal','false');
+    menu.setAttribute('aria-label','Seleccionar fecha');
+    menu.innerHTML=`
+      <div class="ui-date-menu-content">
+        <div class="ui-date-month-row">
+          <button class="ui-date-utility ui-date-prev" type="button" aria-label="Mes anterior">${chevronIcon('left')}</button>
+          <div class="ui-date-month-label" aria-live="polite"></div>
+          <button class="ui-date-utility ui-date-next" type="button" aria-label="Mes siguiente">${chevronIcon('right')}</button>
+        </div>
+        <div class="ui-date-grid" role="grid" aria-label="Calendario"></div>
+      </div>`;
+    document.body.appendChild(menu);
+
+    const picker={
+      input,wrapper,trigger,menu,
+      value:trigger.querySelector('.ui-date-trigger-value'),
+      pending:null,viewYear:new Date().getFullYear(),viewMonth:new Date().getMonth()
+    };
+
+    trigger.addEventListener('click',()=>menu.hidden?openPicker(picker):closePicker(picker));
+    menu.querySelector('.ui-date-prev').addEventListener('click',()=>{
+      picker.viewMonth--;
+      if(picker.viewMonth<0){picker.viewMonth=11;picker.viewYear--;}
+      renderCalendar(picker);
+    });
+    menu.querySelector('.ui-date-next').addEventListener('click',()=>{
+      picker.viewMonth++;
+      if(picker.viewMonth>11){picker.viewMonth=0;picker.viewYear++;}
+      renderCalendar(picker);
+    });
+    menu.querySelector('.ui-date-grid').addEventListener('click',event=>{
