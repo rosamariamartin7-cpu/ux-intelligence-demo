@@ -580,7 +580,10 @@ return out;
       const selectedLines=Array.isArray(filters.uxLine)?filters.uxLine:[];
       const lineMatch=!selectedLines.length||selectedLines.some(selected=>(r.uxLines||[]).some(line=>norm(line)===norm(selected)));
       const defaultTypeMatch=norm(r.recordType)!==norm('Pregunta abierta');
-      return standardMatch&&defaultTypeMatch&&lineMatch&&exploreInclusionMatch(r.ingestedAt,includedFrom,includedTo);
+      const designMode=filters.designAssociated||'';
+      const hasDesign=!!(String(r.solutionId||'').trim()||String(r.designRef||'').trim());
+      const designMatch=!designMode||(designMode==='with'?hasDesign:!hasDesign);
+      return standardMatch&&defaultTypeMatch&&lineMatch&&designMatch&&exploreInclusionMatch(r.ingestedAt,includedFrom,includedTo);
     });
     filtered=exploreSortByInclusion(filtered,sort);
     render();
@@ -839,13 +842,15 @@ return out;
     const chips=document.getElementById('uxs-active-filters');
     const active=ids.filter(([field])=>filters[field]);
     const activeLines=Array.isArray(filters.uxLine)?filters.uxLine:[];
+    const activeDesign=filters.designAssociated?{field:'designAssociated',label:filters.designAssociated==='with'?'Con diseño asociado':'Sin diseño asociado'}:null;
     const dateValues=[['uxs-included-from','Incorporado desde'],['uxs-included-to','Incorporado hasta']].map(([id,label])=>({id,label,value:document.getElementById(id)?.value||''})).filter(item=>item.value);
-    const activeCount=active.length+activeLines.length+dateValues.length;
+    const activeCount=active.length+activeLines.length+dateValues.length+(activeDesign?1:0);
     if(chips){
       chips.hidden=!activeCount;
       chips.innerHTML=activeCount
         ? `<span class="active-filter-label">Filtros activos</span>`+
           active.map(([field,id])=>`<button class="uxs-filter-chip" type="button" data-uxs-remove="${escapeHtml(field)}">${escapeHtml(filters[field])}<span aria-hidden="true">×</span></button>`).join('')+
+          (activeDesign?`<button class="uxs-filter-chip" type="button" data-uxs-remove="designAssociated">${escapeHtml(activeDesign.label)}<span aria-hidden="true">×</span></button>`:'')+
           activeLines.map(line=>`<button class="uxs-filter-chip" type="button" data-uxs-remove-line="${escapeHtml(line)}">${escapeHtml(line)}<span aria-hidden="true">×</span></button>`).join('')+
           dateValues.map(item=>`<button class="uxs-filter-chip" type="button" data-uxs-remove-date="${item.id}">${escapeHtml(item.label)}: ${escapeHtml(item.value.split('-').reverse().join('/'))}<span aria-hidden="true">×</span></button>`).join('')+
           `<button class="clear-filter-button" type="button" data-uxs-clear>Limpiar filtros</button>`
