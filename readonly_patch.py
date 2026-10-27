@@ -474,6 +474,51 @@ if 'id="ux-demo-readonly-guard"' not in s:
 else:
     s = s.replace('</body>', taxonomy_runtime_js + '\n</body>', 1)
 
+# Filtro Diseño asociado para la demo pública.
+# Usa el mismo criterio existente de la app: solutionId || designRef.
+design_filter_js = r'''
+<script id="ux-demo-design-associated-filter">
+(() => {
+  const hasDesign = r => !!(String(r?.solutionId||'').trim() || String(r?.designRef||'').trim());
+  function ensureFilter(){
+    const explore=document.getElementById('explore');
+    if(!explore || document.getElementById('uxs-design-associated-filter')) return;
+    const target=explore.querySelector('.uxs-more-filters, .more-filters, [data-more-filters], .filters-grid, .uxs-filters-grid, .uxs-filters');
+    if(!target) return;
+    const wrap=document.createElement('label');
+    wrap.className='uxs-filter-field ux-demo-design-filter-field';
+    wrap.innerHTML='<span>Diseño asociado</span><select id="uxs-design-associated-filter"><option value="all">Todos</option><option value="with">Con diseño asociado</option><option value="without">Sin diseño asociado</option></select>';
+    target.appendChild(wrap);
+    wrap.querySelector('select').addEventListener('change',applyFilter);
+  }
+  function getRecord(id){
+    try{ if(typeof sourceItems!=='undefined' && Array.isArray(sourceItems)) return sourceItems.find(x=>String(x?.id||'')===String(id||''))||null; }catch(_e){}
+    return null;
+  }
+  function applyFilter(){
+    ensureFilter();
+    const sel=document.getElementById('uxs-design-associated-filter');
+    if(!sel) return;
+    const mode=sel.value;
+    document.querySelectorAll('#explore .uxs-result[data-uxs-id]').forEach(card=>{
+      if(mode==='all'){ card.style.display=''; return; }
+      const rec=getRecord(card.getAttribute('data-uxs-id'));
+      const match=rec ? hasDesign(rec) : !!card.querySelector('.uxs-solution-badge');
+      card.style.display=(mode==='with' ? match : !match) ? '' : 'none';
+    });
+  }
+  function init(){ ensureFilter(); applyFilter(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(init,300),{once:true});
+  else setTimeout(init,300);
+  window.addEventListener('load',()=>setTimeout(init,700),{once:true});
+  const obs=new MutationObserver(()=>applyFilter());
+  window.addEventListener('load',()=>{ const e=document.getElementById('explore'); if(e) obs.observe(e,{childList:true,subtree:true}); },{once:true});
+})();
+</script>
+'''
+if 'id="ux-demo-design-associated-filter"' not in s:
+    s = s.replace('</body>', design_filter_js + '\n</body>', 1)
+
 target.write_text(s, encoding="utf-8")
 print("UX Intelligence consolidated UI installed in read-only mode")
 print("Same UI · filters/search/downloads enabled · writes hidden")
