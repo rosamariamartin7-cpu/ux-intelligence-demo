@@ -325,6 +325,7 @@
     document.getElementById('uxs-sort')?.addEventListener('change',apply);
     document.getElementById('uxs-included-from')?.addEventListener('change',apply);
     document.getElementById('uxs-included-to')?.addEventListener('change',apply);
+    document.getElementById('uxs-design-associated')?.addEventListener('change',event=>{filters.designAssociated=event.target.value;apply();});
     document.getElementById('uxs-more-filters')?.addEventListener('click',()=>{
       const sec=document.getElementById('uxs-secondary');
       const btn=document.getElementById('uxs-more-filters');
@@ -339,6 +340,7 @@
       if(remove){
         const field=remove.dataset.uxsRemove;
         filters[field]='';
+        if(field==='designAssociated'){const select=document.getElementById('uxs-design-associated');if(select)select.value='';}
         if(field==='product'){filters.funnel='';filters.minifunnel='';filters.component='';}
         if(field==='funnel'){filters.minifunnel='';filters.component='';}
         if(field==='minifunnel')filters.component='';
@@ -358,6 +360,8 @@
           if(select)select.value='';
         });
         filters.uxLine=[];renderUxLineMultiselect();
+        filters.designAssociated='';
+        const designSelect=document.getElementById('uxs-design-associated');if(designSelect)designSelect.value='';
         ids.forEach(([name,id])=>fillSelect(id,name,name));
         try{globalThis.__dsSyncSelects?.();}catch(_){}
         const from=document.getElementById('uxs-included-from'),to=document.getElementById('uxs-included-to');
