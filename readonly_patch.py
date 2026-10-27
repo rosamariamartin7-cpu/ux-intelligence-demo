@@ -3,12 +3,22 @@ from pathlib import Path
 ROOT = Path("app/ux-intelligence-demo-exact")
 ROOT.mkdir(parents=True, exist_ok=True)
 
-source = Path("consolidated_index.html")
+parts_dir = Path("v6184_parts")
 target = ROOT / "index.html"
-if not source.exists():
-    raise SystemExit("ERROR: no se encuentra consolidated_index.html")
+parts = sorted(parts_dir.glob("part_*.txt"))
+if len(parts) != 18:
+    raise SystemExit(f"ERROR: se esperaban 18 partes de v6-184 y hay {len(parts)}")
 
-s = source.read_text(encoding="utf-8")
+chunks = [part.read_text(encoding="utf-8") for part in parts]
+s = ""
+for chunk in chunks:
+    if s and chunk and not s.endswith("\n") and not chunk.startswith("\n"):
+        s += "\n"
+    s += chunk
+
+expected_build = 'data-build="2026-10-27-v6-184-strict-learning-taxonomy"'
+if expected_build not in s:
+    raise SystemExit("ERROR: la fuente ensamblada no es la build v6-184 esperada")
 
 # Identificación visual de la copia compartida.
 badge = '<span class="ux-demo-readonly-badge">Demo · solo consulta</span>'
