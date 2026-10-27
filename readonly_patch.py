@@ -475,49 +475,50 @@ else:
     s = s.replace('</body>', taxonomy_runtime_js + '\n</body>', 1)
 
 # Filtro Diseño asociado para la demo pública.
-# Usa el mismo criterio existente de la app: solutionId || designRef.
-design_filter_js = r'''
-<script id="ux-demo-design-associated-filter">
-(() => {
-  const hasDesign = r => !!(String(r?.solutionId||'').trim() || String(r?.designRef||'').trim());
-  function ensureFilter(){
-    const explore=document.getElementById('explore');
-    if(!explore || document.getElementById('uxs-design-associated-filter')) return;
-    const target=explore.querySelector('.uxs-more-filters, .more-filters, [data-more-filters], .filters-grid, .uxs-filters-grid, .uxs-filters');
-    if(!target) return;
-    const wrap=document.createElement('label');
-    wrap.className='uxs-filter-field ux-demo-design-filter-field';
-    wrap.innerHTML='<span>Diseño asociado</span><select id="uxs-design-associated-filter"><option value="all">Todos</option><option value="with">Con diseño asociado</option><option value="without">Sin diseño asociado</option></select>';
-    target.appendChild(wrap);
-    wrap.querySelector('select').addEventListener('change',applyFilter);
-  }
-  function getRecord(id){
-    try{ if(typeof sourceItems!=='undefined' && Array.isArray(sourceItems)) return sourceItems.find(x=>String(x?.id||'')===String(id||''))||null; }catch(_e){}
-    return null;
-  }
-  function applyFilter(){
-    ensureFilter();
-    const sel=document.getElementById('uxs-design-associated-filter');
-    if(!sel) return;
-    const mode=sel.value;
-    document.querySelectorAll('#explore .uxs-result[data-uxs-id]').forEach(card=>{
-      if(mode==='all'){ card.style.display=''; return; }
-      const rec=getRecord(card.getAttribute('data-uxs-id'));
-      const match=rec ? hasDesign(rec) : !!card.querySelector('.uxs-solution-badge');
-      card.style.display=(mode==='with' ? match : !match) ? '' : 'none';
-    });
-  }
-  function init(){ ensureFilter(); applyFilter(); }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(init,300),{once:true});
-  else setTimeout(init,300);
-  window.addEventListener('load',()=>setTimeout(init,700),{once:true});
-  const obs=new MutationObserver(()=>applyFilter());
-  window.addEventListener('load',()=>{ const e=document.getElementById('explore'); if(e) obs.observe(e,{childList:true,subtree:true}); },{once:true});
-})();
-</script>
+# Cambio mínimo sobre el renderer existente de Explorar.
+design_field = '''
+              <label>Diseño asociado<select id="uxs-design-associated"><option value="">Todos</option><option value="with">Con diseño asociado</option><option value="without">Sin diseño asociado</option></select></label>
 '''
-if 'id="ux-demo-design-associated-filter"' not in s:
-    s = s.replace('</body>', design_filter_js + '\n</body>', 1)
+design_markup_anchor = '              <label>Impacto UX<select id="uxs-impact"></select></label>'
+if 'id="uxs-design-associated"' not in s:
+    if design_markup_anchor not in s:
+        raise SystemExit('ERROR: no se encuentra ancla de Impacto UX para Diseño asociado')
+    s = s.replace(design_markup_anchor, design_markup_anchor + '\n' + design_field.rstrip(), 1)
+
+# Añadir estado y lectura del filtro al objeto filters ya existente.
+filters_anchor = "impact:document.getElementById('uxs-impact')?.value||'',"
+if "designAssociated:document.getElementById('uxs-design-associated')" not in s:
+    if filters_anchor not in s:
+        raise SystemExit('ERROR: no se encuentra lectura de Impacto UX')
+    s = s.replace(filters_anchor, filters_anchor + "\n      designAssociated:document.getElementById('uxs-design-associated')?.value||'',", 1)
+
+# Aplicar el filtro antes de calcular contador y paginación.
+filter_anchor = "if(filters.impact&&norm(r.impactUx)!==norm(filters.impact))return false;"
+design_filter_logic = """
+        if(filters.designAssociated){
+          const hasDesign=!!(String(r.solutionId||'').trim()||String(r.designRef||'').trim());
+          if(filters.designAssociated==='with'&&!hasDesign)return false;
+          if(filters.designAssociated==='without'&&hasDesign)return false;
+        }
+"""
+if "filters.designAssociated==='with'" not in s:
+    if filter_anchor not in s:
+        raise SystemExit('ERROR: no se encuentra filtro de Impacto UX')
+    s = s.replace(filter_anchor, filter_anchor + '\n' + design_filter_logic.rstrip(), 1)
+
+# Escuchar el nuevo select con el mismo apply() del resto.
+listener_anchor = "document.getElementById('uxs-impact')?.addEventListener('change',apply);"
+if "uxs-design-associated')?.addEventListener('change',apply)" not in s:
+    if listener_anchor not in s:
+        raise SystemExit('ERROR: no se encuentra listener de Impacto UX')
+    s = s.replace(listener_anchor, listener_anchor + "\n    document.getElementById('uxs-design-associated')?.addEventListener('change',apply);", 1)
+
+# Incluirlo en chips activos y Limpiar filtros reutilizando el mecanismo existente.
+ids_anchor = "['impact','uxs-impact']"
+if "['designAssociated','uxs-design-associated']" not in s:
+    if ids_anchor not in s:
+        raise SystemExit('ERROR: no se encuentra ids de Impacto UX')
+    s = s.replace(ids_anchor, ids_anchor + ",['designAssociated','uxs-design-associated']", 1)
 
 target.write_text(s, encoding="utf-8")
 print("UX Intelligence consolidated UI installed in read-only mode")
