@@ -84,9 +84,8 @@ if needle not in s:
 s = s.replace(needle, "terms:" + canonical_terms_js + ",", 1)
 
 # Restauración robusta para la demo pública:
-# 1) reaplica la taxonomía DESPUÉS de loadTaxonomyProject(), que puede sobrescribirla;
-# 2) recupera los dos learnings históricos que ya existían en el workspace local,
-#    usando únicamente evidencia presente en los 198 registros públicos.
+# La taxonomía read-only se representa directamente desde el canon embebido.
+# No se crean, recuperan ni modifican learnings en la demo.
 taxonomy_runtime_js = f"""
 <script id="ux-demo-taxonomy-runtime-restore-v6184">
 (() => {{
@@ -217,6 +216,7 @@ taxonomy_runtime_js = f"""
   }}
 
   function restoreTaxonomy(){{
+    renderReadonlyTaxonomy();
     try{{
       if(typeof taxonomyProject==='undefined' || !taxonomyProject) return;
       taxonomyProject.state = taxonomyProject.state || {{}};
@@ -237,76 +237,8 @@ taxonomy_runtime_js = f"""
     }}
   }}
 
-  function ensureHistoricalLearnings(){{
-    try{{
-      if(typeof learnings==='undefined' || !Array.isArray(learnings)) return;
-
-      const specs = [
-        {{
-          id:'L-SUMA-04',
-          initiative:'SUMA Frequent Flyer',
-          initiatives:['SUMA Frequent Flyer'],
-          product:'Booking',
-          funnel:'Passengers',
-          minifunnel:'',
-          component:'Card Datos del pasajero',
-          components:['Card Datos del pasajero'],
-          impactUx:'Alto',
-          title:'Si el usuario ya está logado en SUMA, aprovechemos los datos que ya tenemos',
-          know:'Si ya conocemos sus datos y beneficios, volver a pedirlos añade esfuerzo.',
-          text:'Podemos recuperar la información disponible y aplicar sus ventajas, dejando claro qué se ha recuperado o aplicado.',
-          forEvidence:[
-            'DEMO-051 · La identificación SUMA puede reducir esfuerzo si evita volver a introducir datos ya conocidos.',
-            'DEMO-077 · La recuperación automática de datos personales y número SUMA reduce esfuerzo en Paxes.'
-          ],
-          sourceNames:['UX_Intelligence_CRO_master_final.xlsx'],
-          status:'Learning consolidado'
-        }},
-        {{
-          id:'L-SUMA-05',
-          initiative:'SUMA Frequent Flyer',
-          initiatives:['SUMA Frequent Flyer'],
-          product:'Booking',
-          funnel:'Shopping Cart',
-          minifunnel:'',
-          component:'Slider de Millas',
-          components:['Slider de Millas'],
-          impactUx:'Alto',
-          title:'No queda claro qué representa la cifra de Millas',
-          know:'La cifra puede parecer el saldo total cuando quizá sea el máximo que se puede usar en esa reserva. Esa diferencia cambia cómo se entiende el canje.',
-          text:'Antes de usar el slider, tiene que quedar claro qué significa esa cifra y qué cantidad puede aplicarse realmente.',
-          forEvidence:[
-            'DEMO-059 · El mensaje inicial no deja claro si las Millas mostradas son saldo total o máximo aplicable a la reserva.'
-          ],
-          sourceNames:['UX_Intelligence_CRO_master_final.xlsx'],
-          status:'Learning consolidado'
-        }}
-      ];
-
-      let changed=false;
-      for(const spec of specs){{
-        const exists=learnings.some(item =>
-          String(item?.id||'')===spec.id ||
-          String(item?.title||'').trim()===spec.title
-        );
-        if(!exists){{
-          learnings.push(JSON.parse(JSON.stringify(spec)));
-          changed=true;
-        }}
-      }}
-      if(changed){{
-        try{{ renderLearnings?.(); }}catch(_e){{}}
-        try{{ renderOverview?.(); }}catch(_e){{}}
-        try{{ refreshAllTaxonomyFilters?.(); }}catch(_e){{}}
-      }}
-    }}catch(e){{
-      console.error('[UX Intel public learning restore]',e);
-    }}
-  }}
-
   function run(){{
     restoreTaxonomy();
-    ensureHistoricalLearnings();
   }}
 
   if(document.readyState==='loading'){{
