@@ -1,0 +1,1000 @@
+      return {documentItem,analysis,interpretation,clusters,allClusters:clusters,revision:false,changedIds:[],operations,counts,relevantPending:0,routinePending:0,decisionErrors,ready:operations.length>0&&!decisionErrors.length,trace:{validUnits:canonicalUnits.length,originalRecords:analysis.findings?.length||0,reconstructedRows:0,representedOriginals:0,doubleCounted:0,engine:'document-first-2'}};
+    }
+    function reviewPublicationPlan(documentItem){
+      const approvedV2=approvedDocumentFirstV2Plan(documentItem);if(approvedV2)return approvedV2;
+      const analysis=documentItem?.analysis,interpretation=documentInterpretation(documentItem),allClusters=reviewInsightsForDocument(documentItem,interpretation),revision=isDocumentPublished(documentItem),changedIds=revision?pendingAnalysisChanges(documentItem):[],clusters=revision?allClusters.filter(cluster=>changedIds.includes(cluster.id)):allClusters;
+      const operations=clusters.map(cluster=>({id:cluster.id,name:cluster.displayTitle,synthesis:cluster.displaySynthesis,nuance:cluster.nuance,decision:cluster.decision,learningId:cluster.learning?.id||cluster.learningId||'',learningTitle:cluster.learning?.title||'',unitCount:cluster.findings.length,pages:formatPageRanges(cluster.pages),devices:cluster.devices,types:cluster.types,proposedClassification:cluster.proposedClassification||'',contextTags:cluster.contextTags,findings:cluster.findings,reviewStatus:cluster.reviewStatus,decisionDetails:cloneAnalysisValue(cluster.decisionDetails||{}),editorialContext:cloneAnalysisValue(cluster.editorialContext||{})}));
+      const counts=publicationImpactDefinitions.reduce((summary,definition)=>{summary[definition.key]=operations.filter(operation=>definition.decisions.includes(operation.decision)).length;return summary;},{});
+      const relevantPending=clusters.filter(cluster=>cluster.needsDecision&&!insightIsReviewed(cluster)).length,routinePending=clusters.filter(cluster=>!cluster.needsDecision&&!insightIsReviewed(cluster)).length;
+      const missingLearning=operations.some(operation=>['Reforzar learning','Reforzar learning existente','Ampliar learning'].includes(operation.decision)&&!learnings.some(learning=>learning.id===operation.learningId));
+      const decisionErrors=clusters.flatMap(cluster=>insightDecisionErrors({...cluster,decisionDetails:insightDecisionDetails(cluster)}));
+      return {documentItem,analysis,interpretation,clusters,allClusters,revision,changedIds,operations,counts,relevantPending,routinePending,decisionErrors,ready:clusters.length>0&&!missingLearning&&!decisionErrors.length&&!relevantPending&&!routinePending&&clusters.every(cluster=>insightIsReviewed(cluster)),trace:{validUnits:interpretation.units.length,originalRecords:analysis?.findings?.length||0,reconstructedRows:interpretation.tableRows.length,representedOriginals:interpretation.tableDedup?.representedOriginalIds?.length||0,doubleCounted:interpretation.tableDedup?.doubleCountedOriginalIds?.length||0}};
+    }
+    function publicationSummaryText(counts){
+      const labels=[['reinforced','learning reforzado','learnings reforzados'],['expanded','learning ampliado','learnings ampliados'],['newLearnings','nuevo learning','nuevos learnings'],['questions','pregunta abierta','preguntas abiertas'],['opportunities','oportunidad','oportunidades'],['recommendations','recomendación de sistema','recomendaciones de sistema'],['patterns','pattern','patterns'],['evidenceOnly','insight solo como evidencia','insights solo como evidencia'],['contradictions','contradicción','contradicciones'],['linkedEvidence','evidencia vinculada','evidencias vinculadas'],['restrictions','restricción nueva','restricciones nuevas'],['updatedRestrictions','restricción actualizada','restricciones actualizadas'],['discarded','insight descartado','insights descartados'],['context','insight de contexto','insights de contexto']];
+      return labels.filter(([key])=>counts[key]).map(([key,singular,plural])=>`${counts[key]} ${counts[key]===1?singular:plural}`).join(' · ')||'Sin operaciones de publicación';
+    }
+    function publicationOperationNotes(operation,documentItem){
+      const source=`Nueva evidencia procedente de ${documentItem.name}.`,trace=`Trazabilidad a ${operation.pages==='—'?'las páginas de origen':`páginas ${operation.pages}`} y ${operation.unitCount} ${operation.unitCount===1?'unidad válida':'unidades válidas'}.`,context=operation.devices.length?`Contexto conservado: ${operation.devices.join(', ')}.`:'El contexto disponible se conserva sin generalizarlo.';
+      if(['Reforzar learning','Reforzar learning existente'].includes(operation.decision))return [source,'La evidencia reforzará el learning relacionado sin crear otro learning.',context,trace];
+      if(operation.decision==='Ampliar learning')return [source,operation.nuance?`Se añadirá este matiz: ${operation.nuance}`:'Se ampliará el alcance del learning relacionado.',context,trace];
+      if(operation.decision==='Contradice learning')return [source,'La contradicción se incorporará separada de la evidencia a favor.',context,trace];
+      if(operation.decision==='Crear nuevo learning')return [source,'Se creará un único learning consolidado para este insight.',context,trace];
+      if(operation.decision==='Crear pregunta abierta')return [source,'Se conservarán evidencia, inferencias, restricciones y una pregunta para validar.','No se creará un learning.',trace];
+      if(operation.decision==='Posible oportunidad')return [source,'Se registrará como oportunidad, separada de learnings y patterns.',context,trace];
+      if(operation.decision==='Recomendación de sistema')return [source,'Se registrará como recomendación de sistema, no como pattern validado.',context,trace];
+      if(operation.decision==='Descartar')return ['Se conservará el insight y su histórico en el documento.','No se publicará como evidencia ni como conocimiento.',trace];
+      if(['Crear restricción','Actualizar restricción existente'].includes(operation.decision))return [source,'Se conservará el estado anterior, la fuente y el impacto de la restricción.',trace];
+      if(operation.decision==='Usar como evidencia')return [source,'Se vinculará la aportación al conocimiento seleccionado sin crear un learning.',trace];
+      if(operation.decision==='Posible patrón')return [source,'Se creará un único pattern propuesto para este insight.',context,trace];
+      return [source,'El insight se conservará como evidencia trazable.','No se creará un learning, pregunta, oportunidad ni pattern.',trace];
+    }
+    // Presentation only: consume the reviewed publication plan without changing it.
+    function publicationPreviewGroups(plan){
+      const groups=publicationImpactDefinitions.map(definition=>({...definition,label:definition.key==='patterns'?'Patrones':definition.label,operations:plan.operations.filter(operation=>definition.decisions.includes(operation.decision))})).filter(group=>group.operations.length);
+      const remaining=plan.operations.filter(operation=>!groups.some(group=>group.operations.includes(operation)));
+      if(remaining.length)groups.push({key:'other',label:'Otras decisiones',operations:remaining});
+      return groups;
+    }
+    function publicationPreviewField(label,value){
+      return value&&String(value).trim()?`<div class="publication-field"><h5>${escapeHtml(label)}</h5><p>${escapeHtml(value)}</p></div>`:'';
+    }
+    function publicationPreviewOperation(operation,documentItem,plan){
+      const copy=insightPublicationCopy(operation),context=insightPublicationContext(operation),details=operation.decisionDetails||{},editorial=operation.editorialContext||{};
+      const question=operation.decision==='Crear pregunta abierta',newLearning=operation.decision==='Crear nuevo learning';
+      const title=question?copy.question:newLearning?copy.title:operation.learningId&&operation.learningTitle?`${operation.learningId} · ${operation.learningTitle}`:details.restriction||copy.title;
+      const path=['product','screen','component'].map(key=>context[key]).filter(knownMetadata).join(' / ');
+      const metadata=[insightDecisionLabel(operation.decision),newLearning?`Confianza ${String(copy.confidence).toLocaleLowerCase('es')}`:'',path].filter(Boolean).join(' · ');
+      const field=(label,value)=>value!==title?publicationPreviewField(label,value):'';
+      const limits=copy.noProof.join('\n');
+      let content;
+      if(newLearning)content=field('Qué sabemos',copy.synthesis)+field('Qué no demuestra',limits)+field('Alcance',copy.scope||pathOf(context));
+      else if(question)content=field('Contexto de la pregunta',copy.synthesis||editorial.context||copy.scope)+field('Qué necesitamos resolver',details.problem);
+      else content=field('Aportación',copy.synthesis)+field('Qué no demuestra',limits)+field('Alcance',copy.scope);
+      const shown=new Set(question?['question','contribution','synthesis','problem']:['contribution','synthesis','limitation','scope',...(newLearning?['confidence']:[])]);
+      const secondaryProposal=insightProposalPreview({...operation,decisionDetails:Object.fromEntries(Object.entries(details).filter(([key,value])=>!shown.has(key)&&value!==title&&value!==copy.synthesis))});
+      const original=plan.clusters.find(cluster=>cluster.id===operation.id);
+      const origin=field('Qué dice el documento',operation.synthesis)+field('Matices',operation.nuance)+field('Qué significa para UX',editorial.uxImplication)+field('Contexto del documento',editorial.context)+field('Qué no demuestra la fuente',editorial.notDemonstrated)+field('Límites de la fuente',editorial.limits);
+      const unitIds=operation.findings.map(unit=>unit.id).filter(Boolean).join(', ');
+      const trace=`<details class="publication-trace"><summary>Trazabilidad</summary><div>${publicationPreviewField('Documento',`${documentItem.name} · ${documentItem.originalName||documentItem.fileMeta?.name||''}`)}<p>${operation.unitCount} ${operation.unitCount===1?'unidad válida':'unidades válidas'} · páginas ${escapeHtml(operation.pages)}</p>${field('Dispositivo',operation.devices.join(', '))}${field('Tipo de conocimiento',operation.types.join(', '))}${secondaryProposal}${analysisRevisionNotes(documentItem,operation)}<details><summary>Ver insight de origen</summary>${operation.name!==title?field('Insight de origen',operation.name):''}${origin}${publicationPreviewField('Referencias de las unidades',unitIds)}${original?insightDecisionHistoryMarkup(original):''}</details></div></details>`;
+      return `<details class="publication-operation" data-preview-operation="${escapeHtml(operation.id)}"><summary><span><strong>${escapeHtml(title)}</strong><span class="publication-meta">${escapeHtml(metadata)}</span></span><svg class="publication-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></summary><div class="publication-operation-body">${content}${trace}</div></details>`;
+    }
+    function publicationPreviewBody(plan,documentItem){
+      const groups=publicationPreviewGroups(plan),selected=selectedEvolutionProposals(documentItem);
+      const existingKeys=new Set(['reinforced','expanded','contradictions','linkedEvidence','updatedRestrictions']);
+      const existingChanges=plan.operations.filter(operation=>publicationImpactDefinitions.some(definition=>existingKeys.has(definition.key)&&definition.decisions.includes(operation.decision))).length+selected.length;
+      const metrics=[...groups.filter(group=>!existingKeys.has(group.key)).map(group=>[group.operations.length,group.label]),[existingChanges,'Cambios sobre conocimiento existente'],[plan.trace.originalRecords,'Registros originales conservados']];
+      const summary=`<section class="publication-summary-section"><h3>Resumen de impacto</h3><dl class="publication-summary">${metrics.map(([count,label])=>`<div><dt>${escapeHtml(label)}</dt><dd>${count}</dd></div>`).join('')}</dl></section>`;
+      const operations=groups.map(group=>`<section class="publication-group"><header class="section-head"><h4>${escapeHtml(group.label)} <span class="status-badge neutral">${group.operations.length}</span></h4></header>${group.operations.map(operation=>publicationPreviewOperation(operation,documentItem,plan)).join('')}</section>`).join('');
+      const evolution=selected.length?`<details class="publication-trace"><summary>Actualizaciones seleccionadas (${selected.length})</summary>${evolutionPreviewMarkup(documentItem)}</details>`:'';
+      const legacyDecisions=documentItem.analysis?.documentFirstV2?.publicationPlan?.trace?.legacyHumanDecisionIds?.length||plan.operations.length;
+      const trace=`<details class="publication-trace publication-general-trace"><summary>Trazabilidad de la publicación</summary><div>${publicationPreviewField('Documento',`${documentItem.name} · ${documentItem.originalName||documentItem.fileMeta?.name||''}`)}<p><strong>${plan.trace.originalRecords} registros originales conservados</strong> · ${plan.trace.validUnits} unidades válidas vinculadas al documento.</p><p>Las ${plan.trace.reconstructedRows} filas reconstruidas sustituyen semánticamente a sus fragmentos originales. No se duplicará evidencia.</p><p>Las ${legacyDecisions} decisiones humanas previas se conservarán con su fuente y sus referencias. Los registros originales seguirán disponibles para consulta.</p></div></details>`;
+      return `<div id="publication-preview"><div class="publication-preview-scroll">${summary}<section aria-labelledby="publication-changes-title"><div class="publication-list-heading"><h3 id="publication-changes-title">Qué va a cambiar</h3><div class="publication-disclosure-actions"><button class="text-button" type="button" data-preview-expand="true" aria-label="Expandir todo el detalle de publicación">Expandir todo</button><button class="text-button" type="button" data-preview-expand="false" aria-label="Contraer todo el detalle de publicación">Contraer todo</button></div></div>${operations}${evolution}</section>${trace}</div><div class="form-actions"><button class="secondary-button" type="button" data-back-to-review>Volver a revisión</button><button class="action-button" type="button" data-confirm-publish>Publicar conocimiento</button></div></div>`;
+    }
+    function openPublishPreview(){
+      const documentItem=activeReviewDocument();if(!reviewCanEdit(documentItem))return;const plan=reviewPublicationPlan(documentItem);if(!plan.ready){showToast('La revisión aún no está cerrada','Revisa todas las decisiones antes de preparar la publicación.');return;}
+      const conflicts=[...evolutionConflicts(documentItem,plan),...analysisRevisionConflicts(documentItem,plan)];if(conflicts.length){showToast('Hay decisiones incompatibles',conflicts.join(' '));return;}
+      const header=`<div class="drawer-kicker">Preview de publicación</div><h2>Impacto en UX Intel</h2><p class="drawer-lead">Esto es lo que cambiará al publicar ${escapeHtml(documentItem.name)}. ${plan.revision?'La publicación anterior permanece intacta hasta confirmar estos cambios.':'Todavía no se ha incorporado ningún conocimiento.'}</p>`;
+      const body=publicationPreviewBody(plan,documentItem);
+      openDrawer(header,body);
+    }
+    async function setClusterReviewDecision(documentItem,clusterId,decision,status='pending'){
+      const insight=reviewInsightsForDocument(documentItem).find(item=>item.id===clusterId);
+      if(status==='approved'&&insight){const errors=insightDecisionErrors({...insight,decision,decisionDetails:insightDecisionDetails(insight)});if(errors.length){openInsightDecision(clusterId);showToast('Completa la decisión',errors.join(' '));return false;}}
+      return saveAnalysisEdit(documentItem,clusterId,{decision,status});
+    }
+    // Read-only counts for the two review orientation modules, not classification.
+    function reviewOrientation(clusters){
+      const isQuestion=cluster=>cluster.kind==='question'||(!cluster.kind&&cluster.decision==='Crear pregunta abierta');
+      const pending=clusters.filter(cluster=>!insightIsReviewed(cluster));
+      const questions=clusters.filter(isQuestion).length,pendingQuestions=pending.filter(isQuestion).length;
+      return {total:clusters.length,reviewed:clusters.length-pending.length,insights:clusters.length-questions,questions,pending,pendingInsights:pending.length-pendingQuestions,pendingQuestions};
+    }
+    function reviewOrientationSummary(orientation,knowledgeChanges){
+      return `<div class="cluster-review-summary audit-stats">${[[orientation.reviewed,'Unidades revisadas','system-processing'],[orientation.questions,'Preguntas abiertas','system-pending'],[orientation.pending.length,'Decisiones pendientes',orientation.pending.length?'system-pending':'system-success'],[knowledgeChanges,'Cambios en conocimiento',knowledgeChanges?'system-processing':'neutral']].map(([count,label,tone])=>`<div class="cluster-metric audit-stat"><strong>${count}</strong><span class="audit-stat-label ${tone}">${label}</span></div>`).join('')}</div>`;
+    }
+    function reviewUnitTypeLabel(cluster){
+      if(cluster.kind==='question'||(!cluster.kind&&cluster.decision==='Crear pregunta abierta'))return 'Pregunta abierta';
+      if(cluster.decision==='Recomendación de sistema')return 'Recomendación';
+      if(['Mantener solo como evidencia','Solo contexto / evidencia documental','Usar como evidencia'].includes(cluster.decision))return 'Evidencia / contexto';
+      return 'Insight';
+    }
+    function reviewDecisionFocus(orientation,editable){
+      // Once finished, the existing publication/completion module takes over.
+      if(!editable||!orientation.pending.length)return '';
+      return `<section class="decision-focus" aria-labelledby="review-decision-focus-title"><div class="decision-focus-copy"><h2 id="review-decision-focus-title">Necesita tu decisión</h2><p class="decision-focus-counts"><span><strong>${orientation.pendingInsights}</strong> ${orientation.pendingInsights===1?'insight pendiente':'insights pendientes'}</span><span><strong>${orientation.pendingQuestions}</strong> ${orientation.pendingQuestions===1?'pregunta abierta':'preguntas abiertas'}</span><span><strong>${orientation.pending.length}</strong> ${orientation.pending.length===1?'decisión por revisar':'decisiones por revisar'}</span></p></div><a class="secondary-button" data-start-review href="#cluster-${escapeHtml(orientation.pending[0].id)}">Empezar revisión</a></section>`;
+    }
+    function startPendingReview(){
+      const item=activeReviewDocument();if(!item)return;
+      const first=reviewOrientation(reviewInsightsForDocument(item)).pending[0];if(!first)return;
+      const card=document.getElementById(`cluster-${first.id}`);if(!card)return;
+card.open=true;
+      const summary=card.querySelector('summary');
+      summary?.focus({preventScroll:true});
+      summary?.scrollIntoView({block:'center',behavior:'auto'});
+    }
+    function renderReview(){
+      const openedInsights=[...(document.querySelectorAll?.('#review-pane-insights .cluster-card[id][open]')||[])].map(node=>node.id);
+      const documentItem=activeReviewDocument();
+      activeReviewDocumentId=documentItem?.id||PILOT_SOURCE_ID;
+      const summary=document.getElementById('review-summary'),metrics=document.getElementById('review-context-metrics'),workspace=document.getElementById('review-workspace'),actions=document.getElementById('review-actions');
+      if(!documentItem){summary.innerHTML='';metrics.innerHTML='';actions.innerHTML='';workspace.innerHTML='<div class="analysis-empty"><h2>No hay documento seleccionado</h2><p>Selecciona una fuente en Documentos para consultar su ficha, conocimiento asociado y trazabilidad.</p></div>';return;}
+      const analysis=documentItem.analysis,editable=reviewCanEdit(documentItem);
+      document.getElementById('review-title').textContent=documentItem.name;
+      document.querySelector('#review .eyebrow').textContent='Ficha del documento';
+      if(hasRecoveredDocumentAnalysis(documentItem)){
+        document.querySelector('#review .eyebrow').textContent='Análisis recuperado';
+      }
+      const findings=analysis?.findings||[],metadata=analysis?.metadata||{};
+      const devices=metadata.devices?.length?metadata.devices:[...new Set(findings.map(item=>item.device).filter(Boolean))];
+      const markets=metadata.markets?.length?metadata.markets:[...new Set(findings.map(item=>item.market).filter(Boolean))];
+      summary.innerHTML=`<span class="review-context-source"><span>${escapeHtml(documentItem.originalName||documentItem.fileMeta?.name||'No disponible')}</span><span class="review-context-separator" aria-hidden="true">·</span><span>${escapeHtml(documentDate(documentItem))}</span></span><span class="review-context-status"><span class="review-context-separator" aria-hidden="true">·</span><span class="status-badge ${documentStatusClass(documentItem.status)}">${escapeHtml(documentStatusLabel(documentItem.status))}</span></span>`;
+      if(!hasDocumentAnalysis(documentItem)||!documentHydrationComplete){
+        metrics.innerHTML='';
+        actions.innerHTML='';
+        workspace.innerHTML=`<div class="analysis-empty"><h2>${documentItem.status==='Analizando'?'Análisis en curso':'Análisis no disponible'}</h2><p>${!documentHydrationComplete?'Recuperando el análisis guardado…':documentItem.status==='Analizando'?'La revisión estará disponible cuando termine el análisis.':'Este documento no tiene un análisis recuperado. Vuelve a su ficha para consultar su estado.'}</p><button class="secondary-button" type="button" data-open-source-detail="${documentItem.id}">Ver documento</button></div>`;
+        return;
+      }
+      const interpretation=documentInterpretation(documentItem),relations=analysis.relations||[],clusters=reviewInsightsForDocument(documentItem,interpretation),decisionCounts=reviewDecisionCounts(clusters),publicationPlan=reviewPublicationPlan(documentItem);
+      const approved=findings.filter(item=>item.status==='approved').length,pending=findings.filter(item=>item.status==='pending').length;
+      const routineClusters=clusters.filter(cluster=>!cluster.needsDecision&&!insightIsReviewed(cluster));
+      actions.innerHTML=!editable||publicationPlan.ready||!routineClusters.length?'':`<button class="secondary-button" type="button" data-approve-routine-clusters>Confirmar ${routineClusters.length} ${routineClusters.length===1?'propuesta rutinaria':'propuestas rutinarias'}</button>`;
+      const auditView=buildDocumentAuditView(documentItem,interpretation,clusters);
+      const needsDecision=clusters.filter(cluster=>cluster.needsDecision&&!insightIsReviewed(cluster));
+      const orientation=reviewOrientation(clusters),decisionFocus=reviewDecisionFocus(orientation,editable);
+      const publicationState=analysisEditStatusMarkup(documentItem,publicationPlan)+(analysis.publication?.status==='published'?`<section class="publish-ready"><div class="publish-ready-copy"><span class="publish-ready-label">Conocimiento publicado</span><h2>${clusters.length} unidades de conocimiento incorporadas a UX Intel.</h2><p>${escapeHtml(publicationSummaryText(analysis.publication.counts||{}))}</p><p>Publicado · ${escapeHtml(formatDateEs(analysis.publication.publishedAt))}</p></div><button class="secondary-button" type="button" data-view-published-knowledge>Ver conocimiento publicado</button></section>`:editable&&publicationPlan.ready?`<section class="publish-ready"><div class="publish-ready-copy"><span class="publish-ready-label">Revisión de unidades completada</span><h2>${clusters.length} unidades revisadas</h2><p>El documento sigue pendiente de publicación.</p></div><button class="action-button" type="button" data-open-publish-preview>Ver impacto y publicar</button></section>`:'');
+      const clusterCards=clusters.map(cluster=>{
+        const device=cluster.devices.join(', ')||'Dispositivo no especificado',status=insightReviewLabel(cluster);
+        const findingsList=cluster.findings.map((finding,index)=>{
+          const number=finding.derivedFromTable?`T${String(index+1).padStart(2,'0')}`:String(finding.originalIndex||index+1).padStart(2,'0'),structure=finding.structure?`<div class="cluster-finding-structure"><div><small>Impacto potencial</small><span>${escapeHtml(finding.structure.impacto)}</span></div><div><small>Oportunidad</small><span>${escapeHtml(finding.structure.oportunidad)}</span></div><div><small>Origen</small><span>Tabla · Área ${escapeHtml(finding.structure.area)} · ${finding.originalFindingIds?.length||0} registros originales</span></div></div>`:'';
+          return `<div class="cluster-finding"><span class="cluster-finding-index">${number}</span><div class="cluster-finding-copy"><strong>${escapeHtml(finding.text)}</strong><span>Pág. ${finding.source?.page||'—'} · ${escapeHtml(finding.source?.section||'Sin sección')} · ${escapeHtml(pathOf(finding))}</span>${structure}</div><span class="status-badge ${confidenceClass(finding.confidence)}">${escapeHtml(humanKnowledgeLabel(finding.type))}</span></div>`;
+        }).join('');
+        const relationCopy=cluster.learning?`Relacionado con ${escapeHtml(cluster.learning.id)}.`:cluster.id==='design-system'?'Recomendación de sistema sin relación forzada con un learning.':'No se ha encontrado una coincidencia consolidada suficientemente clara.';
+        const relationId=cluster.decisionDetails?.targetId||cluster.learningId||'';
+        const context=pathOf(cluster.findings[0]||cluster);
+        return `<details class="cluster-card" id="cluster-${cluster.id}"><summary><span class="cluster-title cluster-primary"><span class="cluster-unit-label">${escapeHtml(reviewUnitTypeLabel(cluster))}</span><strong>${insightReadCopy(cluster.displayTitle)}</strong><span class="cluster-knowledge-meta">${relationId?`<span>Relacionado con <strong>${escapeHtml(relationId)}</strong></span>`:''}<span>${escapeHtml(context)} · ${escapeHtml(device)}</span><span>${cluster.findings.length} ${cluster.findings.length===1?'evidencia':'evidencias'} · páginas ${formatPageRanges(cluster.pages)}</span></span></span><span class="insight-decision"><strong>${escapeHtml(insightDecisionLabel(cluster.decision))}</strong><span class="${insightIsReviewed(cluster)?'reviewed':''}">${status}</span></span><span class="cluster-disclosure"><span class="insight-disclosure-closed">Ver detalle</span><span class="insight-disclosure-open">Ocultar detalle</span></span></summary><div class="cluster-body">${insightManagementMarkup(cluster,documentItem,findingsList)}</div></details>`;
+      }).join('');
+      const discardedByReason=(analysis.discarded||[]).reduce((acc,item)=>{acc[item.reason]=(acc[item.reason]||0)+1;return acc;},{});
+      const typeBreakdown=Object.entries(interpretation.typeCounts||{}).map(([type,count])=>`<li><strong>${escapeHtml(humanKnowledgeLabel(type))}:</strong> ${count}</li>`).join('');
+      const discardBreakdown=Object.entries(discardedByReason).map(([reason,count])=>`<li>${count} · ${escapeHtml(reason)}</li>`).join('')||(analysis.recovery&&!Object.hasOwn(analysis,'discarded')?'<li>No disponible en el histórico.</li>':'<li>No se descartaron bloques.</li>');
+      const knowledgeChanges=['reinforced','expanded','newLearnings','contradictions'].reduce((total,key)=>total+(publicationPlan.counts?.[key]||0),0);
+      metrics.innerHTML=reviewOrientationSummary(orientation,knowledgeChanges);
+      const clusterSummaryLine='Revisa las unidades extraídas y comprueba qué decisión tendrá cada una antes de publicar.';
+      const technicalCoverage=`<div class="coverage-grid"><section class="coverage-section"><h3>Lectura realizada</h3><ul><li>${analysis.coverage?.pagesRead==null?'Páginas con texto extraíble: no disponible':`${analysis.coverage.pagesRead} páginas con texto extraíble`}</li><li>${findings.length} registros originales conservados</li><li>${interpretation.validOriginals} registros válidos para consolidación</li><li>${interpretation.contextRecords} registros tratados como contexto, no como hallazgo</li><li>${interpretation.tableRows.length} filas de tabla reconstruidas</li><li>${interpretation.units.length} de ${interpretation.units.length} unidades válidas asignadas una sola vez</li><li>${relations.length} relaciones propuestas agrupadas en insights</li></ul></section><section class="coverage-section"><h3>Tipos interpretados</h3><ul>${typeBreakdown||'<li>No se detectaron unidades.</li>'}</ul></section><section class="coverage-section"><h3>Secciones detectadas</h3><ul>${(analysis.sections||[]).map(section=>`<li>${escapeHtml(section)}</li>`).join('')||'<li>No especificadas</li>'}</ul></section><section class="coverage-section"><h3>Descartes del análisis original</h3><ul>${discardBreakdown}</ul></section><section class="coverage-section"><h3>Criterio aplicado</h3><p>Los dispositivos, mercados y métodos se conservan como contexto. Las conclusiones del autor sirven de ancla, pero no se convierten automáticamente en hechos.</p></section><section class="coverage-section"><h3>Contexto detectado</h3><p>${escapeHtml(analysis.metadata.products.join(', ')||(analysis.recovery?'No disponible':''))} / ${escapeHtml(analysis.metadata.screens.join(', ')||(analysis.recovery?'No disponible':''))}<br>${escapeHtml(analysis.metadata.components.join(', ')||(analysis.recovery?'No disponible':''))}<br>Dispositivo: ${escapeHtml(devices.join(', ')||'No especificado')}<br>Mercado: ${escapeHtml(markets.join(', ')||'No especificado')}<br>Fecha: ${escapeHtml(documentDate(documentItem))}</p></section></div>`;
+      workspace.innerHTML=`<div class="analysis-workspace-panel"><div class="review-tabs" role="tablist" aria-label="Contenido de la revisión"><button class="review-tab active" id="review-tab-insights" type="button" role="tab" aria-selected="true" aria-controls="review-pane-insights" tabindex="0" data-review-tab="clusters">Revisión del documento (${clusters.length})</button><button class="review-tab" id="review-tab-records" type="button" role="tab" aria-selected="false" aria-controls="review-pane-records" tabindex="-1" data-review-tab="findings">Registros originales (${findings.length})</button><button class="review-tab" id="review-tab-coverage" type="button" role="tab" aria-selected="false" aria-controls="review-pane-coverage" tabindex="-1" data-review-tab="coverage">Cobertura y trazabilidad</button></div><section class="review-pane active" id="review-pane-insights" role="tabpanel" aria-labelledby="review-tab-insights" aria-hidden="false" data-review-pane="clusters">${analysisModeHeader('Revisión del documento','Valida la síntesis, las relaciones y las preguntas abiertas antes de incorporar cambios a la base.','review')}${publicationState}${decisionFocus}${evolutionProposalMarkup(documentItem)}<div class="cluster-list">${clusterCards}</div></section><section class="review-pane" id="review-pane-records" role="tabpanel" aria-labelledby="review-tab-records" aria-hidden="true" data-review-pane="findings" hidden>${documentRecordsMarkup(auditView)}</section><section class="review-pane" id="review-pane-coverage" role="tabpanel" aria-labelledby="review-tab-coverage" aria-hidden="true" data-review-pane="coverage" hidden>${documentCoverageMarkup(auditView,technicalCoverage)}</section></div>`;
+      mountDocumentAuditView(auditView);
+      openedInsights.forEach(id=>document.getElementById(id)?.setAttribute('open',''));
+    }
+    function findReviewFinding(id){const documentItem=activeReviewDocument();return documentItem?.analysis?.findings?.find(item=>item.id===id);}
+    function touchReview(documentItem=activeReviewDocument()){if(documentItem?.analysis){documentItem.analysis.review={...(documentItem.analysis.review||{}),status:documentItem.status,updatedAt:new Date().toISOString()};}}
+    function openInsightEditor(id){
+      const documentItem=activeReviewDocument();if(!reviewCanEdit(documentItem))return;
+      const insight=reviewInsightsForDocument(documentItem).find(item=>item.id===id);if(!insight)return;
+      const header=`<div class="drawer-kicker">Edición del análisis</div><h2>Editar insight del documento</h2><p class="drawer-lead">Los registros originales y la versión publicada no cambian al guardar.</p>`;
+      const body=`<form id="insight-edit-form" data-insight-id="${insight.id}"><div class="form-grid">${insightEditorFields(insight,documentItem)}</div><div class="form-actions"><button class="secondary-button" type="button" data-close-editor>Cancelar</button><button class="action-button" type="submit">Guardar</button></div></form>`;
+      openDrawer(header,body);
+      fitInsightEditor(document.getElementById('insight-edit-form'));
+    }
+    function questionFromFinding(finding){const statement=finding.text.replace(/[.!?]+$/,'').trim();return `¿Cómo debemos validar este punto antes de aplicarlo? ${statement}`;}
+    function nextCollectionId(prefix,items){const next=Math.max(0,...items.map(item=>Number(String(item.id||'').match(/\d+/)?.[0]||0)))+1;return `${prefix}-${String(next).padStart(2,'0')}`;}
+    function evidenceFromKnowledgeUnit(unit,index){return {...unit,id:`E-UP-${index}`,name:unit.text.length>92?`${unit.text.slice(0,89)}…`:unit.text,type:unit.type,context:`${pathOf(unit)} · ${unit.device} · ${unit.market}`,contribution:unit.text,source:`${unit.sourceName} · pág. ${unit.source?.page||'No especificada'}`,product:unit.product,screen:unit.screen,component:unit.component,element:unit.element,kind:unit.type,confidence:unit.confidence,device:unit.device,evidenceDate:unit.documentDate||'',ingestedAt:unit.publishedAt||'',ingested:true,documentId:unit.documentId,clusterId:unit.clusterId,unitId:unit.id};}
+    function openPublicationConfirmation(documentItem,plan){
+      const summary=publicationSummaryText(plan.counts),header=`<div class="drawer-kicker">Publicación completada</div><h2>Conocimiento publicado</h2><p class="drawer-lead">${escapeHtml(documentItem.name)} se ha incorporado a UX Intel.</p>`,body=`<section class="drawer-section"><div class="publication-confirmation"><strong>Documento procesado</strong><span>${escapeHtml(summary)}</span></div></section><section class="drawer-section related-section"><h3>Trazabilidad conservada</h3><p>${plan.trace.validUnits} unidades válidas vinculadas · ${plan.trace.originalRecords} registros originales auditables · sin duplicar los fragmentos de las tablas reconstruidas.</p></section><div class="form-actions"><button class="action-button" type="button" data-view-published-knowledge>Ver conocimiento publicado</button></div>`;
+      openDrawer(header,body);
+    }
+    async function publishReview(){
+      const documentItem=activeReviewDocument(),plan=reviewPublicationPlan(documentItem),analysis=documentItem?.analysis;if(!reviewCanEdit(documentItem)||!analysis||!plan.ready){showToast('No se puede publicar todavía','Quedan decisiones de revisión pendientes.');return;}
+      if(analysis.publication?.status==='published'&&!pendingAnalysisChanges(documentItem).length){openPublicationConfirmation(documentItem,{...plan,counts:analysis.publication.counts||plan.counts});return;}
+      const conflicts=[...evolutionConflicts(documentItem,plan),...analysisRevisionConflicts(documentItem,plan)];if(conflicts.length){showToast('Hay decisiones incompatibles',conflicts.join(' '));return;}
+      if(!await queueProjectHistory()){showToast('No se ha publicado','El histórico del proyecto no está disponible. No se ha publicado nada.');return;}
+      const publicationBackup=publicationRollbackSnapshot(documentItem),evolutionProposals=selectedEvolutionProposals(documentItem);
+      const publishedAt=new Date().toISOString();
+      try {
+      if(plan.revision){plan.revisionAt=publishedAt;preservePreviousAnalysisPublication(documentItem);withdrawPreviousAnalysisContributions(documentItem,plan);}
+      const operationByUnit=new Map(plan.operations.flatMap(operation=>operation.findings.map(unit=>[unit.id,operation])));
+      plan.interpretation.units.forEach(unit=>{
+        if(plan.revision&&!operationByUnit.has(unit.id))return;
+        if(knowledgeUnits.some(item=>item.documentId===documentItem.id&&item.id===unit.id))return;
+        const operation=operationByUnit.get(unit.id);if(operation?.decision==='Descartar')return;
+        const publishedUnit={...unit,documentId:documentItem.id,documentDate:documentItem.documentDate||null,sourceName:documentItem.name,clusterId:operation?.id||'',publicationCategory:operation?.decision||'Mantener solo como evidencia',proposedClassification:operation?.proposedClassification||'',publishedAt};
+        knowledgeUnits.push(publishedUnit);
+        evidenceItems.push(evidenceFromKnowledgeUnit(publishedUnit,knowledgeUnits.length));
+      });
+      plan.operations.forEach(operation=>{
+        const first=insightPublicationContext(operation),copy=insightPublicationCopy(operation),learning=learnings.find(item=>item.id===operation.learningId),operationId=`PUB-${documentItem.id}-${operation.id}`;
+        if(learning&&['Reforzar learning','Reforzar learning existente','Ampliar learning','Usar como evidencia'].includes(operation.decision)){
+          learning.forEvidence=learning.forEvidence||[];learning.sourceNames=learning.sourceNames||[];learning.publicationHistory=learning.publicationHistory||[];
+          if(!learning.forEvidence.includes(copy.synthesis))learning.forEvidence.push(copy.synthesis);
+          if(!learning.sourceNames.includes(documentItem.name))learning.sourceNames.push(documentItem.name);
+          if(!learning.publicationHistory.some(item=>item.id===operationId))learning.publicationHistory.push({id:operationId,decision:operation.decision,documentId:documentItem.id,sourceName:documentItem.name,clusterId:operation.id,unitIds:operation.findings.map(item=>item.id),publishedAt});
+          learning.updatedAt=publishedAt;
+        }
+        if(learning&&operation.decision==='Contradice learning'){
+          learning.contrary=learning.contrary||[];learning.publicationHistory=learning.publicationHistory||[];
+          if(!learning.contrary.includes(copy.synthesis))learning.contrary.push(copy.synthesis);
+          if(!learning.publicationHistory.some(item=>item.id===operationId))learning.publicationHistory.push({id:operationId,decision:operation.decision,documentId:documentItem.id,sourceName:documentItem.name,clusterId:operation.id,unitIds:operation.findings.map(item=>item.id),publishedAt});
+          learning.updatedAt=publishedAt;
+        }
+        if(operation.decision==='Crear nuevo learning'&&!learnings.some(item=>item.publicationOperationId===operationId))learnings.push({id:nextCollectionId('L',learnings),area:first.component,confidence:copy.confidence,title:copy.title,text:copy.synthesis,know:copy.synthesis,forEvidence:[copy.synthesis],contrary:[],noProof:copy.noProof.length?copy.noProof:['Este learning se ha consolidado desde una única fuente y debe aplicarse dentro de su contexto.'],open:[],applications:[copy.scope||pathOf(first)],tags:operation.types,sourceNames:[documentItem.name],device:operation.devices.join(', ')||first.device,market:first.market,flow:`${first.screen} → ${first.component}`,status:'Recomendado',quality:{Muestra:'No especificada',Método:'Auditoría UX',Triangulación:'Baja',Generalización:'Baja'},product:first.product,screen:first.screen,component:first.component,element:first.element,validity:'Vigente',createdAt:publishedAt,updatedAt:publishedAt,publicationOperationId:operationId,documentId:documentItem.id,clusterId:operation.id});
+        if(operation.decision==='Crear pregunta abierta'&&!openQuestionItems.some(item=>item.publicationOperationId===operationId))openQuestionItems.push({id:`Q-${documentItem.id}-${operation.id}`,publicationOperationId:operationId,documentId:documentItem.id,sourceName:documentItem.name,text:copy.question,product:first.product,screen:first.screen,component:first.component,element:first.element,clusterId:operation.id,evidence:copy.synthesis});
+        if(operation.decision==='Posible patrón'&&!patternItems.some(item=>item.publicationOperationId===operationId))patternItems.push({id:nextCollectionId('P',patternItems),status:'Oportunidad',confidence:copy.confidence,title:copy.title,description:copy.synthesis,support:operation.decisionDetails?.support||copy.synthesis,do:'Validar su aplicación en el contexto indicado antes de consolidarlo como patrón.',avoid:'No tratarlo como una solución universal ni implementada.',scope:pathOf(first),proof:documentItem.name,product:first.product,screen:first.screen,component:first.component,element:first.element,device:operation.devices.join(', ')||first.device,publicationOperationId:operationId,documentId:documentItem.id,clusterId:operation.id});
+        if(['Posible oportunidad','Recomendación de sistema'].includes(operation.decision)&&!knowledgeUnits.some(item=>item.id===operationId))knowledgeUnits.push({id:operationId,text:copy.synthesis,type:operation.decision==='Posible oportunidad'?'Oportunidad':'Recomendación de sistema',confidence:copy.confidence,confidenceWhy:`Decisión revisada a partir de ${operation.unitCount} unidades del documento.`,product:first.product,screen:first.screen,component:first.component,element:first.element,device:operation.devices.join(', ')||first.device,market:first.market,source:first.source,documentId:documentItem.id,sourceName:documentItem.name,clusterId:operation.id,publicationCategory:operation.decision,publishedAt});
+        publishInsightDecisionDetails(documentItem,operation,publishedAt);
+      });
+      const newOperations=plan.operations.map(operation=>({id:operation.id,name:operation.name,synthesis:operation.synthesis,nuance:operation.nuance,decision:operation.decision,learningId:operation.learningId,types:operation.types,proposedClassification:operation.proposedClassification||'',decisionDetails:operation.decisionDetails,editorialContext:operation.editorialContext,unitIds:operation.findings.map(item=>item.id),pages:operation.pages}));
+      const publicationOperations=plan.revision?analysis.publication.operations.map(previous=>newOperations.find(operation=>operation.id===previous.id)||previous):newOperations;
+      const totalCounts=publicationImpactDefinitions.reduce((counts,definition)=>({...counts,[definition.key]:publicationOperations.filter(operation=>definition.decisions.includes(operation.decision)).length}),{});
+      analysis.publication={status:'published',publishedAt,counts:totalCounts,operations:publicationOperations,trace:plan.trace};
+      delete analysis.pendingPublication;documentItem.archivedReview=null;
+      Object.values(analysis.clusterReview||{}).forEach(review=>{delete review.publishEditorialChanges;});
+      documentItem.status='Procesado';touchReview(documentItem);
+      evolutionState=UXKnowledge.applyEvolution(evolutionState,evolutionProposals,publishedAt);
+      }catch(error){restorePublicationRollback(documentItem,publicationBackup);showToast('No se ha publicado',error.message);return;}
+      if(!await queueProjectHistory()){restorePublicationRollback(documentItem,publicationBackup);showToast('No se pudo publicar','El histórico no se ha guardado. No se ha aplicado la publicación.');return;}
+      try{await saveDocumentAnalysis(documentItem.id,analysis);safeStorageWrite();}catch(error){console.error('La publicación está guardada en el proyecto, pero falló la copia del navegador',error);showToast('Publicado en el proyecto','La copia del navegador no pudo actualizarse; se recuperará desde el histórico.');}
+      optionSet(document.getElementById('evidence-kind'),'Todos',[...new Set(evidenceItems.map(item=>item.kind))],document.getElementById('evidence-kind').value);
+      renderOverview();renderLearnings();renderEvidence();renderPatterns();renderSources();renderReview();closeDrawer();openPublicationConfirmation(documentItem,plan);
+    }
+
+    optionSet(document.getElementById('learning-market'),'Todos',[...new Set([...learnings.map(item=>item.market),...sourceItems.flatMap(item=>(item.insightRegister?.rows||[]).map(row=>row.market))].filter(Boolean))]);
+    optionSet(document.getElementById('evidence-kind'),'Todos',[...new Set(evidenceItems.map(item=>item.kind))]);
+    setDocumentAnalysisTypeFilter();
+    refreshDocumentDateFilter();
+    renderOverview();renderLearnings();renderEvidence();renderExperiments();renderPatterns();renderSources();
+    loadTaxonomyProject().then(()=>{refreshAllTaxonomyFilters();renderOverview();renderLearnings();renderEvidence();renderExperiments();renderPatterns();renderSources();renderTaxonomy();});
+    
+    function migrateWorkspaceToSchema3AfterRestore(){
+      const persisted=safeStorageRead();
+      const previousVersion=Number(persisted.workspaceSchemaVersion||0);
+      if(previousVersion>=3)return false;
+
+      let changed=false;
+      const currentIds=new Set(learnings.map(item=>String(item?.id||'')));
+      const hasKnownBase=[...currentIds].some(id=>id.startsWith('L-BUS-')||id.startsWith('L-HEAD-'));
+      const hasSumaSource=sourceItems.some(item=>{
+        const initiatives=[...(item?.initiatives||[]),item?.initiative].filter(Boolean);
+        return item?.simpleKnowledgeActive&&initiatives.some(value=>normalizeText(value)===normalizeText('Usuarios SUMA'));
+      });
+
+      // This is an upgrade repair, not runtime seed behavior.
+      // Only recover SUMA learnings when the structured SUMA source is actually present.
+      if(hasKnownBase&&hasSumaSource){
+        defaultSumaLearnings.forEach(item=>{
+          if(currentIds.has(item.id))return;
+          learnings.push(JSON.parse(JSON.stringify(item)));
+          currentIds.add(item.id);
+          changed=true;
+        });
+      }
+
+      // Repair initiative metadata on the known consolidated learnings.
+      learnings.forEach(item=>{
+        const canonical=schema3LearningInitiatives[item.id];
+        if(!canonical)return;
+        const current=[...(item.initiatives||[])];
+        if(JSON.stringify(current)!==JSON.stringify(canonical)){
+          item.initiatives=[...canonical];
+          changed=true;
+        }
+        if(!canonical.includes(item.initiative)){
+          item.initiative=canonical[0];
+          changed=true;
+        }
+      });
+
+      // Persist schema 3 even if no data changed so this migration is truly one-shot.
+      safeStorageWrite({project:false});
+      return changed;
+    }
+
+
+    function repairBuscadorDeskResearchLearningDecisions(){
+      const item=sourceItems.find(value=>String(value?.originalName||'')==='BUSCADOR_03_Desk_Research.xlsx'&&value?.insightRegister?.rows?.length);
+      if(!item)return false;
+      const register=item.insightRegister,state=register.learningSuggestions;
+      const byRow=new Map((register.rows||[]).map((row,index)=>[Number(row?.sourceRow||index+1),row]));
+      const expected=[
+        [4,'El buscador debe evaluarse como la entrada al funnel completo, no como un módulo aislado'],
+        [5,'Simplificar significa ordenar decisiones por momento, no eliminar funcionalidad'],
+        [6,'Mobile necesita una interacción propia y no una versión comprimida de desktop'],
+        [7,'El calendario puede ser una herramienta de decisión, no solo un selector operativo'],
+        [8,'El buscador inicial no necesita resolver todas las decisiones del viaje'],
+        [9,'El rendimiento forma parte de la experiencia del primer impacto'],
+        [10,'Labels, estados y errores son parte central de la calidad del buscador'],
+        [11,'Cada selección debe producir una consecuencia clara y visible'],
+        [12,'La personalización útil debe reducir esfuerzo sin aplicar decisiones de forma opaca'],
+        [13,'La consistencia debe mantenerse a nivel conceptual sin forzar una interacción idéntica entre dispositivos']
+      ];
+      const corpusMatches=expected.every(([rowRef,text])=>normalizeText(byRow.get(rowRef)?.insight||'')===normalizeText(text));
+      if(!corpusMatches)return false;
+
+      const learning=id=>learnings.find(value=>value.id===id);
+      const wrongPublicationSpecs=[
+        ['L-BUS-04',[4,10],null],
+        ['L-BUS-03',[6,13],'Contradice learning'],
+        ['L-BUS-06',[8,9],null],
+        ['L-BUS-01',[11],null]
+      ];
+      const hasKnownMistake=wrongPublicationSpecs.some(([learningId,rowRefs,wrongDecision])=>
+        (learning(learningId)?.publicationHistory||[]).some(entry=>
+          String(entry?.documentId||'')===String(item.id)&&
+          sameLearningSuggestionRows(entry?.rowRefs,rowRefs)&&
+          (!wrongDecision||String(entry?.decision||'')===wrongDecision)
+        )
+      )||(state?.candidates||[]).some(candidate=>
+        candidate?.status==='confirmed'&&(
+          (sameLearningSuggestionRows(candidate.rowRefs,[4,10])&&candidate.targetLearningId==='L-BUS-04')||
+          (sameLearningSuggestionRows(candidate.rowRefs,[6,13])&&candidate.action==='Contradice learning')||
+          (sameLearningSuggestionRows(candidate.rowRefs,[8,9])&&candidate.targetLearningId==='L-BUS-06')||
+          (sameLearningSuggestionRows(candidate.rowRefs,[11])&&candidate.action==='Contradice learning')
+        )
+      );
+      if(!hasKnownMistake)return false;
+
+      const removeExact=(array,values)=>{
+        const remove=new Set(values.map(value=>normalizeText(value)));
+        return [...(array||[])].filter(value=>!remove.has(normalizeText(value)));
+      };
+      const removePublication=(learningId,rowRefs)=>{
+        const target=learning(learningId);if(!target)return;
+        target.publicationHistory=(target.publicationHistory||[]).filter(entry=>!(
+          String(entry?.documentId||'')===String(item.id)&&sameLearningSuggestionRows(entry?.rowRefs,rowRefs)
+        ));
+      };
+      const removeSuffix=(value,suffix)=>{
+        const raw=String(value||''),needle=String(suffix||'').trim();
+        return raw.endsWith(needle)?raw.slice(0,-needle.length).trim():raw;
+      };
+
+      const l1=learning('L-BUS-01'),l3=learning('L-BUS-03'),l4=learning('L-BUS-04'),l6=learning('L-BUS-06');
+      if(l1){
+        l1.contrary=removeExact(l1.contrary,['Desk research: Cada selección debe producir una consecuencia clara y visible']);
+        l1.applications=removeExact(l1.applications,['Feedback y estado']);
+        l1.sourceNames=removeExact(l1.sourceNames,['Desk Research']);
+        removePublication('L-BUS-01',[11]);
+      }
+      if(l3){
+        l3.contrary=removeExact(l3.contrary,[
+          'Desk research: Mobile necesita una interacción propia y no una versión comprimida de desktop',
+          'Desk research: La consistencia debe mantenerse a nivel conceptual sin forzar una interacción idéntica entre dispositivos'
+        ]);
+        removePublication('L-BUS-03',[6,13]);
+      }
+      if(l4){
+        l4.forEvidence=removeExact(l4.forEvidence,[
+          'Desk research: El buscador debe evaluarse como la entrada al funnel completo, no como un módulo aislado',
+          'Desk research: Labels, estados y errores son parte central de la calidad del buscador'
+        ]);
+        l4.know=removeSuffix(l4.know,'2 registros aportan evidencia nueva al learning existente y amplía su contexto o aplicaciones.');
+        l4.applications=removeExact(l4.applications,['Home','Buscador','Flujo y secuenciación','Accesibilidad','Feedback y estado']);
+        l4.components=removeExact(l4.components,['Buscador']);
+        l4.sourceNames=removeExact(l4.sourceNames,['Desk Research']);
+        removePublication('L-BUS-04',[4,10]);
+      }
+      if(l6){
+        l6.forEvidence=removeExact(l6.forEvidence,[
+          'Desk research: El buscador inicial no necesita resolver todas las decisiones del viaje',
+          'Desk research: El rendimiento forma parte de la experiencia del primer impacto'
+        ]);
+        l6.know=removeSuffix(l6.know,'2 registros aportan evidencia nueva al learning existente y amplía su contexto o aplicaciones.');
+        l6.applications=removeExact(l6.applications,['Buscador']);
+        l6.components=removeExact(l6.components,['Buscador']);
+        l6.sourceNames=removeExact(l6.sourceNames,['Desk Research']);
+        removePublication('L-BUS-06',[8,9]);
+      }
+
+      const entriesFor=rowRefs=>rowRefs.map(rowRef=>({row:byRow.get(rowRef),index:(register.rows||[]).findIndex(row=>Number(row?.sourceRow)===Number(rowRef))})).filter(entry=>entry.row);
+      const candidateFor=(action,targetLearningId,rowRefs,extra={})=>{
+        const entries=entriesFor(rowRefs),targetKey=targetLearningId||extra.theme||action;
+        return {
+          action,
+          targetLearningId:targetLearningId||'',
+          newLearningTitle:extra.newLearningTitle||'',
+          summary:extra.summary||'',
+          impactUx:learningSuggestionImpact(entries),
+          rationale:extra.rationale||'',
+          evidence:learningSuggestionEvidence(entries,item),
+          theme:extra.theme||'',
+          id:learningSuggestionCandidateId(targetKey,entries),
+          fingerprint:learningSuggestionHash(`${targetKey}|${learningSuggestionSourceRows(entries).join(',')}`),
+          rowRefs:[...rowRefs],
+          status:'pending',
+          createdAt:new Date().toISOString()
+        };
+      };
+
+      const oldCandidate=(rowRefs,targetLearningId='')=>(state?.candidates||[]).find(candidate=>
+        sameLearningSuggestionRows(candidate.rowRefs,rowRefs)&&(!targetLearningId||candidate.targetLearningId===targetLearningId)
+      );
+      const keepConfirmed=(rowRefs,targetLearningId)=>{
+        const previous=oldCandidate(rowRefs,targetLearningId);
+        if(previous)return {...previous,rowRefs:[...rowRefs],status:'confirmed',targetLearningId,appliedLearningId:targetLearningId};
+        const candidate=candidateFor('Reforzar learning existente',targetLearningId,rowRefs);
+        candidate.status='confirmed';candidate.appliedLearningId=targetLearningId;candidate.resolvedAt=new Date().toISOString();
+        return candidate;
+      };
+
+      const correctedL3=candidateFor(
+        'Reforzar learning existente','L-BUS-03',[6,13],
+        {summary:'2 registros refuerzan que mobile necesita una lógica propia y que la consistencia entre dispositivos debe ser conceptual, no una interacción idéntica.',rationale:'Corrección UX: ambas evidencias apoyan el learning; no lo contradicen.'}
+      );
+      applyLearningSuggestion(item,correctedL3);
+
+      const correctedL4=candidateFor(
+        'Reforzar learning existente','L-BUS-04',[7],
+        {summary:'El desk research refuerza el calendario como herramienta de decisión, comparación y control de fechas.',rationale:'Corrección UX: este es el registro específicamente relacionado con calendario.'}
+      );
+      applyLearningSuggestion(item,correctedL4);
+
+      const evidenceOnly=candidateFor(
+        'Mantener solo como evidencia','',[4,8,9,10,11],
+        {
+          theme:'evidence-only',
+          newLearningTitle:'Registros útiles que no justifican asociación con un learning existente',
+          summary:'Aportan principios sobre funnel, progressive disclosure, rendimiento, estados y feedback, pero no encajan con suficiente precisión en un learning existente.',
+          rationale:'Se evita forzar asociaciones por similitud superficial.'
+        }
+      );
+      applyLearningSuggestion(item,evidenceOnly);
+
+      const keptL2=keepConfirmed([5],'L-BUS-02');
+      const keptL7=keepConfirmed([12],'L-BUS-07');
+      const correctedAt=new Date().toISOString();
+
+      const wrongRows=[[4,10],[6,13],[8,9],[11]];
+      const preservedHistory=(state?.history||[]).filter(entry=>!wrongRows.some(rowRefs=>sameLearningSuggestionRows(entry?.rowRefs,rowRefs)));
+      const history=[
+        ...preservedHistory,
+        {
+          candidateId:correctedL3.id,fingerprint:correctedL3.fingerprint,rowRefs:[6,13],
+          status:'confirmed',decision:'Reforzar learning existente',learningId:'L-BUS-03',at:correctedAt,
+          correctedFrom:'Contradice learning',correctionReason:'La evidencia apoya la lógica mobile específica.'
+        },
+        {
+          candidateId:correctedL4.id,fingerprint:correctedL4.fingerprint,rowRefs:[7],
+          status:'confirmed',decision:'Reforzar learning existente',learningId:'L-BUS-04',at:correctedAt,
+          correctionReason:'El registro de calendario era la evidencia temática correcta.'
+        },
+        {
+          candidateId:evidenceOnly.id,fingerprint:evidenceOnly.fingerprint,rowRefs:[4,8,9,10,11],
+          status:'evidence-only',decision:'Mantener solo como evidencia',learningId:'',at:correctedAt,
+          correctionReason:'No se fuerza relación con un learning por afinidad superficial.'
+        }
+      ];
+
+      register.learningSuggestions={
+        version:LEARNING_SUGGESTION_VERSION,
+        generatedAt:correctedAt,
+        rowsFingerprint:learningSuggestionHash((register.rows||[]).map((row,index)=>learningSuggestionRowSignature(row,index)).join('\n')),
+        candidates:[keptL2,correctedL3,correctedL4,keptL7,evidenceOnly],
+        history:dedupeLearningSuggestionHistory(history)
+      };
+
+      // Elimina decisiones duraderas antiguas para que no reaparezcan al reemplazar el HTML.
+      const staleKeys=new Set([[4,10],[6,13],[8,9],[11],[7],[4,8,9,10,11]].map(learningDecisionRowsKey));
+      learningDecisionLogWrite(learningDecisionLogRead().filter(entry=>!(
+        String(entry?.documentId||'')===String(item.id)&&staleKeys.has(String(entry?.rowsKey||learningDecisionRowsKey(entry?.rowRefs)))
+      )));
+      register.learningSuggestions.candidates.forEach(candidate=>{
+        if(candidate.status&&candidate.status!=='pending'){
+          rememberLearningSuggestionDecision(item,candidate,candidate.status,candidate.appliedLearningId||candidate.targetLearningId||'');
+        }
+      });
+      return true;
+    }
+
+
+    function repairBuscadorAuditAndRestoreQMLearningDecisions(){
+      const auditItem=sourceItems.find(value=>String(value?.originalName||'')==='BUSCADOR_02_Auditoria_UX.xlsx'&&value?.insightRegister?.rows?.length);
+      const qmItem=sourceItems.find(value=>String(value?.originalName||'')==='BUSCADOR_07_Datos_QM.xlsx'&&value?.insightRegister?.rows?.length);
+      let changed=false;
+
+      const removeExact=(array,values)=>{
+        const remove=new Set((values||[]).map(value=>normalizeText(value)));
+        return [...(array||[])].filter(value=>!remove.has(normalizeText(value)));
+      };
+      const rowsMap=item=>new Map((item?.insightRegister?.rows||[]).map((row,index)=>[Number(row?.sourceRow||index+1),row]));
+      const entriesFor=(item,byRow,rowRefs)=>rowRefs.map(rowRef=>({
+        row:byRow.get(Number(rowRef)),
+        index:(item?.insightRegister?.rows||[]).findIndex(row=>Number(row?.sourceRow)===Number(rowRef))
+      })).filter(entry=>entry.row);
+      const candidateFor=(item,byRow,action,targetLearningId,rowRefs,extra={})=>{
+        const entries=entriesFor(item,byRow,rowRefs),targetKey=targetLearningId||extra.theme||action;
+        return {
+          action,
+          targetLearningId:targetLearningId||'',
+          newLearningTitle:extra.newLearningTitle||'',
+          summary:extra.summary||'',
+          impactUx:learningSuggestionImpact(entries),
+          rationale:extra.rationale||'',
+          evidence:learningSuggestionEvidence(entries,item),
+          theme:extra.theme||'',
+          id:learningSuggestionCandidateId(targetKey,entries),
+          fingerprint:learningSuggestionHash(`${targetKey}|${learningSuggestionSourceRows(entries).join(',')}`),
+          rowRefs:[...rowRefs],
+          status:'pending',
+          createdAt:new Date().toISOString()
+        };
+      };
+      const removePublication=(learningId,documentId,rowRefs)=>{
+        const target=learnings.find(value=>value.id===learningId);
+        if(!target)return false;
+        const before=(target.publicationHistory||[]).length;
+        target.publicationHistory=(target.publicationHistory||[]).filter(entry=>!(
+          String(entry?.documentId||'')===String(documentId)&&sameLearningSuggestionRows(entry?.rowRefs,rowRefs)
+        ));
+        return before!==target.publicationHistory.length;
+      };
+      const cleanDecisionLogForDocument=(item,rowGroups=[])=>{
+        const keys=new Set(rowGroups.map(learningDecisionRowsKey));
+        const before=learningDecisionLogRead();
+        const after=before.filter(entry=>!(
+          String(entry?.documentId||'')===String(item?.id||'')&&
+          (!keys.size||keys.has(String(entry?.rowsKey||learningDecisionRowsKey(entry?.rowRefs))))
+        ));
+        if(after.length!==before.length){learningDecisionLogWrite(after);return true;}
+        return false;
+      };
+      const rememberResolvedCandidates=(item,candidates)=>{
+        (candidates||[]).forEach(candidate=>{
+          if(candidate?.status&&candidate.status!=='pending'){
+            rememberLearningSuggestionDecision(item,candidate,candidate.status,candidate.appliedLearningId||candidate.targetLearningId||'');
+          }
+        });
+      };
+
+      // 1) Auditoría UX: corrige decisiones antiguas mal interpretadas como contradicciones
+      // y separa los registros que no justifican relación con un learning consolidado.
+      if(auditItem){
+        const register=auditItem.insightRegister,state=register.learningSuggestions||{},byRow=rowsMap(auditItem);
+        const expected=[
+          [4,'El buscador se reconoce como entrada principal al proceso, pero concentra demasiada carga visual'],
+          [5,'Desktop concentra demasiadas decisiones en el mismo nivel visual'],
+          [6,'Mobile amplifica el peso de elementos secundarios y capas previas a la búsqueda'],
+          [7,'La recuperación de la última búsqueda es una funcionalidad que conviene conservar'],
+          [8,'El primer impacto necesita una jerarquía explícita entre conversión, autoservicio y contenido comercial'],
+          [9,'El autoservicio forma parte del valor de la Home y no debe desaparecer al reforzar el buscador'],
+          [10,'El claim cumple un condicionante SEO, pero su formulación analizada es más aspiracional que accionable'],
+          [11,'El formato separado de imagen y texto es adecuado, pero el peso del banner debe controlarse'],
+          [12,'En mobile los accesos rápidos son útiles, pero pueden necesitar un tratamiento más compacto'],
+          [13,'El rediseño debe consolidar el buscador como componente de sistema, no como una solución puntual']
+        ];
+        const corpusMatches=expected.every(([rowRef,text])=>normalizeText(byRow.get(rowRef)?.insight||'')===normalizeText(text));
+
+        const wrongAuditState=corpusMatches&&(
+          (state.candidates||[]).some(candidate=>
+            candidate?.action==='Contradice learning'&&['L-BUS-02','L-BUS-03','L-BUS-07','L-BUS-08'].includes(candidate?.targetLearningId)
+          )||
+          [
+            ['L-BUS-02',[5,13]],['L-BUS-03',[6]],['L-BUS-07',[7]],
+            ['L-BUS-06',[8,9,12]],['L-BUS-08',[11]],['L-BUS-01',[4]]
+          ].some(([learningId,rowRefs])=>(learnings.find(value=>value.id===learningId)?.publicationHistory||[]).some(entry=>
+            String(entry?.documentId||'')===String(auditItem.id)&&sameLearningSuggestionRows(entry?.rowRefs,rowRefs)
+          ))
+        );
+
+        if(wrongAuditState){
+          const l1=learnings.find(value=>value.id==='L-BUS-01');
+          const l2=learnings.find(value=>value.id==='L-BUS-02');
+          const l3=learnings.find(value=>value.id==='L-BUS-03');
+          const l6=learnings.find(value=>value.id==='L-BUS-06');
+          const l7=learnings.find(value=>value.id==='L-BUS-07');
+          const l8=learnings.find(value=>value.id==='L-BUS-08');
+
+          if(l2)l2.contrary=removeExact(l2.contrary,[
+            'Auditoría UX: Desktop concentra demasiadas decisiones en el mismo nivel visual',
+            'Auditoría UX: El rediseño debe consolidar el buscador como componente de sistema, no como una solución puntual'
+          ]);
+          if(l3)l3.contrary=removeExact(l3.contrary,[
+            'Auditoría UX: Mobile amplifica el peso de elementos secundarios y capas previas a la búsqueda'
+          ]);
+          if(l7)l7.contrary=removeExact(l7.contrary,[
+            'Auditoría UX: La recuperación de la última búsqueda es una funcionalidad que conviene conservar'
+          ]);
+          if(l8)l8.contrary=removeExact(l8.contrary,[
+            'Auditoría UX: El formato separado de imagen y texto es adecuado, pero el peso del banner debe controlarse'
+          ]);
+          if(l6)l6.forEvidence=removeExact(l6.forEvidence,[
+            'Auditoría UX: El primer impacto necesita una jerarquía explícita entre conversión, autoservicio y contenido comercial'
+          ]);
+
+          [
+            ['L-BUS-01',[4]],
+            ['L-BUS-02',[5,13]],
+            ['L-BUS-03',[6]],
+            ['L-BUS-07',[7]],
+            ['L-BUS-06',[8,9,12]],
+            ['L-BUS-08',[11]]
+          ].forEach(([learningId,rowRefs])=>{removePublication(learningId,auditItem.id,rowRefs);});
+
+          const corrected=[
+            candidateFor(auditItem,byRow,'Reforzar learning existente','L-BUS-01',[4,8],{
+              summary:'La auditoría refuerza que el buscador debe gobernar la jerarquía del primer impacto y ordenar alrededor de él autoservicio y contenido comercial.',
+              rationale:'Corrección UX: ambas evidencias describen la jerarquía principal de Home.'
+            }),
+            candidateFor(auditItem,byRow,'Reforzar learning existente','L-BUS-02',[5],{
+              summary:'Desktop evidencia exceso de decisiones con peso equivalente, reforzando la necesidad de ordenar y jerarquizar sin eliminar funcionalidad.',
+              rationale:'Corrección UX: la evidencia apoya el learning; no lo contradice.'
+            }),
+            candidateFor(auditItem,byRow,'Reforzar learning existente','L-BUS-03',[6],{
+              summary:'Mobile amplifica el peso de capas secundarias y refuerza la necesidad de una lógica específica de interacción y priorización.',
+              rationale:'Corrección UX: la evidencia apoya el learning mobile.'
+            }),
+            candidateFor(auditItem,byRow,'Reforzar learning existente','L-BUS-07',[7],{
+              summary:'La recuperación de última búsqueda se identifica como funcionalidad que conviene conservar, reforzando continuidad y control.',
+              rationale:'Corrección UX: la evidencia apoya directamente el learning.'
+            }),
+            candidateFor(auditItem,byRow,'Reforzar learning existente','L-BUS-06',[9,12],{
+              summary:'La auditoría refuerza el valor del autoservicio y de los accesos rápidos, con una jerarquía secundaria y tratamiento más compacto en mobile.',
+              rationale:'Corrección UX: estas dos filas son las evidencias específicas de autoservicio.'
+            }),
+            candidateFor(auditItem,byRow,'Reforzar learning existente','L-BUS-08',[11],{
+              summary:'El banner puede mantenerse, pero su peso debe controlarse para convivir con la búsqueda sin competir de forma permanente.',
+              rationale:'Corrección UX: la evidencia apoya la jerarquía contextual de promoción.'
+            })
+          ];
+          corrected.forEach(candidate=>applyLearningSuggestion(auditItem,candidate));
+
+          const evidenceOnly=candidateFor(auditItem,byRow,'Mantener solo como evidencia','',[10,13],{
+            theme:'evidence-only',
+            newLearningTitle:'Registros útiles que no justifican asociación con un learning existente',
+            summary:'El claim SEO y la necesidad de consolidar el buscador como componente de sistema son contexto útil, pero no justifican forzar su asociación con un learning consolidado.',
+            rationale:'Se conserva la evidencia sin fabricar una relación semántica débil.'
+          });
+          applyLearningSuggestion(auditItem,evidenceOnly);
+
+          const correctedAt=new Date().toISOString();
+          const newHistory=[
+            ...corrected.map(candidate=>({
+              candidateId:candidate.id,fingerprint:candidate.fingerprint,rowRefs:[...(candidate.rowRefs||[])],
+              status:'confirmed',decision:candidate.action,learningId:candidate.targetLearningId,at:correctedAt,
+              correctionReason:'Corrección semántica tras revisión UX del contenido.'
+            })),
+            {
+              candidateId:evidenceOnly.id,fingerprint:evidenceOnly.fingerprint,rowRefs:[10,13],
+              status:'evidence-only',decision:'Mantener solo como evidencia',learningId:'',at:correctedAt,
+              correctionReason:'No existe encaje suficientemente preciso con un learning consolidado.'
+            }
+          ];
+
+          register.learningSuggestions={
+            version:LEARNING_SUGGESTION_VERSION,
+            generatedAt:correctedAt,
+            rowsFingerprint:learningSuggestionHash((register.rows||[]).map((row,index)=>learningSuggestionRowSignature(row,index)).join('\n')),
+            candidates:[...corrected,evidenceOnly],
+            history:dedupeLearningSuggestionHistory(newHistory)
+          };
+
+          cleanDecisionLogForDocument(auditItem,[
+            [4],[5,13],[6],[7],[8,9,12],[11],
+            [4,8],[5],[9,12],[10,13]
+          ]);
+          rememberResolvedCandidates(auditItem,register.learningSuggestions.candidates);
+          changed=true;
+        }
+      }
+
+      // 2) QM: la nueva versión del motor cambió la agrupación de filas, pero las
+      // decisiones históricas ya estaban confirmadas y validadas. Se reconstruye
+      // exactamente ese estado para que no reaparezcan como pendientes.
+      if(qmItem){
+        const register=qmItem.insightRegister,state=register.learningSuggestions||{},byRow=rowsMap(qmItem);
+        const desired=[
+          ['Reforzar learning existente','L-BUS-01',[4,5]],
+          ['Ampliar learning','L-BUS-03',[6,7,8]],
+          ['Reforzar learning existente','L-BUS-06',[9,10]],
+          ['Reforzar learning existente','L-BUS-08',[11,12]]
+        ];
+        const history=state.history||[];
+        const hasValidatedHistory=desired.every(([action,learningId,rowRefs])=>history.some(entry=>
+          entry?.status==='confirmed'&&String(entry?.learningId||'')===learningId&&sameLearningSuggestionRows(entry?.rowRefs,rowRefs)
+        ));
+        const currentIsStable=hasValidatedHistory&&
+          (state.candidates||[]).length===desired.length&&
+          desired.every(([action,learningId,rowRefs])=>(state.candidates||[]).some(candidate=>
+            candidate?.status==='confirmed'&&candidate?.action===action&&candidate?.targetLearningId===learningId&&sameLearningSuggestionRows(candidate?.rowRefs,rowRefs)
+          ));
+
+        if(hasValidatedHistory&&!currentIsStable){
+          const corrected=desired.map(([action,learningId,rowRefs])=>{
+            const candidate=candidateFor(qmItem,byRow,action,learningId,rowRefs,{
+              summary:`${rowRefs.length} ${rowRefs.length===1?'registro aporta':'registros aportan'} evidencia validada al learning existente.`,
+              rationale:'Se conserva la decisión histórica ya confirmada antes de la actualización del motor.'
+            });
+            const prior=history.find(entry=>entry?.status==='confirmed'&&String(entry?.learningId||'')===learningId&&sameLearningSuggestionRows(entry?.rowRefs,rowRefs));
+            candidate.status='confirmed';
+            candidate.appliedLearningId=learningId;
+            candidate.resolvedAt=prior?.at||new Date().toISOString();
+            return candidate;
+          });
+
+          register.learningSuggestions={
+            version:LEARNING_SUGGESTION_VERSION,
+            generatedAt:new Date().toISOString(),
+            rowsFingerprint:learningSuggestionHash((register.rows||[]).map((row,index)=>learningSuggestionRowSignature(row,index)).join('\n')),
+            candidates:corrected,
+            history:dedupeLearningSuggestionHistory(history)
+          };
+
+          cleanDecisionLogForDocument(qmItem);
+          rememberResolvedCandidates(qmItem,corrected);
+          changed=true;
+        }
+      }
+
+      return changed;
+    }
+
+    function stabilizeResolvedLearningSuggestionRows(){
+      let changed=false;
+      sourceItems.forEach(item=>{
+        const register=item?.insightRegister,state=register?.learningSuggestions;
+        if(!register?.rows?.length||!state?.candidates?.length)return;
+        const resolved=learningSuggestionResolvedRowRefs(item,state);
+        if(!resolved.size)return;
+        const hasReopened=state.candidates.some(candidate=>
+          candidate?.status==='pending'&&(candidate.rowRefs||[]).some(value=>resolved.has(String(value)))
+        );
+        if(!hasReopened)return;
+        buildLearningSuggestions(item,state);
+        changed=true;
+      });
+      return changed;
+    }
+
+    function rollbackLegacyGlobalQuestionReconciliation(){
+      let changed=false;
+
+      // Restaura preguntas de learnings modificadas por la reconciliación global anterior.
+      learnings.forEach(learning=>{
+        const history=Array.isArray(learning?.questionHistory)?learning.questionHistory:[];
+        if(!history.length)return;
+
+        const current=Array.isArray(learning.open)?[...learning.open]:[];
+        const removeKeys=new Set(
+          history.map(entry=>normalizeText(entry?.to||'')).filter(Boolean)
+        );
+        const restored=current.filter(value=>!removeKeys.has(normalizeText(value)));
+
+        history.forEach(entry=>{
+          const original=String(entry?.from||'').trim();
+          if(original&&!restored.some(value=>normalizeText(value)===normalizeText(original))){
+            restored.push(original);
+          }
+        });
+
+        learning.open=restored;
+        delete learning.questionHistory;
+        changed=true;
+      });
+
+      // Las preguntas de análisis/documento son histórico: nunca deben cerrarse por matching global.
+      openQuestionItems.forEach(question=>{
+        const history=Array.isArray(question?.questionHistory)?question.questionHistory:[];
+        if(!history.length)return;
+        const original=String(history[0]?.from||'').trim();
+        if(original)question.text=original;
+        delete question.questionHistory;
+        delete question.resolvedAt;
+        delete question.resolvedBy;
+        changed=true;
+      });
+
+      return changed;
+    }
+
+    function reconcileConfirmedLearningQuestions(){
+      // Solo revisa preguntas dentro del learning que el usuario vinculó explícitamente.
+      let changed=false;
+      sourceItems.forEach(item=>{
+        const candidates=item?.insightRegister?.learningSuggestions?.candidates||[];
+        candidates.forEach(candidate=>{
+          if(candidate?.status!=='confirmed')return;
+          if(!['Reforzar learning existente','Ampliar learning'].includes(candidate.action))return;
+
+          const learningId=String(candidate.appliedLearningId||candidate.targetLearningId||'').trim();
+          if(!learningId)return;
+          const learning=learnings.find(value=>String(value?.id||'')===learningId);
+          if(!learning)return;
+
+          const rows=learningSuggestionRows(item,candidate);
+          if(!rows.length)return;
+          if(reconcileLearningQuestions(learning,rows,item))changed=true;
+        });
+      });
+      return changed;
+    }
+
+
+    const FINAL_LEARNING_COPY_REVISION='2026-10-22-natural-v6';
+    const FINAL_LEARNING_COPY={"L-BUS-01":{"title":"En Home, el buscador debe ser lo primero que se entienda","know":"Buscar un vuelo es la tarea principal de Home. El resto puede seguir visible, pero con menos peso para no competir con el inicio de la reserva.","text":"La jerarquía debe llevar la atención al buscador sin ocultar accesos de autoservicio, promociones o avisos."},"L-BUS-02":{"title":"Simplificar el buscador es ordenar, no quitar","know":"El problema aparece cuando demasiadas opciones se muestran a la vez y con el mismo peso. Eso hace que el buscador se perciba más denso de lo necesario.","text":"Primero debe verse lo necesario para buscar. Las opciones secundarias pueden aparecer después, cuando hagan falta."},"L-BUS-03":{"title":"Mobile necesita un buscador pensado para mobile","know":"En mobile hay menos espacio y mostrar todo a la vez hace la búsqueda más pesada. También cuesta más revisar lo que se ha seleccionado.","text":"Hay que priorizar la información y facilitar que el usuario pueda avanzar, revisar o corregir la búsqueda sin esfuerzo."},"L-BUS-04":{"title":"El calendario debe ayudar a elegir fechas","know":"Las fechas forman parte de la decisión de viaje y concentran mucha interacción. No es solo un campo que el usuario rellena y deja atrás.","text":"El calendario debe facilitar comparar, cambiar y entender la selección sin obligar a empezar de nuevo."},"L-BUS-05":{"title":"Buscar vuelos debe ser la acción principal","know":"Cuando el usuario termina de configurar la búsqueda, el siguiente paso tiene que ser evidente. No debería competir con acciones o contenidos secundarios.","text":"El CTA debe destacar y cerrar de forma natural la configuración de la búsqueda."},"L-BUS-06":{"title":"El autoservicio debe estar visible sin competir con Buscar vuelos","know":"Check-in, Gestionar reserva e Información de vuelos son tareas útiles y frecuentes en Home, pero responden a necesidades distintas de la compra.","text":"Deben ser fáciles de encontrar, con una jerarquía secundaria respecto a la búsqueda de vuelos."},"L-BUS-07":{"title":"La última búsqueda ahorra pasos si se puede editar","know":"Recuperar una búsqueda anterior evita repetir datos y facilita retomar el proceso. El usuario debe reconocer qué información se ha recuperado.","text":"Tiene que ser fácil cambiarla, actualizarla o borrarla antes de volver a buscar."},"L-BUS-08":{"title":"Promos, avisos y ayuda deben acompañar, no competir","know":"Cuando varios elementos llaman la atención a la vez, cuesta más ver la tarea principal. No todos necesitan el mismo peso ni en todo momento.","text":"Su prioridad debe depender de la importancia del mensaje, del contexto y de lo que el usuario necesita hacer."},"L-HEAD-01":{"title":"Los nombres del Header deben decir qué hay detrás","know":"Check-in y Gestionar reserva se entienden mejor que categorías genéricas como «Antes de volar». Un nombre poco claro obliga al usuario a probar o buscar otra vía.","text":"Las etiquetas deben hablar de tareas o contenidos reconocibles y anticipar bien qué encontrará el usuario."},"L-HEAD-02":{"title":"Un Header no es más simple por tener menos opciones","know":"El problema aparece cuando navegación, servicios y utilidades se mezclan o parecen igual de importantes. Quitar opciones no resuelve por sí solo esa falta de orden.","text":"Hay que organizar por tipo de tarea y prioridad, dejando claro qué es navegación principal y qué es una utilidad."},"L-HEAD-03":{"title":"Mobile y desktop no necesitan exactamente el mismo Header","know":"Los tests muestran comportamientos distintos según dispositivo y mercado. Una solución que funciona en mobile no debe darse por válida automáticamente en desktop.","text":"La estructura puede ser común, pero la prioridad y el comportamiento deben adaptarse cuando la evidencia lo pida."},"L-SUMA-01":{"title":"El login SUMA tiene sentido cuando aporta una ventaja en ese momento","know":"Dentro del booking, logarse en SUMA aporta valor si permite recuperar datos, usar Millas o aplicar beneficios del programa en ese punto del proceso.","text":"El usuario debe entender qué gana al logarse en SUMA y por qué merece la pena hacerlo en ese momento."},"L-SUMA-02":{"title":"En Fare Families debe quedar claro qué aporta la tarifa y qué aporta SUMA","know":"Si se mezclan los beneficios de la tarifa con las ventajas SUMA, el usuario puede no saber qué está comprando y qué depende de su nivel en el programa.","text":"Hay que separar claramente lo que incluye la tarifa de las ventajas asociadas al usuario SUMA."},"L-SUMA-03":{"title":"Cada beneficio SUMA debe explicar a quién aplica y por qué","know":"Con el usuario logado en SUMA sabemos si una gratuidad viene de SUMA, de la tarifa o de otra condición. Lo que puede faltar es el valor exacto en Millas.","text":"El mensaje debe decir qué pasajero recibe el beneficio y de dónde viene, sin mostrar cantidades que no estén confirmadas."}};
+    function applyFinalLearningNaturalCopy(){
+      let changed=false;
+      learnings.forEach(item=>{
+        if(!item||item.copyRevision===FINAL_LEARNING_COPY_REVISION)return;
+        const patch=FINAL_LEARNING_COPY[item.id];
+        if(patch){
+          ['title','know','text'].forEach(key=>{
+            if(item[key]!==patch[key]){item[key]=patch[key];changed=true;}
+          });
+          item.copyRevision=FINAL_LEARNING_COPY_REVISION;
+          item.updatedAt='2026-10-22';
+          changed=true;
+          return;
+        }
+
+        const title=String(item.title||'').trim();
+        const component=String(item.component||'').trim();
+
+        if(
+          title==='La identificación SUMA aporta valor cuando reduce esfuerzo y aprovecha información ya conocida' ||
+          title==='Estar identificado debe ahorrar pasos y aprovechar datos ya conocidos' ||
+          title==='Si el usuario ya está identificado, aprovechemos los datos que ya tenemos' ||
+          title==='Si el usuario ya está identificado, no le pidamos los mismos datos otra vez'
+        ){
+          item.title='Si el usuario ya está logado en SUMA, aprovechemos los datos que ya tenemos';
+          item.know='Si ya conocemos sus datos y beneficios, volver a pedirlos añade esfuerzo.';
+          item.text='Podemos recuperar la información disponible y aplicar sus ventajas, dejando claro qué se ha recuperado o aplicado.';
+          item.copyRevision=FINAL_LEARNING_COPY_REVISION;
+          item.updatedAt='2026-10-22';
+          changed=true;
+          return;
+        }
+
+        if(
+          title==='El mensaje inicial no deja claro si las Millas mostradas son saldo total o máximo aplicable a la reserva' ||
+          title==='No queda claro si las Millas son el saldo total o el máximo que se puede usar' ||
+          title==='No queda claro qué representa la cifra de Millas' ||
+          component==='Slider de Millas'
+        ){
+          item.title='No queda claro qué representa la cifra de Millas';
+          item.know='La cifra puede parecer el saldo total cuando quizá sea el máximo que se puede usar en esa reserva. Esa diferencia cambia cómo se entiende el canje.';
+          item.text='Antes de usar el slider, tiene que quedar claro qué significa esa cifra y qué cantidad puede aplicarse realmente.';
+          item.copyRevision=FINAL_LEARNING_COPY_REVISION;
+          item.updatedAt='2026-10-22';
+          changed=true;
+        }
+      });
+      return changed;
+    }
+
+    function finalizeLearningStateAfterRestore(){
+      const rollbackQuestions=rollbackLegacyGlobalQuestionReconciliation();
+      const migrated=migrateWorkspaceToSchema3AfterRestore();
+      const deskRepair=repairBuscadorDeskResearchLearningDecisions();
+      const stateRepair=repairBuscadorAuditAndRestoreQMLearningDecisions();
+      const componentRepair=normalizeLearningSingleComponentState();
+      const metadataRepair=repairKnownLearningMetadata();
+      const suggestionLockRepair=stabilizeResolvedLearningSuggestionRows();
+      // restoreProjectHistory puede reponer una copia anterior del workspace después
+      // de la limpieza inicial. Por eso la deduplicación definitiva se ejecuta aquí,
+      // cuando ya han terminado project history, IndexedDB, Excel sync y reparaciones.
+      const historyChanged=normalizeLearningHistoryState();
+      refreshCatalogMetadata();
+      const targetedQuestionRepair=reconcileConfirmedLearningQuestions();
+      const naturalCopyRepair=applyFinalLearningNaturalCopy();
+      if(rollbackQuestions||migrated||deskRepair||stateRepair||componentRepair||metadataRepair||suggestionLockRepair||targetedQuestionRepair||historyChanged||naturalCopyRepair)safeStorageWrite({project:false});
+      // Si el histórico de proyecto está disponible, guarda también el estado saneado
+      // para que los errores corregidos no reaparezcan en la siguiente restauración.
+      if((rollbackQuestions||deskRepair||stateRepair||componentRepair||metadataRepair||suggestionLockRepair||targetedQuestionRepair||historyChanged||naturalCopyRepair)&&typeof projectHistory!=='undefined'&&projectHistory?.ready&&!projectHistory?.error&&typeof queueProjectHistory==='function'){
+        Promise.resolve(queueProjectHistory()).catch(error=>console.warn('[UX Intel learning repair] No se pudo persistir el saneado en history',error));
+      }
+      refreshAllTaxonomyFilters?.();
+      renderOverview();
+      renderLearnings();
+      return rollbackQuestions||migrated||deskRepair||stateRepair||componentRepair||metadataRepair||suggestionLockRepair||targetedQuestionRepair||historyChanged||naturalCopyRepair;
+    }
+
+    auditDocumentStorage().then(()=>restoreProjectHistory()).then(()=>discoverRecoverableAnalyses()).then(()=>hydrateDocumentAnalyses()).then(()=>finishProjectRestoration()).then(()=>syncInsightRegistersFromStoredFiles()).then(()=>repairReviewedInsightRegisterMetadata()).then(()=>ensureRecentLearningSuggestions()).then(()=>finalizeLearningStateAfterRestore()).catch(error=>console.error('No se pudieron cargar los análisis guardados',error));
+
+    const drawer=document.getElementById('detail-drawer');
+    const drawerBackdrop=document.getElementById('drawer-backdrop');
+    const list = items => `<ul class="drawer-list">${items.map(value=>`<li>${escapeHtml(value)}</li>`).join('')}</ul>`;
+    const cleanProof=value=>String(value||'').replace(/\s*·\s*L-\d+/g,'').replace(/L-\d+/g,'').trim();
+    function sourceMatch(name,item=null){
+      const candidates=sourceCandidates(name,item);
+      if(!candidates.length)return null;
+      if(candidates.length===1)return candidates[0];
+      const structured=candidates.find(source=>source.simpleKnowledgeActive&&source.insightRegister);
+      return structured||candidates[0];
+    }
+    function contextMetadata(item){
+      return `${item.zone?`<div><strong>Zona:</strong> ${escapeHtml(item.zone)}</div>`:''}${item.scope==='Transversal'?'<div><strong>Alcance:</strong> Transversal</div>':''}${item.initiatives?.length?`<div><strong>Iniciativa:</strong> ${item.initiatives.map(escapeHtml).join(' · ')}</div>`:''}`;
+    }
+    function searchContext(item){return [pathOf(item),item.zone,item.scope,...(item.contextConcepts||[]),...(item.initiatives||[])].filter(Boolean).join(' ');}
+    function sourceRawFileName(source,fallback=''){
+      return String(source?.originalName||source?.fileMeta?.name||fallback||'').trim();
+    }
+    function sourceReferences(names,contextItem=null){
+      const references=[],seen=new Set();
+      [...new Set(names||[])].forEach(name=>{
+        const source=sourceMatch(name,contextItem);
+        const type=source?.type||sourceType({name});
+        const rawFile=sourceRawFileName(source,name);
+        const key=source?.id||normalizeText(rawFile||source?.name||name);
+        if(seen.has(key))return;
+        seen.add(key);
+        references.push(`<div class="source-reference"><strong>${escapeHtml(source?.name||name)}</strong><span>${escapeHtml(humanKnowledgeLabel(type))}</span>${rawFile?`<span class="source-file-name"><b>Archivo:</b> ${escapeHtml(rawFile)}</span>`:''}</div>`);
+      });
+      // Publication history can point to an exact document even when sourceNames contains a generic label.
+      (contextItem?.publicationHistory||[]).forEach(entry=>{
+        const source=sourceItems.find(value=>String(value?.id||'')===String(entry?.documentId||''));
+        if(!source)return;
+        const rawFile=sourceRawFileName(source);
+        const key=source.id||normalizeText(rawFile||source.name);
+        if(seen.has(key))return;
+        seen.add(key);
+        const type=source.type||sourceType(source);
+        references.push(`<div class="source-reference"><strong>${escapeHtml(source.name||rawFile)}</strong><span>${escapeHtml(humanKnowledgeLabel(type))}</span>${rawFile?`<span class="source-file-name"><b>Archivo:</b> ${escapeHtml(rawFile)}</span>`:''}</div>`);
+      });
+      return `<div class="source-reference-list">${references.join('')}</div>`;
+    }
+    function qualityList(item){return `<dl class="quality-list">${Object.entries(item.quality||{}).map(([label,value])=>`<div class="quality-item"><dt>${label}</dt><dd>${value}</dd></div>`).join('')}</dl>`;}
+    function knowledgeStateDisclosure(item,{result=false}={}){
+      const state=UXKnowledge.knowledgeState(item),rows=[['Confianza',state.confidence],['Validación interna',state.internalValidation],result?['Resultado del experimento',state.experimentResult]:null,['Recomendación',state.recommendation],['Implementación',state.implementation]].filter(Boolean);
+      return `<details class="knowledge-state-disclosure"><summary>Estado del conocimiento</summary><dl>${rows.map(([label,value])=>`<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}</dl></details>`;
+    }
+    function confidenceExplanation(item){if(item.confidence==='Alta')return 'Varias fuentes internas y externas coinciden, con evidencia cercana al comportamiento o a la experimentación.';if(item.confidence==='Media')return 'Hay señales consistentes, pero faltan datos, validación específica o capacidad para generalizar el resultado.';return 'El aprendizaje se apoya en señales iniciales o indirectas y necesita más contraste antes de aplicarse.';}
+    function unknownScope(item){if(item.market==='No especificado')return 'La documentación disponible no identifica el mercado o segmento, por lo que no sabemos si el resultado cambia entre contextos.';if(item.market.includes('ES/ES'))return 'No está confirmado que se comporte igual fuera de ES/ES, en otros segmentos o en otros momentos del journey.';return 'Debe comprobarse en cada flujo y contexto concreto antes de tratarlo como una regla general.';}
+    function learningRelations(items){return `<div class="relation-list">${items.map(item=>`<div class="relation-row"><div class="relation-copy"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(pathOf(item))} · Confianza ${escapeHtml(item.confidence.toLowerCase())}</span></div><button class="relation-action" type="button" data-learning="${item.id}">Ver learning</button><span></span></div>`).join('')}</div>`;}
+    function experimentRelations(items){return `<div class="relation-list">${items.map(item=>`<div class="relation-row"><div class="relation-copy"><strong>${item.title}</strong><span>${item.device} · Resultado ${item.outcome.toLowerCase()}</span></div><button class="relation-action" type="button" data-detail="experiment" data-id="${item.id}">Ver test</button><span></span></div>`).join('')}</div>`;}
+    function patternRelations(items){return `<div class="relation-list">${items.map(item=>`<div class="relation-row"><div class="relation-copy"><strong>${item.title}</strong><span>${pathOf(item)} · Confianza ${item.confidence.toLowerCase()}</span></div><button class="relation-action" type="button" data-detail="pattern" data-id="${item.id}">Ver patrón</button><span></span></div>`).join('')}</div>`;}
+    const focusableSelector='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    function keepFocusInside(container,event){const focusables=[...container.querySelectorAll(focusableSelector)].filter(item=>!item.hidden&&item.getClientRects().length);if(!focusables.length)return;const first=focusables[0],last=focusables.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}
+    let drawerReturnFocus=null,drawerReturnScroll=0;
+    function openDrawer(header,body){if(!drawer.classList.contains('open')){drawerReturnFocus=document.activeElement;drawerReturnScroll=window.scrollY;}drawer.innerHTML=`<button class="drawer-close" type="button" aria-label="Cerrar detalle">×</button><div class="drawer-inner"><header class="drawer-header">${header}</header><div class="drawer-body">${body}</div></div>`;drawer.inert=false;drawer.classList.add('open');drawerBackdrop.classList.add('open');drawer.setAttribute('aria-hidden','false');drawer.querySelector('.drawer-close').focus({preventScroll:true});}
+    function closeDrawer(){if(!drawer.classList.contains('open'))return;drawer.classList.remove('open');drawerBackdrop.classList.remove('open');drawer.setAttribute('aria-hidden','true');drawer.inert=true;if(drawerReturnFocus?.isConnected)drawerReturnFocus.focus({preventScroll:true});const returnScroll=drawerReturnScroll;requestAnimationFrame(()=>window.scrollTo({top:returnScroll,left:0,behavior:'auto'}));drawerReturnFocus=null;}
+    function learningCompactList(items){
+      const values=(items||[]).map(value=>String(value||'').trim()).filter(Boolean);
+      return values.length?`<ul class="drawer-list learning-compact-list">${values.map(value=>`<li>${escapeHtml(value)}</li>`).join('')}</ul>`:'<p class="scope-note">Sin información adicional.</p>';
+    }
+    function openLearning(id){
+      const item=learnings.find(value=>value.id===id);if(!item)return;
+      const relatedTests=experiments.filter(test=>test.learningIds.includes(id));
+      const relatedPatterns=patternItems.filter(pattern=>pattern.proof.includes(id)||pattern.component===item.component).slice(0,3);
+      const impactMarkup=item.impactUx?`<span class="status-badge ${impactClass(item.impactUx)}">Impacto UX ${escapeHtml(item.impactUx.toLowerCase())}</span>`:'';
+      const initiativeLabel=(item.initiatives||[]).length?(item.initiatives||[]).join(' · '):(item.initiative||'');
+      const header=`<div class="drawer-kicker">Learning${item.component?` · ${escapeHtml(item.component)}`:item.screen?` · ${escapeHtml(item.screen)}`:''}</div><h2>${escapeHtml(item.title)}</h2>${item.know?`<p class="drawer-lead">${escapeHtml(item.know)}</p>`:''}<div class="drawer-tags">${impactMarkup}</div><div class="drawer-context learning-drawer-context"><div><strong>Dónde aplica:</strong> ${escapeHtml(pathOf(item))}</div><div><strong>Dispositivo:</strong> ${escapeHtml(item.device)}${item.market&&item.market!=='No especificado'?` · <strong>Mercado:</strong> ${escapeHtml(item.market)}`:''}</div>${initiativeLabel?`<div><strong>Iniciativa:</strong> ${escapeHtml(initiativeLabel)}</div>`:''}</div>`;
+      const openMarkup=(item.open||[]).length?`<section class="drawer-section learning-visible-section"><h3>Qué falta por resolver</h3>${learningCompactList(item.open)}</section>`:'';
+      const evidenceMarkup=`<details class="learning-detail-group"><summary>Ver evidencia y límites</summary><div class="learning-detail-group-body"><section><h4>Evidencia que lo respalda</h4>${learningCompactList(item.forEvidence)}</section>${(item.contrary||[]).length?`<section><h4>Matices o datos que no encajan del todo</h4>${learningCompactList(item.contrary)}</section>`:''}${(item.noProof||[]).length?`<section><h4>Qué no demuestra</h4>${learningCompactList(item.noProof)}</section>`:''}<section><h4>Dónde no sabemos si aplica igual</h4><p class="scope-note">${escapeHtml(unknownScope(item))}</p></section></div></details>`;
+      const applicationMarkup=`<details class="learning-detail-group"><summary>Ver aplicación y relaciones</summary><div class="learning-detail-group-body">${(item.applications||[]).length?`<section><h4>Aplicaciones</h4>${learningCompactList(item.applications)}</section>`:''}${relatedPatterns.length?`<section><h4>Patrones relacionados</h4>${patternRelations(relatedPatterns)}</section>`:''}${relatedTests.length?`<section><h4>Test A/B relacionados</h4>${experimentRelations(relatedTests)}</section>`:''}</div></details>`;
+      const sourcesMarkup=`<details class="learning-detail-group"><summary>Ver fuentes y trazabilidad</summary><div class="learning-detail-group-body"><section><h4>Fuentes y archivos de origen</h4>${sourceReferences(item.sourceNames,item)}</section><p class="learning-update-meta">Creado ${escapeHtml(formatDateEs(item.createdAt))} · Última actualización ${escapeHtml(formatDateEs(item.updatedAt))}</p></div></details>`;
+      const body=`${taxonomyLegacyDisclosure(item,'learning')}<section class="drawer-section learning-visible-section"><h3>Qué implica para UX</h3><p>${escapeHtml(item.text)}</p></section>${openMarkup}<div class="learning-collapsed-groups">${evidenceMarkup}${applicationMarkup}${sourcesMarkup}</div><div class="form-actions"><button class="secondary-button" type="button" data-learning-component-edit="${escapeHtml(item.id)}">Editar clasificación</button><button class="secondary-button" type="button" data-close-editor>Cerrar</button></div>`;
+      openDrawer(header,body);
+    }
+    function openLearningComponentEditor(id){
+      const item=learnings.find(value=>value.id===id);if(!item)return;
+      const options=learningComponentOptions(item);
+      const current=canonicalComponentName(item.component);
+      const legacy=String(item.component||'').trim();
+      const deviceOptions=['Desktop','Mobile','Desktop + mobile','No especificado'];
+      const currentDevice=deviceOptions.includes(String(item.device||'').trim())?String(item.device).trim():'No especificado';
+      const header=`<div class="drawer-kicker">Learning · clasificación</div><h2>Editar clasificación</h2><p class="drawer-lead">Puedes corregir manualmente la clasificación del learning cuando conoces mejor su contexto. Puedes reutilizar un componente existente o escribir uno nuevo. El dispositivo queda como metadata gobernada del learning.</p>`;
+      const currentLabel=current||legacy;
+      const componentListId=`learning-edit-component-options-${String(item.id||'learning').replace(/[^a-zA-Z0-9_-]/g,'-')}`;
+      const componentHelp=currentLabel?(canonicalComponentName(currentLabel)?`Componente existente: ${canonicalComponentName(currentLabel)}.`:'Componente manual. Se guardará con este nombre.'):'Escribe un componente o elige uno existente. Un learning tiene un único componente principal.';
+      const body=`<form id="learning-component-edit-form" data-learning-id="${escapeHtml(item.id)}"><div class="form-grid"><label class="form-field full">Componente<input name="component" type="text" list="${escapeHtml(componentListId)}" value="${escapeHtml(currentLabel)}" placeholder="Escribe o selecciona un componente" data-component-free-input><datalist id="${escapeHtml(componentListId)}">${options.map(value=>`<option value="${escapeHtml(value)}"></option>`).join('')}</datalist><span class="form-help" data-component-free-help>${escapeHtml(componentHelp)}</span></label><label class="form-field full">Dispositivo<select name="device" required>${deviceOptions.map(value=>`<option value="${escapeHtml(value)}" ${value===currentDevice?'selected':''}>${escapeHtml(value)}</option>`).join('')}</select><span class="form-help">Puedes corregir este dato manualmente. Las nuevas evidencias no sobrescriben el dispositivo de un learning ya consolidado.</span></label></div><div class="form-actions"><button class="secondary-button" type="button" data-learning-component-cancel="${escapeHtml(item.id)}">Cancelar</button><button class="action-button" type="submit">Guardar clasificación</button></div></form>`;
+      openDrawer(header,body);
+    }
+    function openFullLearning(id){
+      const item=learnings.find(value=>value.id===id);if(!item)return;
+      closeDrawer();showPanel('learnings');resetFilterGroup('learning');
+      for(const level of ['product','component']){
+        const select=document.getElementById(`learning-${level}`),value=level==='component'?componentsOf(item)[0]:item[level];
+        if(value&&[...select.options].some(option=>option.value===value)){select.value=value;refreshHierarchy('learning',level);}
+      }
+      requestAnimationFrame(()=>document.querySelector(`[data-learning="${CSS.escape(id)}"]`)?.scrollIntoView({block:'center'}));
+    }
+    function evidenceLimit(item){if(item.kind==='Quantum Metric')return 'Describe el comportamiento observado en el periodo y contexto analizado, pero no explica por sí sola la causa.';if(item.kind==='Test A/B')return 'El resultado se limita a la variante, métricas, periodo y dispositivo analizados.';if(['Benchmark','Desk research'].includes(item.kind))return 'Ayuda a contrastar patrones y generar hipótesis, pero no valida por sí sola el comportamiento en Air Europa.';if(['Análisis heurístico','Análisis conductual','Análisis UX de CRO','Auditoría UX'].includes(item.kind))return 'Es una interpretación experta que debe leerse junto con datos internos, research o experimentación.';return 'Debe interpretarse dentro del contexto en el que se obtuvo y contrastarse antes de generalizar.';}
+    function openEvidence(id){relatedEvidenceDrawer(id);}
+    function openKnowledgeUnit(id){const item=knowledgeUnits.find(value=>value.id===id);if(!item)return;const header=`<div class="drawer-kicker">${escapeHtml(item.type)}</div><h2>${escapeHtml(item.text)}</h2><div class="drawer-tags"><span class="status-badge ${confidenceClass(item.confidence)}">Confianza ${escapeHtml(item.confidence.toLowerCase())}</span></div><div class="drawer-context"><div><strong>Dónde aplica:</strong> ${escapeHtml(pathOf(item))}</div><div><strong>Dispositivo:</strong> ${escapeHtml(item.device)} · <strong>Mercado:</strong> ${escapeHtml(item.market)}</div></div>`;const body=`<section class="drawer-section"><h3>Clasificación</h3><p>${escapeHtml(item.type)}. ${escapeHtml(item.confidenceWhy||'')}</p></section><section class="drawer-section"><h3>Origen</h3><p>${escapeHtml(item.sourceName)} · pág. ${item.source?.page||'No especificada'} · ${escapeHtml(item.source?.section||'Sección no especificada')}</p></section><section class="drawer-section"><h3>Trazabilidad</h3><p>Fuente → hallazgo revisado → conocimiento publicado.</p></section>`;openDrawer(header,body);}
+    const outcomeDefinitions={Positivo:'Mejora clara en una métrica relevante para la hipótesis.',Neutral:'No hay evidencia suficiente de mejora ni empeoramiento.',Negativo:'Se observa un empeoramiento relevante.',Mixto:'Las métricas, dispositivos, segmentos o KPIs no apuntan en la misma dirección.'};
+    function experimentLineageMarkup(item){
+      const lineage=UXKnowledge.experimentLineage(item),parts=[];
+      if(lineage.lineId)parts.push(`<p><strong>Línea experimental:</strong> ${escapeHtml(lineage.lineId)}</p>`);
+      if(lineage.iteration)parts.push(`<p><strong>Iteración:</strong> ${escapeHtml(lineage.iteration)}</p>`);
+      if(lineage.previousExperimentIds.length)parts.push(`<p><strong>Parte de:</strong> ${escapeHtml(lineage.previousExperimentIds.join(', '))}</p>`);
+      if(lineage.nextExperimentIds.length)parts.push(`<p><strong>Continúa en:</strong> ${escapeHtml(lineage.nextExperimentIds.join(', '))}</p>`);
+      if(lineage.derivedFromLearningIds.length)parts.push(`<p><strong>Nace de:</strong> ${escapeHtml(lineage.derivedFromLearningIds.join(', '))}</p>`);
+      if(lineage.multiChangeLimitation)parts.push(`<p><strong>Límite de atribución:</strong> ${escapeHtml(lineage.multiChangeLimitation)}</p>`);
+      return parts.length?`<section class="drawer-section related-section"><h3>Genealogía experimental</h3>${parts.join('')}</section>`:'';
