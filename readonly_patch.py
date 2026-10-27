@@ -20,6 +20,49 @@ expected_build = 'data-build="2026-10-27-v6-184-strict-learning-taxonomy"'
 if expected_build not in s:
     raise SystemExit("ERROR: la fuente ensamblada no es la build v6-184 esperada")
 
+# La copia pública debe conservar exactamente la Dimensión UX ya presente en
+# los registros originales. No inferimos ni rellenamos dimensiones nuevas.
+# Exponemos un mapa por texto de hallazgo y lo usamos solo como fallback cuando
+# la capa pública pierde uxLine durante la normalización.
+public_rows_anchor = "const publicDemoRows=["
+anchor_pos = s.find(public_rows_anchor)
+if anchor_pos < 0:
+    raise SystemExit("ERROR: no se encuentra publicDemoRows")
+
+rows_start = anchor_pos + len("const publicDemoRows=")
+rows_end = s.find("];", rows_start)
+if rows_end < 0:
+    raise SystemExit("ERROR: no se puede cerrar publicDemoRows")
+rows_literal = s[rows_start:rows_end+1]
+
+import json
+try:
+    public_rows = json.loads(rows_literal)
+except Exception as exc:
+    raise SystemExit(f"ERROR: publicDemoRows no es JSON válido: {exc}")
+
+dimension_by_insight = {
+    str(row.get("insight") or "").strip(): str(row.get("uxLine") or "").strip()
+    for row in public_rows
+    if str(row.get("insight") or "").strip() and str(row.get("uxLine") or "").strip()
+}
+dimension_map_js = json.dumps(dimension_by_insight, ensure_ascii=False, separators=(",",":"))
+
+inject_after = rows_literal + ";"
+replacement = rows_literal + ";globalThis.__UX_PUBLIC_DIMENSIONS_BY_INSIGHT=" + dimension_map_js + ";"
+if "__UX_PUBLIC_DIMENSIONS_BY_INSIGHT" not in s:
+    s = s[:rows_start] + replacement + s[rows_end+2:]
+
+structured_old = "uxLine:row.uxLine||'',"
+structured_new = "uxLine:row.uxLine||globalThis.__UX_PUBLIC_DIMENSIONS_BY_INSIGHT?.[String(row.insight||'').trim()]||'',"
+if structured_old in s:
+    s = s.replace(structured_old, structured_new, 1)
+
+fallback_old = "uxLine:first(row,['Dimensión','Dimension','dimensión','dimension','Dimensión UX','Dimension UX','dimensión ux','dimension ux','Línea UX','Linea UX','línea ux','linea ux','Línea UX / agrupación','Linea UX / agrupacion','línea ux / agrupación','linea ux / agrupacion']),"
+fallback_new = "uxLine:first(row,['Dimensión','Dimension','dimensión','dimension','Dimensión UX','Dimension UX','dimensión ux','dimension ux','Línea UX','Linea UX','línea ux','linea ux','Línea UX / agrupación','Linea UX / agrupacion','línea ux / agrupación','linea ux / agrupacion'])||globalThis.__UX_PUBLIC_DIMENSIONS_BY_INSIGHT?.[String(first(row,['Insight / hallazgo','Insight','insight','Hallazgo','hallazgo'])||'').trim()]||'',"
+if fallback_old in s:
+    s = s.replace(fallback_old, fallback_new, 1)
+
 # La demo pública no tiene el estado local persistido de Taxonomía.
 # Inyectamos exclusivamente el canon ya definido en v6-184; no se infiere nada nuevo.
 canonical_terms = [
