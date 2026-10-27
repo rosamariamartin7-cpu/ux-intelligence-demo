@@ -1,0 +1,1000 @@
+      <section class="taxonomy-manager-v2-group">
+        <h3>${esc(group)}</h3>
+        ${items.map(entry=>{
+          const index=entries.indexOf(entry);
+          let meta='';
+          if(entry.section==='product'){
+            meta=`${entry.path}${entry.usage?` · ${entry.usage} ${entry.usage===1?'uso':'usos'}`:''}${entry.children?` · ${entry.children} ${entry.children===1?'dependencia':'dependencias'}`:''}`;
+          }else if(entry.section==='vocabularies'){
+            meta=entry.usage?`${entry.usage} ${entry.usage===1?'uso':'usos'} en conocimiento estructurado`:'Sin usos detectados';
+          }else meta=entry.description||'Definición del glosario';
+
+          const actions=entry.section==='product'
+            ? `<div class="taxonomy-manager-v2-actions">
+                <button class="is-neutral" type="button" data-taxonomy-manager-v2-edit="${index}">Editar</button>
+                <button class="is-neutral" type="button" data-taxonomy-manager-v2-merge="${index}">Fusionar</button>
+                <button class="is-danger" type="button" data-taxonomy-manager-v2-delete="${index}">${entry.usage?'Retirar':'Eliminar'}</button>
+              </div>`
+            : `<div class="taxonomy-manager-v2-actions">
+                <button class="is-danger" type="button" data-taxonomy-manager-v2-delete="${index}">${entry.usage?'Retirar':'Eliminar'}</button>
+              </div>`;
+
+          return `<div class="taxonomy-manager-v2-row">
+            <div class="taxonomy-manager-v2-copy"><strong>${esc(entry.name)}</strong><span>${esc(meta)}</span></div>
+            ${actions}
+          </div>`;
+        }).join('')}
+      </section>
+    `).join('');
+  }
+
+  function openManager(section){
+    activeSection=section;
+    entries=sectionEntries(section);
+    const [title,copy]=copyFor(section);
+    managerTitle.textContent=title;
+    managerCopy.textContent=copy;
+    managerSearch.value='';
+    managerLevelField.hidden=section!=='product';
+    managerToolbar.classList.toggle('is-single',section!=='product');
+    if(section==='product')managerLevel.value='product';
+    renderList();
+    manager.hidden=false;
+    setTimeout(()=>managerSearch.focus(),0);
+  }
+  function closeManager(){manager.hidden=true;}
+
+  function productDuplicate(entry,newName){
+    return productEntries().find(candidate=>
+      candidate.id!==entry.id&&candidate.level===entry.level&&norm(candidate.name)===norm(newName)
+    );
+  }
+
+  function openEdit(entry){
+    pendingEdit=entry;
+    editMeta.textContent=entry.path;
+    editInput.value=entry.name;
+    editModal.hidden=false;
+    setTimeout(()=>{editInput.focus();editInput.select();},0);
+  }
+  function closeEdit(){editModal.hidden=true;pendingEdit=null;}
+  function saveEdit(){
+    const entry=pendingEdit;
+    if(!entry)return;
+    const newName=clean(editInput.value);
+    if(!newName){
+      try{showToast('Nombre requerido','Escribe un nombre para el término.');}catch(_){}
+      return;
+    }
+    if(norm(newName)===norm(entry.name)){closeEdit();return;}
+    const duplicate=productDuplicate(entry,newName);
+    if(duplicate){
+      closeEdit();
+      openMerge(entry,duplicate.id);
+      try{showToast('Ese término ya existe','En lugar de duplicarlo, puedes fusionar ambos términos.');}catch(_){}
+      return;
+    }
+
+    const state=readState();
+    const existing=state.renames.find(item=>item.id===entry.id);
+    if(existing){
+      if(!existing.aliases.some(value=>norm(value)===norm(entry.name)))existing.aliases.push(entry.name);
+      existing.name=newName;
+      existing.updatedAt=new Date().toISOString();
+    }else{
+      state.renames.push({
+        id:entry.id,
+        originalName:entry.name,
+        name:newName,
+        aliases:[entry.name],
+        updatedAt:new Date().toISOString()
+      });
+    }
+    writeState(state);
+    closeEdit();
+    refreshAfterChange(`“${entry.name}” ahora se muestra como “${newName}”. El nombre anterior queda como alias.`);
+  }
+
+  function mergeCandidates(entry){
+    return productEntries().filter(candidate=>candidate.id!==entry.id&&candidate.level===entry.level);
+  }
+  function openMerge(entry,preselectedId=''){
+    pendingMerge=entry;
+    const candidates=mergeCandidates(entry);
+    mergeMeta.textContent=`Origen: ${entry.path}`;
+    mergeTarget.innerHTML=candidates.length
+      ? candidates.map(candidate=>`<option value="${esc(candidate.id)}">${esc(candidate.path)}</option>`).join('')
+      : '<option value="">No hay otro término compatible</option>';
+    if(preselectedId&&candidates.some(candidate=>candidate.id===preselectedId))mergeTarget.value=preselectedId;
+    mergeAction.disabled=!candidates.length;
+    mergeModal.hidden=false;
+  }
+  function closeMerge(){mergeModal.hidden=true;pendingMerge=null;}
+  function saveMerge(){
+    const source=pendingMerge;
+if(!source)return;
+    const target=productEntries().find(candidate=>candidate.id===mergeTarget.value);
+    if(!target)return;
+
+    const state=readState();
+    state.merges=state.merges.filter(item=>item.sourceId!==source.id);
+    state.merges.push({
+      sourceId:source.id,
+      targetId:target.id,
+      sourceName:source.name,
+      targetName:target.name,
+      level:source.level,
+      updatedAt:new Date().toISOString()
+    });
+    writeState(state);
+    closeMerge();
+    refreshAfterChange(`“${source.name}” se ha fusionado con “${target.name}”. Sus nombres históricos se conservan como alias.`);
+  }
+
+  function openConfirm(entry){
+    pending=entry;
+    if(entry.section==='product'&&entry.children){
+      confirmTitle.textContent='Este término tiene dependencias';
+      confirmCopy.textContent=`“${entry.name}” contiene ${entry.children} ${entry.children===1?'término dependiente':'términos dependientes'}. Para eliminarlo sin romper la estructura, fusiónalo con otro término del mismo nivel.`;
+      confirmMeta.textContent=entry.path;
+      confirmAction.textContent='Fusionar con…';
+      confirmAction.className='action-button';
+      pending={...entry,redirectToMerge:true};
+      confirmModal.hidden=false;
+      return;
+    }
+
+    confirmTitle.textContent=entry.usage?'Retirar término':'Eliminar término';
+    if(entry.section==='product'){
+      confirmCopy.textContent=entry.usage
+        ? `“${entry.name}” ya está utilizado. Se retirará de nuevas clasificaciones, pero se conservarán las referencias históricas.`
+        : `¿Quieres eliminar “${entry.name}” de la estructura activa?`;
+      confirmMeta.textContent=entry.path;
+    }else if(entry.section==='vocabularies'){
+      confirmCopy.textContent=entry.usage
+        ? `“${entry.name}” ya está utilizado. Dejará de ofrecerse en nuevas clasificaciones, sin modificar los registros existentes.`
+        : `¿Quieres eliminar “${entry.name}” de “${entry.group}”?`;
+      confirmMeta.textContent=entry.group;
+    }else{
+      confirmCopy.textContent=`¿Quieres eliminar la definición “${entry.name}” del Glosario UX Intel?`;
+      confirmMeta.textContent=entry.description||'Glosario UX Intel';
+    }
+    confirmAction.textContent=entry.usage?'Retirar':'Eliminar';
+    confirmAction.className='danger-button';
+    confirmModal.hidden=false;
+  }
+  function closeConfirm(){
+    confirmModal.hidden=true;
+    pending=null;
+    confirmAction.className='danger-button';
+  }
+
+  function perform(){
+    const entry=pending;
+    if(!entry)return;
+    if(entry.redirectToMerge){
+      closeConfirm();
+      openMerge(entry);
+      return;
+    }
+
+    const state=readState();
+    if(entry.section==='product'){
+      if(!state.product.some(item=>item.id===entry.id&&entry.id))state.product.push({id:entry.id,name:entry.name,level:entry.level});
+      if(entry.term)entry.term.status='retired';
+    }else if(entry.section==='vocabularies'){
+      if(!state.vocabularies.some(item=>norm(item.group)===norm(entry.group)&&norm(item.value)===norm(entry.name)))state.vocabularies.push({group:entry.group,value:entry.name});
+    }else{
+      if(!state.glossary.some(item=>norm(item.name)===norm(entry.name)))state.glossary.push({name:entry.name});
+    }
+    writeState(state);
+    closeConfirm();
+    refreshAfterChange(entry.usage?'El término se ha retirado de nuevas clasificaciones. El histórico se conserva.':'El término se ha eliminado de la taxonomía activa.');
+  }
+
+  function refreshAfterChange(message=''){
+    applyState();
+    try{if(typeof renderTaxonomy==='function')renderTaxonomy();}catch(_){}
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{globalThis.__dsSyncSelects?.();}catch(_){}
+    setTimeout(()=>{
+      applyState();
+      entries=sectionEntries(activeSection);
+      renderList();
+    },100);
+    if(message){try{showToast('Estructura actualizada',message);}catch(_){}}
+  }
+
+  managerSearch.addEventListener('input',renderList);
+  managerLevel.addEventListener('change',renderList);
+
+  managerList.addEventListener('click',event=>{
+    const edit=event.target.closest('[data-taxonomy-manager-v2-edit]');
+    if(edit){const entry=entries[Number(edit.dataset.taxonomyManagerV2Edit)];if(entry)openEdit(entry);return;}
+
+    const merge=event.target.closest('[data-taxonomy-manager-v2-merge]');
+    if(merge){const entry=entries[Number(merge.dataset.taxonomyManagerV2Merge)];if(entry)openMerge(entry);return;}
+
+    const remove=event.target.closest('[data-taxonomy-manager-v2-delete]');
+    if(remove){const entry=entries[Number(remove.dataset.taxonomyManagerV2Delete)];if(entry)openConfirm(entry);return;}
+  });
+
+  editAction.addEventListener('click',saveEdit);
+  mergeAction.addEventListener('click',saveMerge);
+  confirmAction.addEventListener('click',perform);
+
+  editInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();saveEdit();}});
+
+  document.addEventListener('click',event=>{
+    const manage=event.target.closest('[data-taxonomy-manager-v2]');
+    if(manage){openManager(manage.dataset.taxonomyManagerV2);return;}
+
+    if(event.target===manager||event.target.closest('[data-taxonomy-manager-v2-close]'))closeManager();
+    if(event.target===editModal||event.target.closest('[data-taxonomy-manager-v2-edit-close]'))closeEdit();
+    if(event.target===mergeModal||event.target.closest('[data-taxonomy-manager-v2-merge-close]'))closeMerge();
+    if(event.target===confirmModal||event.target.closest('[data-taxonomy-manager-v2-confirm-close]'))closeConfirm();
+
+    if(event.target.closest('#taxonomy [data-taxonomy-view],#taxonomy [data-taxonomy-term],[data-taxonomy-edit],[data-propose-taxonomy],#taxonomy-controlled button,#taxonomy-glossary button')){
+      setTimeout(applyState,80);
+      setTimeout(applyState,320);
+    }
+  });
+
+  document.addEventListener('keydown',event=>{
+    if(event.key!=='Escape')return;
+    if(!confirmModal.hidden){closeConfirm();return;}
+    if(!mergeModal.hidden){closeMerge();return;}
+    if(!editModal.hidden){closeEdit();return;}
+    if(!manager.hidden)closeManager();
+  });
+
+  function init(){
+    applyState();
+    setTimeout(applyState,250);
+    setTimeout(applyState,900);
+    setTimeout(applyState,1800);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  else init();
+  window.addEventListener('load',()=>setTimeout(applyState,350));
+})();
+</script>
+
+<script id="ux-excel-import-build-confirm">
+(function(){
+  window.addEventListener('load',()=>{
+    try{
+      const key='ux-intel-import-v681-confirmed';
+      if(sessionStorage.getItem(key))return;
+      sessionStorage.setItem(key,'1');
+      setTimeout(()=>{if(typeof showToast==='function')showToast('UX Intelligence actualizado','v6-82 · componente de learning editable y libre');},650);
+    }catch(_){}
+  });
+})();
+</script>
+
+<script id="ux-taxonomy-policy">
+(function(){
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+  const allowedProducts=new Set(['home','booking']);
+  const allowedFunnels=new Set(['availability','shopping cart','passengers','extras','payment','transversal']);
+  const funnelNames=new Map([
+    ['disponibilidad','Availability'],['availability','Availability'],['availability/dispo','Availability'],['dispo','Availability'],
+    ['shopping cart','Shopping Cart'],['carrito','Shopping Cart'],['summary','Shopping Cart'],['resumen','Shopping Cart'],['resumen / shopping cart','Shopping Cart'],['summary / shopping cart','Shopping Cart'],
+    ['pasajeros','Passengers'],['passengers','Passengers'],['passengers/paxes','Passengers'],['paxes','Passengers'],
+    ['extras','Extras'],['pago','Payment'],['payment','Payment'],
+    ['transversal','Transversal']
+  ]);
+  const miniNames=new Map([
+    ['asientos','Asientos'],['extras - asientos','Asientos'],['reserva de asiento','Asientos'],['reserva de asientos','Asientos'],
+    ['equipaje','Equipaje'],['maletas','Equipaje'],['extras - equipaje','Equipaje'],
+    ['priority boarding','Priority Boarding'],['embarque prioritario','Priority Boarding'],['extras - priority boarding','Priority Boarding'],
+    ['wifi','Wi-Fi'],['wi-fi','Wi-Fi'],['wi fi','Wi-Fi'],['extras - wifi','Wi-Fi'],['extras - wi-fi','Wi-Fi'],
+    ['menu a bordo','Menú a bordo'],['menú a bordo','Menú a bordo'],['menu','Menú a bordo'],['extras - menu','Menú a bordo'],['extras - menú','Menú a bordo'],
+    ['mascotas','Mascotas'],['mascota','Mascotas'],['pet','Mascotas'],['pets','Mascotas'],['extras - mascotas','Mascotas'],
+    ['equipaje deportivo','Equipaje deportivo'],['equipajes deportivos','Equipaje deportivo'],['extras - equipaje deportivo','Equipaje deportivo']
+  ]);
+  const componentNames=new Map([
+    ['login','Login / autenticación'],['login / autenticacion','Login / autenticación'],['login contextual','Login / autenticación'],
+    ['fare families','Fare Families'],['upsell panel','Upsell Panel'],['upsell','Upsell Panel'],
+    ['detalle del vuelo','Detalle del vuelo'],['detalle vuelo','Detalle del vuelo'],['panel de upsell','Upsell Panel'],
+    ['slider de millas','Slider de Millas'],['slider millas','Slider de Millas'],['cash & miles','Slider de Millas'],
+    ['footer','Footer'],['footer millas','Footer'],['footer de millas','Footer'],
+    ['resumen economico','Slider de Millas'],['resumen económico','Slider de Millas'],
+    ['header','Header'],['buscador','Buscador'],['buscador de vuelos','Buscador'],['calendario','Buscador'],
+    ['accesos rapidos','Accesos rápidos'],['accesos rápidos','Accesos rápidos'],['accesos de autogestion','Accesos rápidos'],['accesos de autogestión','Accesos rápidos'],
+    ['banner','Banner promocional'],['banner promocional','Banner promocional'],['banners promocionales','Banner promocional'],
+    ['aviso','Avisos'],['avisos','Avisos'],['mensajes de aviso','Avisos'],
+    ['hero','Hero Banner'],['hero banner','Hero Banner'],['hero / contenido comercial','Hero Banner'],
+    ['contenido comercial','Claim'],['claim','Claim'],['claim principal','Claim'],['h1 principal','Claim'],
+
+    // Passengers
+    ['confirmacion del pasajero','Card confirmación pasajero SUMA'],['confirmación del pasajero','Card confirmación pasajero SUMA'],
+    ['card confirmacion del pasajero','Card confirmación pasajero SUMA'],['card confirmación del pasajero','Card confirmación pasajero SUMA'],
+    ['card confirmacion del pasajero suma','Card confirmación pasajero SUMA'],['card confirmación del pasajero suma','Card confirmación pasajero SUMA'],
+    ['eres tu el que viaja','Card confirmación pasajero SUMA'],['¿eres tú el que viaja?','Card confirmación pasajero SUMA'],
+    ['datos pasajero','Card Datos del pasajero'],['datos del pasajero','Card Datos del pasajero'],
+    ['card datos pasajero','Card Datos del pasajero'],['card datos del pasajero','Card Datos del pasajero'],
+    ['pasajero frecuente','Card pasajero SUMA'],['tarjeta pasajero frecuente','Card pasajero SUMA'],
+    ['tarjeta de pasajero frecuente','Card pasajero SUMA'],['card pasajero frecuente','Card pasajero SUMA'],
+    ['card tarjeta pasajero frecuente','Card pasajero SUMA'],['card tarjeta de pasajero frecuente','Card pasajero SUMA'],
+
+    // Extras · pantalla general
+    ['cards de extras','Cards de extras'],['cards extras','Cards de extras'],['card extras','Cards de extras'],
+    ['card asiento','Card Asiento'],['card asientos','Card Asiento'],
+    ['card equipaje','Card Equipaje'],['card maletas','Card Equipaje'],
+    ['card priority boarding','Card Priority Boarding'],['card embarque prioritario','Card Priority Boarding'],
+    ['card wifi','Card Wi-Fi'],['card wi-fi','Card Wi-Fi'],['card wi fi','Card Wi-Fi'],
+    ['card menu a bordo','Card Menú a bordo'],['card menú a bordo','Card Menú a bordo'],['card menu','Card Menú a bordo'],
+    ['card mascotas','Card Mascotas'],['card mascota','Card Mascotas'],
+
+    // Extras · componente interno actualmente trabajado en los minifunnels
+    ['selector por pasajero','Selector por pasajero'],['seleccion por pasajero','Selector por pasajero'],['selección por pasajero','Selector por pasajero']
+  ]);
+
+  const termId=term=>clean(term?.id||term?.termId||term?.key);
+  const parentId=term=>clean(term?.parentId||term?.parentTermId||term?.parent?.id||term?.parent);
+  const setParentId=(term,value)=>{if('parentId' in term||!('parentTermId' in term))term.parentId=value;else term.parentTermId=value;};
+  const termName=term=>clean(term?.canonicalName||term?.name||term?.label||term?.value);
+  const termLevel=term=>norm(term?.level);
+
+  function migrateLegacyRecord(item){
+    if(!item||typeof item!=='object')return false;
+    const screen=clean(item.screen),element=clean(item.element);
+    let changed=false;
+
+    // Normalize explicit hierarchy values from historical files.
+    const explicitFunnel=clean(item.funnel);
+    if(explicitFunnel){
+      const canonicalFunnel=funnelNames.get(norm(explicitFunnel));
+      if(canonicalFunnel&&canonicalFunnel!==explicitFunnel){
+        if(!clean(item.legacyFunnel))item.legacyFunnel=explicitFunnel;
+        item.funnel=canonicalFunnel;changed=true;
+      }
+    }
+
+    const explicitMini=clean(item.minifunnel);
+    if(explicitMini){
+      const canonicalMini=miniNames.get(norm(explicitMini));
+      if(canonicalMini&&canonicalMini!==explicitMini){
+        if(!clean(item.legacyMinifunnel))item.legacyMinifunnel=explicitMini;
+        item.minifunnel=canonicalMini;changed=true;
+      }
+    }
+
+    const explicitComponent=clean(item.component);
+    if(explicitComponent){
+      let canonicalComponent=componentNames.get(norm(explicitComponent))||'';
+      // Historical generic component names are only converted when context makes the level unambiguous.
+      const mini=norm(item.minifunnel);
+      if(canonicalComponent&&canonicalComponent!==explicitComponent){
+        if(!clean(item.legacyComponent))item.legacyComponent=explicitComponent;
+        item.component=canonicalComponent;changed=true;
+      }
+    }
+    if(screen){
+      const key=norm(screen);
+      if(!clean(item.legacyScreen)){item.legacyScreen=screen;changed=true;}
+      if(!clean(item.funnel)){
+        const funnel=funnelNames.get(key);
+        if(funnel){item.funnel=funnel;changed=true;}
+        else if(miniNames.has(key)){item.funnel='Extras';changed=true;}
+      }
+      if(!clean(item.minifunnel)&&miniNames.has(key)){item.minifunnel=miniNames.get(key);changed=true;}
+      if(!clean(item.component)&&componentNames.has(key)){item.component=componentNames.get(key);changed=true;}
+      if(key==='home'&&!clean(item.product)){item.product='Home';changed=true;}
+    }
+    if(element&&!clean(item.legacyElement)){item.legacyElement=element;changed=true;}
+    return changed;
+  }
+
+  function migrateCollections(){
+    let changed=false;
+    const collections=[];
+    try{if(Array.isArray(sourceItems))collections.push(sourceItems);}catch(_){}
+    try{if(Array.isArray(learnings))collections.push(learnings);}catch(_){}
+    try{if(Array.isArray(evidenceItems))collections.push(evidenceItems);}catch(_){}
+    try{if(Array.isArray(experiments))collections.push(experiments);}catch(_){}
+    try{if(Array.isArray(patternItems))collections.push(patternItems);}catch(_){}
+    collections.forEach(items=>items.forEach(item=>{
+      if(migrateLegacyRecord(item))changed=true;
+      const rows=item?.insightRegister?.rows;
+      if(Array.isArray(rows))rows.forEach(row=>{if(migrateLegacyRecord(row))changed=true;});
+    }));
+    return changed;
+  }
+
+
+  function ensureGovernedJourneyTerms(){
+    try{
+      const terms=Array.isArray(taxonomyProject?.state?.terms)?taxonomyProject.state.terms:null;
+      if(!terms)return false;
+      let changed=false;
+
+      const byLevelName=(level,name,parent=null)=>terms.find(term=>
+        termLevel(term)===level&&norm(termName(term))===norm(name)&&
+        norm(term?.status||'canonical')!=='retired'&&
+        (!parent||parentId(term)===termId(parent))
+      );
+      const anyByLevelName=(level,name)=>terms.filter(term=>termLevel(term)===level&&norm(termName(term))===norm(name)&&norm(term?.status||'canonical')!=='retired');
+      const parentScopedComponents=new Set(['selector por pasajero']);
+      const makeId=(level,name,parent='')=>'ux-'+level+'-'+norm(parent+'-'+name).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+
+      const ensure=(level,name,parent,aliases=[])=>{
+        let term=byLevelName(level,name,parent);
+        if(!term&&!(level==='component'&&parentScopedComponents.has(norm(name)))){
+          const matches=anyByLevelName(level,name);
+          if(matches.length===1)term=matches[0];
+        }
+        if(term){
+          const existing=Array.isArray(term.aliases)?[...term.aliases]:[];
+          aliases.forEach(alias=>{if(alias&&!existing.some(value=>norm(value)===norm(alias)))existing.push(alias);});
+          if(JSON.stringify(existing)!==JSON.stringify(term.aliases||[])){term.aliases=existing;changed=true;}
+          if(parent&&parentId(term)!==termId(parent)){setParentId(term,termId(parent));changed=true;}
+          if(term.governed!==true){term.governed=true;changed=true;}
+          if(term.status!=='canonical'){term.status='canonical';changed=true;}
+          return term;
+        }
+        term={
+          id:makeId(level,name,parent?termName(parent):''),
+          level,
+          canonicalName:name,
+          name,
+          parentId:parent?termId(parent):'',
+          status:'canonical',
+          governed:true,
+          aliases:[...aliases],
+          origin:'UX Intelligence · criterio canónico 2026-10-22'
+        };
+        terms.push(term);changed=true;
+        return term;
+      };
+
+      // PRODUCTS
+      const home=ensure('product','Home',null,[]);
+      const booking=ensure('product','Booking',null,[]);
+
+      // HOME · componentes directos (Home no usa Funnel).
+      ensure('component','Header',home,[]);
+      const buscador=ensure('component','Buscador',home,['Buscador de vuelos','Calendario']);
+
+      // Calendario forma parte de Buscador. Si existe como término histórico,
+      // se retira del canon activo y se conserva la trazabilidad hacia Buscador.
+      const legacyCalendar=byLevelName('component','Calendario',home);
+      if(legacyCalendar&&termId(legacyCalendar)!==termId(buscador)){
+        legacyCalendar.status='retired';
+        legacyCalendar.governed=false;
+        legacyCalendar.mergedIntoId=termId(buscador);
+        changed=true;
+      }
+
+      ensure('component','Accesos rápidos',home,['Accesos rapidos','Accesos de autogestión','Accesos de autogestion']);
+      ensure('component','Banner promocional',home,['Banner','Banners promocionales']);
+      ensure('component','Avisos',home,['Aviso','Mensajes de aviso']);
+
+      // Naming Home ajustado: Hero -> Hero Banner; Contenido comercial -> Claim.
+      // Si existe el término histórico combinado, se renombra manteniendo su ID y aliases.
+      const legacyHero=byLevelName('component','Hero / contenido comercial',home);
+      if(legacyHero){
+        // "Contenido comercial" pertenece únicamente a Claim.
+        // Al migrar una taxonomía histórica eliminamos ese alias del antiguo término combinado
+        // para evitar que pueda resolver indistintamente a Hero Banner o Claim.
+        const legacyAliases=(Array.isArray(legacyHero.aliases)?[...legacyHero.aliases]:[])
+          .filter(alias=>norm(alias)!==norm('Contenido comercial'));
+        ['Hero','Hero / contenido comercial'].forEach(alias=>{
+          if(!legacyAliases.some(value=>norm(value)===norm(alias)))legacyAliases.push(alias);
+        });
+        if(termName(legacyHero)!=='Hero Banner'){
+          legacyHero.canonicalName='Hero Banner';
+          legacyHero.name='Hero Banner';
+          changed=true;
+        }
+        if(JSON.stringify(legacyAliases)!==JSON.stringify(legacyHero.aliases||[])){
+          legacyHero.aliases=legacyAliases;
+          changed=true;
+        }
+      }
+      ensure('component','Hero Banner',home,['Hero','Hero / contenido comercial']);
+      ensure('component','Claim',home,['Contenido comercial','Claim principal','H1 principal']);
+
+      // BOOKING · funnels canónicos.
+      const availability=ensure('funnel','Availability',booking,['Disponibilidad','Availability/Dispo','Dispo']);
+      const shoppingCart=ensure('funnel','Shopping Cart',booking,['Carrito','Summary','Resumen','Resumen / Shopping Cart','Summary / Shopping Cart']);
+      const passengers=ensure('funnel','Passengers',booking,['Pasajeros','Passengers/Paxes','Paxes']);
+      const extras=ensure('funnel','Extras',booking,[]);
+      const payment=ensure('funnel','Payment',booking,['Pago']);
+      const transversal=ensure('funnel','Transversal',booking,['Booking transversal']);
+
+      // Availability.
+      ensure('component','Fare Families',availability,[]);
+      ensure('component','Upsell Panel',availability,['Upsell','Panel de upsell']);
+
+      // Shopping Cart. El Slider de Millas es específico de este funnel.
+      // Footer es un componente transversal: conserva nombre genérico y el Funnel
+      // del registro indica en qué punto del journey se ha observado.
+      ensure('component','Slider de Millas',shoppingCart,['Slider Millas','Cash & Miles']);
+      ensure('component','Footer',shoppingCart,['Footer Millas','Footer de Millas']);
+
+      // Passengers.
+      ensure('component','Card confirmación pasajero SUMA',passengers,['Card Confirmación del pasajero','Card Confirmación del pasajero SUMA','Confirmación del pasajero','Confirmación del pasajero SUMA','¿Eres tú el que viaja?']);
+      ensure('component','Card Datos del pasajero',passengers,['Datos Pasajero','Datos del pasajero','Card Datos Pasajero']);
+      ensure('component','Card pasajero SUMA',passengers,['Card Pasajero frecuente','Pasajero frecuente','Tarjeta pasajero frecuente','Tarjeta de pasajero frecuente','Card Tarjeta pasajero frecuente']);
+
+      // Extras · pantalla general: cada card abre el minifunnel de ese extra.
+      ensure('component','Cards de extras',extras,['Cards Extras','Card Extras']);
+      ensure('component','Detalle del vuelo',extras,['Detalle vuelo']);
+      ensure('component','Card Asiento',extras,['Card Asientos']);
+      ensure('component','Card Equipaje',extras,['Card Maletas']);
+      ensure('component','Card Priority Boarding',extras,['Card Embarque prioritario']);
+      ensure('component','Card Wi-Fi',extras,['Card WiFi','Card Wifi']);
+      ensure('component','Card Menú a bordo',extras,['Card Menu a bordo','Card Menu']);
+      ensure('component','Card Mascotas',extras,['Card Mascota']);
+
+      // Extras es el único funnel de Booking con minifunnels.
+      // Canon acordado: los siete extras siguientes son minifunnels.
+      const seats=ensure('minifunnel','Asientos',extras,['Reserva de asiento','Reserva de asientos']);
+      const baggage=ensure('minifunnel','Equipaje',extras,['Maletas']);
+      const priority=ensure('minifunnel','Priority Boarding',extras,['Embarque prioritario']);
+      const wifi=ensure('minifunnel','Wi-Fi',extras,['WiFi','Wifi','Wi Fi']);
+      const menu=ensure('minifunnel','Menú a bordo',extras,['Menu a bordo','Menu']);
+      const pets=ensure('minifunnel','Mascotas',extras,['Mascota','Pets']);
+      const sports=ensure('minifunnel','Equipaje deportivo',extras,['Equipajes deportivos']);
+
+      // Único componente interno trabajado hasta ahora en los minifunnels.
+      // El contexto lo aporta el propio minifunnel, por eso conserva el mismo nombre.
+      [seats,baggage,priority,wifi,menu,pets,sports].forEach(mini=>
+        ensure('component','Selector por pasajero',mini,['Selección por pasajero','Seleccion por pasajero'])
+      );
+
+      // Booking transversal.
+      ensure('component','Login / autenticación',transversal,['Login','Login contextual']);
+
+      // Payment queda gobernado como funnel aunque todavía no tengamos componentes canónicos cerrados.
+      void payment;
+
+      return changed;
+    }catch(error){
+      console.error('[UX Intel canonical journey terms]',error);
+      return false;
+    }
+  }
+
+  function normalizeAndPruneTaxonomy(){
+    try{
+      const terms=Array.isArray(taxonomyProject?.state?.terms)?taxonomyProject.state.terms:null;
+      if(!terms)return false;
+      let changed=false;
+      const byId=new Map(terms.map(term=>[termId(term),term]).filter(([id])=>id));
+      const chain=term=>{
+        const out=[],seen=new Set();let current=term;
+        while(current){const id=termId(current);if(id&&seen.has(id))break;if(id)seen.add(id);out.unshift(current);const pid=parentId(current);current=pid?byId.get(pid):null;}
+        return out;
+      };
+
+      // Retire historical Screen/Element levels and reconnect governed descendants.
+      const legacyLevels=new Set(['screen','element']);
+      terms.filter(term=>legacyLevels.has(termLevel(term))).forEach(legacy=>{
+        const lid=termId(legacy),pid=parentId(legacy);
+        terms.forEach(child=>{if(parentId(child)===lid){setParentId(child,pid);changed=true;}});
+      });
+      let active=terms.filter(term=>!legacyLevels.has(termLevel(term)));
+      if(active.length!==terms.length)changed=true;
+
+      // Normalize the five Booking funnels before filtering the governed taxonomy.
+      const activeById=new Map(active.map(term=>[termId(term),term]).filter(([id])=>id));
+      const activeChain=term=>{
+        const out=[],seen=new Set();let current=term;
+        while(current){const id=termId(current);if(id&&seen.has(id))break;if(id)seen.add(id);out.unshift(current);const pid=parentId(current);current=pid?activeById.get(pid):null;}
+        return out;
+      };
+      active.forEach(term=>{
+        if(termLevel(term)!=='funnel')return;
+        const path=activeChain(term),product=path.find(node=>termLevel(node)==='product');
+        if(norm(termName(product))!=='booking')return;
+        const canonical=funnelNames.get(norm(termName(term)));if(!canonical)return;
+        const oldName=termName(term);
+        if(oldName&&norm(oldName)!==norm(canonical)){
+          const aliases=Array.isArray(term.aliases)?[...term.aliases]:[];
+          if(!aliases.some(alias=>norm(alias)===norm(oldName)))aliases.push(oldName);
+          term.aliases=aliases;changed=true;
+        }
+        if(term.canonicalName!==canonical){term.canonicalName=canonical;changed=true;}
+        if('name' in term&&term.name!==canonical){term.name=canonical;changed=true;}
+      });
+
+      // Normalize Extras minifunnels to the agreed names.
+      active.forEach(term=>{
+        if(termLevel(term)!=='minifunnel')return;
+        const path=activeChain(term),funnel=path.find(node=>termLevel(node)==='funnel');
+        if(norm(termName(funnel))!=='extras')return;
+        const canonical=miniNames.get(norm(termName(term)));if(!canonical)return;
+        const oldName=termName(term);
+        if(oldName&&norm(oldName)!==norm(canonical)){
+          const aliases=Array.isArray(term.aliases)?[...term.aliases]:[];
+          if(!aliases.some(alias=>norm(alias)===norm(oldName)))aliases.push(oldName);
+          term.aliases=aliases;changed=true;
+        }
+        if(term.canonicalName!==canonical){term.canonicalName=canonical;changed=true;}
+        if('name' in term&&term.name!==canonical){term.name=canonical;changed=true;}
+      });
+
+      // Normaliza nombres de componentes gobernados. Esto permite que términos
+      // persistidos con nombres históricos (p. ej. "Footer Millas") migren al
+      // nombre canónico actual ("Footer") sin perder el contexto del Funnel.
+      active.forEach(term=>{
+        if(termLevel(term)!=='component')return;
+        const canonical=componentNames.get(norm(termName(term)));
+        if(!canonical)return;
+        const oldName=termName(term);
+        if(oldName&&norm(oldName)!==norm(canonical)){
+          const aliases=Array.isArray(term.aliases)?[...term.aliases]:[];
+          if(!aliases.some(alias=>norm(alias)===norm(oldName)))aliases.push(oldName);
+          term.aliases=aliases;changed=true;
+        }
+        if(term.canonicalName!==canonical){term.canonicalName=canonical;changed=true;}
+        if('name' in term&&term.name!==canonical){term.name=canonical;changed=true;}
+      });
+
+      // Limpieza de duplicados generados por migraciones sucesivas. Se conserva
+      // el primer término estable, se fusionan alias y se reconectan descendientes.
+      const duplicateRedirect=new Map();
+      const uniqueTerms=[];
+      const uniqueByKey=new Map();
+      active.forEach(term=>{
+        const key=[termLevel(term),parentId(term),norm(termName(term))].join('|');
+        const keeper=uniqueByKey.get(key);
+        if(!keeper){uniqueByKey.set(key,term);uniqueTerms.push(term);return;}
+        const aliases=Array.isArray(keeper.aliases)?[...keeper.aliases]:[];
+        [termName(term),...(Array.isArray(term.aliases)?term.aliases:[])].forEach(alias=>{
+          if(alias&&!aliases.some(value=>norm(value)===norm(alias)))aliases.push(alias);
+        });
+        keeper.aliases=aliases;
+        if(termId(term)&&termId(keeper))duplicateRedirect.set(termId(term),termId(keeper));
+        changed=true;
+      });
+      uniqueTerms.forEach(term=>{
+        const pid=parentId(term);
+        if(pid&&duplicateRedirect.has(pid)){setParentId(term,duplicateRedirect.get(pid));changed=true;}
+      });
+      try{
+        Object.values(taxonomyProject?.state?.overlays||{}).forEach(overlay=>{
+          const refs=overlay?.refs||{};
+          Object.keys(refs).forEach(key=>{
+            const value=refs[key];
+            if(value&&duplicateRedirect.has(value)){refs[key]=duplicateRedirect.get(value);changed=true;}
+          });
+        });
+      }catch(_){}
+      active=uniqueTerms;
+
+      // Estos siete minifunnels forman parte del canon actual de Extras.
+      const allowedExtrasMinifunnels=new Set(['asientos','equipaje','priority boarding','wi-fi','menu a bordo','mascotas','equipaje deportivo']);
+      let activeMap=new Map(active.map(term=>[termId(term),term]).filter(([id])=>id));
+      const pathFor=term=>{
+        const out=[],seen=new Set();let current=term;
+        while(current){const id=termId(current);if(id&&seen.has(id))break;if(id)seen.add(id);out.unshift(current);const pid=parentId(current);current=pid?activeMap.get(pid):null;}
+        return out;
+      };
+      const removedIds=new Set();
+      active.forEach(term=>{
+        if(termLevel(term)!=='minifunnel')return;
+        const path=pathFor(term),funnel=path.find(node=>termLevel(node)==='funnel');
+        if(norm(termName(funnel))==='extras'&&!allowedExtrasMinifunnels.has(norm(termName(term))))removedIds.add(termId(term));
+      });
+      if(removedIds.size){
+        let grew=true;
+        while(grew){
+          grew=false;
+          active.forEach(term=>{
+            if(removedIds.has(parentId(term))&&!removedIds.has(termId(term))){removedIds.add(termId(term));grew=true;}
+          });
+        }
+        active=active.filter(term=>!removedIds.has(termId(term)));
+        changed=true;
+      }
+
+      // "Selector por pasajero" es el componente interno trabajado en los
+      // minifunnels de Extras. El minifunnel aporta el contexto del extra.
+      activeMap=new Map(active.map(term=>[termId(term),term]).filter(([id])=>id));
+      active=active.filter(term=>{
+        if(termLevel(term)!=='component'||norm(termName(term))!=='selector por pasajero')return true;
+        const parent=activeMap.get(parentId(term));
+        if(termLevel(parent)!=='minifunnel')return true;
+        const keep=allowedExtrasMinifunnels.has(norm(termName(parent)));
+        if(!keep)changed=true;
+        return keep;
+      });
+
+      const finalById=new Map(active.map(term=>[termId(term),term]).filter(([id])=>id));
+      const finalChain=term=>{
+        const out=[],seen=new Set();let current=term;
+        while(current){const id=termId(current);if(id&&seen.has(id))break;if(id)seen.add(id);out.unshift(current);const pid=parentId(current);current=pid?finalById.get(pid):null;}
+        return out;
+      };
+      const filtered=active.filter(term=>{
+        const path=finalChain(term),product=path.find(node=>termLevel(node)==='product'),productName=norm(termName(product));
+        if(!allowedProducts.has(productName))return false;
+        if(productName==='home')return !path.some(node=>termLevel(node)==='funnel');
+        const funnel=path.find(node=>termLevel(node)==='funnel');
+        return !funnel||allowedFunnels.has(norm(termName(funnel)));
+      });
+      if(filtered.length!==active.length)changed=true;
+
+      // Orden de lectura del árbol. En Extras mostramos primero los componentes
+      // de la pantalla general y después los minifunnels, para hacer visible la
+      // diferencia entre ambos niveles sin añadir ruido visual.
+      const orderByParent={
+        '':{'home':10,'booking':20},
+        'home':{'header':10,'buscador':20,'banner promocional':30,'avisos':40,'accesos rapidos':50,'calendario':60,'hero / contenido comercial':70,'claim':80},
+        'booking':{'availability':10,'shopping cart':20,'passengers':30,'extras':40,'payment':50,'transversal':60},
+        'availability':{'fare families':10,'upsell panel':20},
+        'shopping cart':{'slider de millas':10,'footer':20},
+        'passengers':{'card confirmacion pasajero suma':10,'card datos del pasajero':20,'card pasajero suma':30},
+        'extras':{'cards de extras':10,'detalle del vuelo':20,'card asiento':30,'card equipaje':40,'card priority boarding':50,'card wi-fi':60,'card menu a bordo':70,'card mascotas':80,'asientos':110,'equipaje':120,'priority boarding':130,'wi-fi':140,'menu a bordo':150,'mascotas':160,'equipaje deportivo':170},
+        'asientos':{'selector por pasajero':10},
+        'equipaje':{'selector por pasajero':10},
+        'priority boarding':{'selector por pasajero':10},
+        'wi-fi':{'selector por pasajero':10},
+        'menu a bordo':{'selector por pasajero':10},
+        'mascotas':{'selector por pasajero':10},
+        'equipaje deportivo':{'selector por pasajero':10},
+        'transversal':{'login / autenticacion':10}
+      };
+      const filteredById=new Map(filtered.map(term=>[termId(term),term]).filter(([id])=>id));
+      const sortKey=term=>{
+        const parent=filteredById.get(parentId(term));
+        const parentName=norm(termName(parent));
+        return orderByParent[parentName]?.[norm(termName(term))]??999;
+      };
+      const childrenByParent=new Map();
+      filtered.forEach(term=>{
+        const pid=parentId(term)||'';
+        if(!childrenByParent.has(pid))childrenByParent.set(pid,[]);
+        childrenByParent.get(pid).push(term);
+      });
+      childrenByParent.forEach(items=>items.sort((a,b)=>sortKey(a)-sortKey(b)||termName(a).localeCompare(termName(b),'es')));
+      const ordered=[];
+      const visit=pid=>{
+        (childrenByParent.get(pid)||[]).forEach(term=>{ordered.push(term);visit(termId(term));});
+      };
+      visit('');
+
+      taxonomyProject.state.terms=ordered;
+      return changed;
+    }catch(error){console.error('[UX Intel taxonomy policy]',error);return false;}
+  }
+
+  function run(){
+    const changed=ensureGovernedJourneyTerms()|migrateCollections()|normalizeAndPruneTaxonomy();
+    try{if(changed&&typeof safeStorageWrite==='function')safeStorageWrite({project:true});}catch(_){}
+    // En local, la limpieza canónica también se persiste en taxonomy-state.json.
+    // Así no dependemos de volver a corregir una estructura legacy en cada carga.
+    try{
+      if(changed&&taxonomyProject?.ready===true&&typeof saveTaxonomyProject==='function'&&location.hostname!=='ux-intelligence-consulta.onrender.com'){
+        saveTaxonomyProject(taxonomyProject.state).catch(error=>console.error('[UX Intel taxonomy save]',error));
+      }
+    }catch(_){}
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{globalThis.__dsSyncSelects?.();}catch(_){}
+    try{renderTaxonomy?.();}catch(_){}
+    try{renderLearnings?.();}catch(_){}
+    try{renderExplore?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,100),{once:true});
+  else setTimeout(run,100);
+  window.addEventListener('load',()=>setTimeout(run,400),{once:true});
+})();
+</script>
+
+
+<script id="ux-strict-governed-taxonomy-persistence">
+(function(){
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+  const legacyKey=level=>'legacy'+level.charAt(0).toUpperCase()+level.slice(1);
+
+  function normalizeItem(item){
+    if(!item||typeof item!=='object'||!globalThis.UXGovernedTaxonomy?.normalizeRecord)return false;
+    const normalized=globalThis.UXGovernedTaxonomy.normalizeRecord(item);
+    let changed=false;
+
+    for(const level of ['product','funnel','minifunnel','component']){
+      const before=clean(item[level]);
+      const after=clean(normalized[level]);
+      if(before&&norm(before)!==norm(after)&&!clean(item[legacyKey(level)])){
+        item[legacyKey(level)]=before;
+        changed=true;
+      }
+      // Un componente existente no se borra si el canon todavía no lo resuelve.
+      // Se conserva como dato y queda trazado en legacyComponent para revisión.
+      if(level==='component'&&before&&!after)continue;
+      if(before!==after){
+        item[level]=after;
+        changed=true;
+      }
+    }
+
+    if(Array.isArray(item.components)){
+      let next=[];
+      try{next=globalThis.UXGovernedTaxonomy?.componentNames?.(item)||[];}catch(_){}
+      if(!next.length&&clean(normalized.component))next=[clean(normalized.component)];
+      // Si no hay resolución gobernada todavía, no vaciamos un array de
+      // componentes que ya contiene información válida.
+      if(next.length||!item.components.length){
+        if(JSON.stringify(item.components)!==JSON.stringify(next)){
+          if(item.components.length&&!Array.isArray(item.legacyComponents))item.legacyComponents=[...item.components];
+          item.components=next;
+          changed=true;
+        }
+        if(next.length&&clean(item.component)!==clean(next[0])){
+          if(clean(item.component)&&!clean(item.legacyComponent))item.legacyComponent=item.component;
+          item.component=next[0];
+          changed=true;
+        }
+      }
+    }
+    return changed;
+  }
+
+  function apply(){
+    if(!globalThis.UXGovernedTaxonomy?.normalizeRecord)return false;
+    let changed=false;
+    const collections=[];
+    try{if(Array.isArray(sourceItems))collections.push(sourceItems);}catch(_){}
+    try{if(Array.isArray(learnings))collections.push(learnings);}catch(_){}
+    try{if(Array.isArray(evidenceItems))collections.push(evidenceItems);}catch(_){}
+    try{if(Array.isArray(experiments))collections.push(experiments);}catch(_){}
+    try{if(Array.isArray(patternItems))collections.push(patternItems);}catch(_){}
+
+    collections.forEach(items=>items.forEach(item=>{
+      if(normalizeItem(item))changed=true;
+      const rows=item?.insightRegister?.rows;
+      if(Array.isArray(rows))rows.forEach(row=>{if(normalizeItem(row))changed=true;});
+    }));
+
+    if(changed){
+      try{safeStorageWrite?.({project:false});}catch(_){try{safeStorageWrite?.();}catch(__){}}
+      try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+      try{refreshAllTaxonomyFilters?.();}catch(_){}
+    }
+    return changed;
+  }
+
+  function init(){
+    setTimeout(apply,500);
+    setTimeout(apply,1500);
+    setTimeout(apply,3200);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+})();
+</script>
+
+
+<script id="ux-reviewed-impact-ux-20261022">
+(function(){
+  const REV='2026-10-22-impact-ux-v3-contextual';
+  const clean=value=>String(value??'').trim();
+  function apply(){
+    const api=globalThis.UXReviewedImpact;
+    if(!api?.forInsight)return false;
+    let changed=false;
+
+    const update=item=>{
+      if(!item||typeof item!=='object')return;
+      const insight=clean(item.insight||item['Insight / hallazgo']||item.hallazgo||item.text);
+      if(!insight)return;
+      const wanted=api.forInsight(insight);
+      if(!wanted)return;
+      if(item.impactUxReviewRevision===REV)return;
+
+      if(clean(item.impactUx)!==wanted){
+        item.impactUx=wanted;
+      }
+      item.impactUxReviewRevision=REV;
+      changed=true;
+    };
+
+    try{
+      (sourceItems||[]).forEach(doc=>{
+        update(doc);
+        (doc?.insightRegister?.rows||[]).forEach(update);
+      });
+    }catch(_){
+    }
+    try{(knowledgeUnits||[]).forEach(update);}catch(_){
+    }
+    try{(openQuestionItems||[]).forEach(update);}catch(_){
+    }
+
+    if(changed){
+      try{safeStorageWrite?.({project:false});}catch(_){
+        try{safeStorageWrite?.();}catch(__){}
+      }
+    }
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){
+    }
+    try{globalThis.__dsSyncSelects?.();}catch(_){
+    }
+    return changed;
+  }
+
+  function init(){
+    setTimeout(apply,450);
+    setTimeout(apply,1400);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+  window.addEventListener('load',()=>setTimeout(apply,900),{once:true});
+})();
+</script>
+
+
+<script id="ux-learning-impact-context-20261022">
+(function(){
+  const REV='2026-10-22-impact-ux-v3-contextual';
+  const MAP={"L-BUS-01":"Medio","L-BUS-02":"Medio","L-BUS-03":"Alto","L-BUS-04":"Medio","L-BUS-05":"Medio","L-BUS-06":"Medio","L-BUS-07":"Medio","L-BUS-08":"Medio","L-HEAD-01":"Medio","L-HEAD-02":"Medio","L-HEAD-03":"Medio","L-SUMA-01":"Alto","L-SUMA-02":"Alto","L-SUMA-03":"Alto"};
+  function apply(){
+    let changed=false;
+    try{
+      (learnings||[]).forEach(item=>{
+        const wanted=MAP[item?.id];
+        if(!wanted||item?.impactUxReviewRevision===REV)return;
+        if(item.impactUx!==wanted){item.impactUx=wanted;changed=true;}
+        item.impactUxReviewRevision=REV;
+        changed=true;
+      });
+    }catch(_){
+    }
+    if(changed){
+      try{safeStorageWrite?.({project:false});}catch(_){
+        try{safeStorageWrite?.();}catch(__){}
+      }
+      try{renderLearnings?.();}catch(_){
+      }
+      try{renderOverview?.();}catch(_){
+      }
+    }
+    return changed;
+  }
+  function init(){setTimeout(apply,650);setTimeout(apply,1600);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+})();
+</script>
+
+
+<script id="ux-reviewed-classification-suma-20261022">
+(function(){
+  const REV='2026-10-22-suma-classification-reviewed-v1';
+  const MAP={"el login intermedio dentro del booking no es viable actualmente con la solucion disponible de amadeus":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":"Login / autenticación"},"no es sencillo exponer una cantidad exacta de millas acumulables por cada tarifa":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Fare Families"},"el porcentaje adicional de acumulacion por nivel suma puede utilizarse como alternativa a mostrar millas exactas por tarifa":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Fare Families"},"los beneficios suma con impacto directo en booking estan identificados para asientos equipaje en bodega y priority boarding":{"product":"Booking","funnel":"Extras","minifunnel":"","component":"Cards de extras"},"silver puede disponer de asiento estandar gratuito en determinadas condiciones y descuento en otros tipos de asiento":{"product":"Booking","funnel":"Extras","minifunnel":"Asientos","component":"Selector por pasajero"},"amadeus parece conocer desde etapas tempranas quien viaja su nivel suma y los beneficios que le corresponden":{"product":"Booking","funnel":"Extras","minifunnel":"","component":""},"si la elegibilidad suma esta disponible antes de entrar en el minifunnel el beneficio puede anticiparse en lugar de descubrirse durante la interaccion":{"product":"Booking","funnel":"Extras","minifunnel":"","component":"Detalle del vuelo"},"los beneficios pueden variar entre pasajeros de una misma reserva y deben mantenerse asociados a cada persona":{"product":"Booking","funnel":"Extras","minifunnel":"","component":""},"priority boarding esta incluido para silver gold y platinum pero la web puede seguir mostrandolo como servicio de pago":{"product":"Booking","funnel":"Extras","minifunnel":"","component":"Card Priority Boarding"},"el beneficio de determinados equipajes deportivos para platinum existe pero su incorporacion al flujo digital esta pendiente":{"product":"Booking","funnel":"Extras","minifunnel":"Equipaje deportivo","component":"Selector por pasajero"},"el usuario identificado presenta una conversion claramente superior al no identificado":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"la tasa de conversion observada aumenta progresivamente con el nivel suma":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"la mayoria de las sesiones analizadas no estan logadas":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"la identificacion forma parte de manera mucho mas habitual de la experiencia en app que en web":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"el proceso de login presenta senales relevantes de friccion antes de entrar al booking":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":"Login / autenticación"},"en home desktop el usuario logado esta principalmente orientado a iniciar una busqueda de vuelo":{"product":"Home","funnel":"","minifunnel":"","component":"Header"},"en desktop los usuarios logados muestran mayor peso relativo en tarifas business":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Fare Families"},"cash miles tiene uso real entre usuarios logados y su visibilidad y comprension son relevantes":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"en desktop los usuarios logados muestran mayor peso relativo en equipaje adicional y wi fi":{"product":"Booking","funnel":"Extras","minifunnel":"","component":"Cards de extras"},"en desktop el usuario logado presenta un ticket medio superior al no logado":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"el acceso presenta una friccion elevada en ios y android":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":"Login / autenticación"},"business tiene mayor peso relativo entre usuarios logados en los tres entornos moviles":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Fare Families"},"cash miles tiene un uso real dentro del booking mobile":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"asientos sigue siendo el extra principal pero equipaje y wi fi ganan peso relativo entre usuarios logados":{"product":"Booking","funnel":"Extras","minifunnel":"","component":"Cards de extras"},"el mayor valor economico del usuario identificado no se reproduce de forma homogenea entre plataformas":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"el acceso a suma es visible pero comunica sus ventajas de forma demasiado generica":{"product":"Home","funnel":"","minifunnel":"","component":"Header"},"la seleccion de tarifa no aprovecha que el usuario esta identificado para hacer visible el valor suma":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Fare Families"},"el upsell explica el salto de tarifa pero no incorpora el valor adicional de suma":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Upsell Panel"},"el cta sticky puede permitir avanzar sin que el usuario llegue a descubrir cash miles":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"la recuperacion automatica del perfil funciona bien pero la interfaz puede confirmar mejor que suma ya esta aplicado":{"product":"Booking","funnel":"Passengers","minifunnel":"","component":"Card pasajero SUMA"},"los beneficios suma no se anticipan antes de entrar en cada extra":{"product":"Booking","funnel":"Extras","minifunnel":"","component":"Cards de extras"},"el beneficio de asiento existe pero no se anticipa ni se identifica durante la seleccion":{"product":"Booking","funnel":"Extras","minifunnel":"Asientos","component":"Selector por pasajero"},"la gratuidad se muestra pero no se atribuye claramente al nivel suma":{"product":"Booking","funnel":"Extras","minifunnel":"Equipaje","component":"Selector por pasajero"},"al plegar las cards se pierde contexto sobre que beneficio suma se ha aplicado y a quien":{"product":"Booking","funnel":"Extras","minifunnel":"","component":"Cards de extras"},"estar inscrito en un programa de fidelizacion no implica concentrar la compra en una sola aerolinea":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"sencillez utilidad economica flexibilidad y facilidad de uso pesan mas que beneficios aspiracionales durante la decision":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Fare Families"},"la experiencia y la reduccion de esfuerzo pueden ser mas relevantes para la fidelidad que la acumulacion de puntos por si sola":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"la personalizacion aporta mas valor cuando primero simplifica y da control y solo despues recomienda productos":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"los beneficios de fidelizacion pueden leerse como reconocimiento conveniencia y exploracion":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"el usuario necesita entender antes de pagar cuanto ganara y como cambia la acumulacion entre opciones":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Fare Families"},"silver gold y platinum disponen de una pieza adicional de equipaje en bodega segun las condiciones suma revisadas":{"product":"Booking","funnel":"Extras","minifunnel":"Equipaje","component":"Selector por pasajero"},"los beneficios de asiento cambian por nivel suma y por momento de la reserva":{"product":"Booking","funnel":"Extras","minifunnel":"Asientos","component":"Selector por pasajero"},"los beneficios de prioridad fast track recogida prioritaria sala vip y upgrades dependen del nivel y de condiciones adicionales":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"la aplicabilidad de un beneficio suma no puede resolverse solo con el nivel del usuario":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"mantener reglas y condiciones suma en multiples lugares aumenta el riesgo de inconsistencias":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"la principal oportunidad es convertir suma en una capa de servicio integrada en la compra no anadir mas mensajes promocionales":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"en fare families deberia distinguirse que incluye la tarifa que anade suma y cual es el resultado final para el pasajero":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Fare Families"},"mostrar millas estimadas por tarifa puede hacer visible parte del valor futuro antes de elegir":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Fare Families"},"la identificacion suma puede reducir esfuerzo si evita volver a introducir datos ya conocidos":{"product":"Booking","funnel":"Passengers","minifunnel":"","component":"Card Datos del pasajero"},"en equipaje conviene aplicar automaticamente el derecho suma cuando sea posible y explicar de donde procede":{"product":"Booking","funnel":"Extras","minifunnel":"Equipaje","component":"Selector por pasajero"},"en asientos conviene reflejar gratuidad o descuento suma directamente en la seleccion y explicar la condicion aplicada":{"product":"Booking","funnel":"Extras","minifunnel":"Asientos","component":"Selector por pasajero"},"el summary puede reunir cuanto gana el usuario cuanto puede utilizar y su progreso hacia el siguiente nivel":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"el pago mixto de vuelos operados por air europa requiere actualmente un minimo de 1 500 millas":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"para usuarios no identificados comunicar un beneficio concreto y contextual puede incentivar el login o registro sin convertirlo en el objetivo principal":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":"Login / autenticación"},"antes de disenar la solucion es necesario confirmar que informacion y reglas pueden resolverse realmente durante el booking":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"el slider de millas esta condicionado por el funcionamiento actual de amadeus":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"el mensaje inicial no deja claro si las millas mostradas son saldo total o maximo aplicable a la reserva":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"el estado sin activar informa de millas disponibles pero no explica desde que cantidad pueden usarse ni su efecto sobre el precio":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"la propuesta inicial puede tener una version con o sin equivalencia economica segun la capacidad tecnica":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"mostrar 0 millas inmediatamente despues de activar el canje contradice la intencion del usuario":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"el campo de cantidad parece editable aunque el usuario solo puede seleccionar valores permitidos":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"la sincronizacion entre selector y slider funciona y no es el problema principal a resolver":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"el estado activado debe indicar directamente cual es la siguiente accion valida":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"tras seleccionar millas el resultado economico obliga a interpretar una formula en lugar de confirmar directamente el resultado":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"el resultado economico se reparte entre el componente y el footer y genera duplicidad de responsabilidades":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Footer"},"el componente deberia confirmar la cantidad aplicada y el saldo restante mientras el footer concentra precio y ahorro":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Footer"},"el resultado del canje necesita una nomenclatura y formato de cantidades consistentes":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Footer"},"la home reconoce correctamente al usuario suma una vez identificado":{"product":"Home","funnel":"","minifunnel":"","component":"Header"},"el mensaje previo al login no concreta que valor obtiene el usuario durante la reserva":{"product":"Home","funnel":"","minifunnel":"","component":"Header"},"la comparacion de fare families no utiliza el contexto suma del usuario identificado":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Fare Families"},"availability podria ofrecer una recuperacion contextual del login para usuarios no identificados":{"product":"Booking","funnel":"Availability","minifunnel":"","component":""},"el upsell de tarifa no incorpora el valor especifico del usuario suma":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Upsell Panel"},"el estado inicial del slider de millas no explica con claridad que puede hacer el usuario ni que beneficio obtiene":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"el estado activado del canje no guia con suficiente claridad ni explica bien las opciones disponibles":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"la recuperacion automatica de datos personales y numero suma reduce esfuerzo en paxes":{"product":"Booking","funnel":"Passengers","minifunnel":"","component":"Card Datos del pasajero"},"la interfaz no confirma con claridad que el numero suma ya esta asociado al pasajero":{"product":"Booking","funnel":"Passengers","minifunnel":"","component":"Card pasajero SUMA"},"el perfil del usuario logado puede volver a ofrecerse en el pasajero 2 aunque ya este asociado al pasajero 1":{"product":"Booking","funnel":"Passengers","minifunnel":"","component":"Card confirmación pasajero SUMA"},"los extras incluidos por nivel suma no se anticipan ni explican antes de la seleccion":{"product":"Booking","funnel":"Extras","minifunnel":"","component":"Cards de extras"},"el resumen economico mezcla millas precio original ahorro y total sin una jerarquia suficientemente clara":{"product":"Booking","funnel":"Extras","minifunnel":"","component":""},"el beneficio de asientos existe pero no se comunica ni se hace localizable para el pasajero suma":{"product":"Booking","funnel":"Extras","minifunnel":"Asientos","component":"Selector por pasajero"},"la maleta gratuita se aplica correctamente pero no se explica que procede del nivel suma":{"product":"Booking","funnel":"Extras","minifunnel":"Equipaje","component":"Selector por pasajero"},"los servicios anadidos a 0 no se atribuyen a suma una vez contratados":{"product":"Booking","funnel":"Extras","minifunnel":"","component":""},"el valor suma pierde visibilidad cuando la interfaz no explica de donde procede cada ventaja":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"la experiencia suma necesita continuidad contextual durante el booking no repeticion identica":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"la viabilidad de varias mejoras depende de que datos suma puede devolver amadeus en cada punto del booking":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"el login puede recuperarse dentro del booking":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":"Login / autenticación"},"el login gana valor cuando se vincula a un beneficio concreto":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":"Login / autenticación"},"la recompensa potencial puede hacerse visible antes de identificar o registrar al usuario":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":"Login / autenticación"},"la acumulacion puede formar parte de la comparacion de fare families":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Fare Families"},"los beneficios personalizados por nivel pueden integrarse dentro de la fare family":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Fare Families"},"la fidelizacion puede incorporarse como argumento adicional en el upsell":{"product":"Booking","funnel":"Availability","minifunnel":"","component":"Upsell Panel"},"el usuario logado obtiene valor mediante recuperacion de perfil y reduccion de esfuerzo":{"product":"Booking","funnel":"Passengers","minifunnel":"","component":"Card Datos del pasajero"},"la fidelizacion se gestiona a nivel de pasajero":{"product":"Booking","funnel":"Passengers","minifunnel":"","component":"Card pasajero SUMA"},"el mensaje de millas puede adaptarse a la situacion real del usuario":{"product":"Booking","funnel":"Shopping Cart","minifunnel":"","component":"Slider de Millas"},"mostrar el estatus sin traducirlo en un beneficio visible aporta poco valor":{"product":"Booking","funnel":"Extras","minifunnel":"Asientos","component":"Selector por pasajero"},"los beneficios de equipaje pueden depender de que el viajero frecuente este correctamente asociado":{"product":"Booking","funnel":"Extras","minifunnel":"Equipaje","component":"Selector por pasajero"},"la fidelizacion aparece en servicios adicionales pero no de forma homogenea":{"product":"Booking","funnel":"Extras","minifunnel":"","component":"Cards de extras"},"la presencia de fidelizacion no es continua durante todo el booking":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""},"los beneficios deben dejar claro de donde proceden":{"product":"Booking","funnel":"Transversal","minifunnel":"","component":""}};
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLocaleLowerCase('es')
+    .replace(/[^a-z0-9]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+
+  function reviewedFor(item){
+    const insight=clean(item?.insight||item?.['Insight / hallazgo']||item?.hallazgo||item?.text);
+    return insight?MAP[norm(insight)]||null:null;
+  }
+
+  function applyRecord(item){
+    if(!item||typeof item!=='object')return false;
+    const reviewed=reviewedFor(item);
+    if(!reviewed)return false;
+    if(item.classificationReviewRevision===REV)return false;
+
+    let changed=false;
+    for(const [field,nextRaw] of Object.entries(reviewed)){
+      const next=clean(nextRaw);
+      const before=clean(item[field]);
+      if(before!==next){
+        const legacyKey='legacy'+field.charAt(0).toUpperCase()+field.slice(1);
+        if(before&&!clean(item[legacyKey]))item[legacyKey]=before;
+        item[field]=next;
