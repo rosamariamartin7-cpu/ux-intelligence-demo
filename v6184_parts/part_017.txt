@@ -1,0 +1,1000 @@
+        changed=true;
+      }
+    }
+    item.classificationReviewRevision=REV;
+    return true;
+  }
+
+  function apply(){
+    let changed=false;
+    try{
+      (sourceItems||[]).forEach(doc=>{
+        if(applyRecord(doc))changed=true;
+        (doc?.insightRegister?.rows||[]).forEach(row=>{if(applyRecord(row))changed=true;});
+      });
+    }catch(_){
+    }
+    try{(knowledgeUnits||[]).forEach(item=>{if(applyRecord(item))changed=true;});}catch(_){
+    }
+    try{(openQuestionItems||[]).forEach(item=>{if(applyRecord(item))changed=true;});}catch(_){
+    }
+
+    if(changed){
+      try{safeStorageWrite?.({project:false});}catch(_){
+        try{safeStorageWrite?.();}catch(__){}
+      }
+    }
+
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){
+    }
+    try{renderOverview?.();}catch(_){
+    }
+    try{renderSources?.();}catch(_){
+    }
+    try{globalThis.__dsSyncSelects?.();}catch(_){
+    }
+    return changed;
+  }
+
+  globalThis.UXReviewedClassification={
+    revision:REV,
+    forInsight:value=>MAP[norm(value)]||null
+  };
+
+  function init(){
+    setTimeout(apply,180);
+    setTimeout(apply,850);
+    setTimeout(apply,1800);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+  window.addEventListener('load',()=>setTimeout(apply,500),{once:true});
+})();
+</script>
+
+
+<script id="ux-normalize-resumen-economico-20261023">
+(function(){
+  const REV='2026-10-23-resumen-economico-to-slider';
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+
+  function normalizeRecord(item){
+    if(!item||typeof item!=='object'||item.resumenEconomicoMigration===REV)return false;
+    let changed=false;
+    if(norm(item.component)==='resumen economico'){
+      if(!clean(item.legacyComponent))item.legacyComponent=item.component;
+      item.component='Slider de Millas';
+      changed=true;
+    }
+    if(Array.isArray(item.components)){
+      const next=item.components.map(value=>norm(value)==='resumen economico'?'Slider de Millas':value);
+      if(JSON.stringify(next)!==JSON.stringify(item.components)){
+        if(!Array.isArray(item.legacyComponents))item.legacyComponents=[...item.components];
+        item.components=next;
+        changed=true;
+      }
+    }
+    item.resumenEconomicoMigration=REV;
+    return changed;
+  }
+
+  function apply(){
+    let changed=false;
+    try{
+      (sourceItems||[]).forEach(doc=>{
+        if(normalizeRecord(doc))changed=true;
+        (doc?.insightRegister?.rows||[]).forEach(row=>{if(normalizeRecord(row))changed=true;});
+      });
+    }catch(_){}
+    try{(learnings||[]).forEach(item=>{if(normalizeRecord(item))changed=true;});}catch(_){}
+    try{(knowledgeUnits||[]).forEach(item=>{if(normalizeRecord(item))changed=true;});}catch(_){}
+    try{(openQuestionItems||[]).forEach(item=>{if(normalizeRecord(item))changed=true;});}catch(_){}
+
+    try{
+      (taxonomyProject?.state?.terms||[]).forEach(term=>{
+        const name=clean(term?.canonicalName||term?.name||term?.label);
+        if(norm(name)==='resumen economico' && term?.status!=='retired'){
+          term.status='retired';
+          changed=true;
+        }
+      });
+    }catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:true});}catch(_){try{safeStorageWrite?.();}catch(__){}}
+    }
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+    try{renderTaxonomy?.();}catch(_){}
+    try{renderLearnings?.();}catch(_){}
+  }
+
+  function init(){setTimeout(apply,250);setTimeout(apply,1100);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+  window.addEventListener('load',()=>setTimeout(apply,600),{once:true});
+})();
+</script>
+
+
+<script id="ux-multi-component-shopping-cart-20261023">
+(function(){
+  const REV='2026-10-23-multi-component-shopping-cart-v1';
+  const TARGETS=["El resultado económico se reparte entre el componente y el footer y genera duplicidad de responsabilidades","El componente debería confirmar la cantidad aplicada y el saldo restante, mientras el footer concentra precio y ahorro","El resultado del canje necesita una nomenclatura y formato de cantidades consistentes"];
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+  const keys=new Set(TARGETS.map(norm));
+
+  function update(item){
+    if(!item||typeof item!=='object')return false;
+    const insight=clean(item.insight||item['Insight / hallazgo']||item.hallazgo||item.text);
+    if(!keys.has(norm(insight))||item.multiComponentRevision===REV)return false;
+    const desired=['Slider de Millas','Footer'];
+    if(clean(item.component)&&norm(item.component)!==norm(desired[0])&&!clean(item.legacyComponent))item.legacyComponent=item.component;
+    item.component=desired[0];
+    item.components=desired;
+    item.multiComponentRevision=REV;
+    return true;
+  }
+
+  function apply(){
+    let changed=false;
+    try{
+      (sourceItems||[]).forEach(doc=>{
+        if(update(doc))changed=true;
+        (doc?.insightRegister?.rows||[]).forEach(row=>{if(update(row))changed=true;});
+      });
+}catch(_){}
+    try{(knowledgeUnits||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+    try{(openQuestionItems||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:false});}catch(_){try{safeStorageWrite?.();}catch(__){}}
+    }
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+  }
+
+  function init(){setTimeout(apply,300);setTimeout(apply,1250);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+  window.addEventListener('load',()=>setTimeout(apply,700),{once:true});
+})();
+</script>
+
+
+<script id="ux-rename-confirmacion-pasajero-suma-20261023">
+(function(){
+  const REV='2026-10-23-confirmacion-pasajero-suma-v1';
+  const OLD='Card Confirmación del pasajero';
+  const NEW='Card confirmación pasajero SUMA';
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+
+  function update(item){
+    if(!item||typeof item!=='object'||item.confirmacionPasajeroSumaRevision===REV)return false;
+    let changed=false;
+    if(norm(item.component)===norm(OLD)){
+      if(!clean(item.legacyComponent))item.legacyComponent=item.component;
+      item.component=NEW;
+      changed=true;
+    }
+    if(Array.isArray(item.components)){
+      const next=item.components.map(value=>norm(value)===norm(OLD)?NEW:value);
+      if(JSON.stringify(next)!==JSON.stringify(item.components)){
+        if(!Array.isArray(item.legacyComponents))item.legacyComponents=[...item.components];
+        item.components=next;
+        changed=true;
+      }
+    }
+    item.confirmacionPasajeroSumaRevision=REV;
+    return changed;
+  }
+
+  function apply(){
+    let changed=false;
+    try{
+      (sourceItems||[]).forEach(doc=>{
+        if(update(doc))changed=true;
+        (doc?.insightRegister?.rows||[]).forEach(row=>{if(update(row))changed=true;});
+      });
+    }catch(_){}
+    try{(learnings||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+    try{(knowledgeUnits||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+    try{(openQuestionItems||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+
+    try{
+      (taxonomyProject?.state?.terms||[]).forEach(term=>{
+        const name=clean(term?.canonicalName||term?.name||term?.label);
+        if(norm(name)===norm(OLD)){
+          const aliases=Array.isArray(term.aliases)?[...term.aliases]:[];
+          if(!aliases.some(alias=>norm(alias)===norm(OLD)))aliases.push(OLD);
+          term.aliases=aliases;
+          term.canonicalName=NEW;
+          if('name' in term)term.name=NEW;
+          term.status='canonical';
+          term.governed=true;
+          changed=true;
+        }
+      });
+    }catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:true});}catch(_){try{safeStorageWrite?.();}catch(__){}}
+    }
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+    try{renderTaxonomy?.();}catch(_){}
+    try{renderLearnings?.();}catch(_){}
+  }
+
+  function init(){setTimeout(apply,250);setTimeout(apply,1100);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+  window.addEventListener('load',()=>setTimeout(apply,650),{once:true});
+})();
+</script>
+
+
+<script id="ux-fix-login-booking-transversal-20261023">
+(function(){
+  const REV='2026-10-23-login-booking-transversal-v1';
+  const TARGET='El login intermedio dentro del booking no es viable actualmente con la solución disponible de Amadeus.';
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+
+  function update(item){
+    if(!item||typeof item!=='object'||item.loginBookingTransversalRevision===REV)return false;
+    const insight=clean(item.insight||item['Insight / hallazgo']||item.hallazgo||item.text);
+    if(norm(insight)!==norm(TARGET))return false;
+
+    let changed=false;
+    const desired={product:'Booking',funnel:'Transversal',minifunnel:'',component:'Login / autenticación'};
+    for(const [field,next] of Object.entries(desired)){
+      if(clean(item[field])!==next){
+        const legacy='legacy'+field.charAt(0).toUpperCase()+field.slice(1);
+        if(clean(item[field])&&!clean(item[legacy]))item[legacy]=item[field];
+        item[field]=next;
+        changed=true;
+      }
+    }
+    item.loginBookingTransversalRevision=REV;
+    return true;
+  }
+
+  function apply(){
+    let changed=false;
+    try{
+      (sourceItems||[]).forEach(doc=>{
+        if(update(doc))changed=true;
+        (doc?.insightRegister?.rows||[]).forEach(row=>{if(update(row))changed=true;});
+      });
+    }catch(_){}
+    try{(knowledgeUnits||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+    try{(openQuestionItems||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:false});}catch(_){try{safeStorageWrite?.();}catch(__){}}
+    }
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+    try{renderTaxonomy?.();}catch(_){}
+  }
+
+  function init(){setTimeout(apply,250);setTimeout(apply,1100);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+  window.addEventListener('load',()=>setTimeout(apply,600),{once:true});
+})();
+</script>
+
+
+<script id="ux-single-controlled-vocabulary-source-20261023">
+(function(){
+  const V=globalThis.UXControlledVocabulary;
+  if(!V)return;
+  const norm=value=>String(value||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+  const previous=globalThis.taxonomyControlledValues;
+  const byLabel=new Map([
+    ['dispositivo',V.device],['mercado',V.market],['region',V.region],['región',V.region],
+    ['tipo de analisis',V.origin],['tipo de análisis',V.origin],['origen del hallazgo',V.origin],
+    ['tipo de registro',V.recordType],['impacto ux',V.impactUx],
+    ['dimension',V.uxLine],['dimensión',V.uxLine],['dimension ux',V.uxLine],['dimensión ux',V.uxLine],['linea ux',V.uxLine],['línea ux',V.uxLine]
+  ].map(([label,values])=>[norm(label),values]));
+
+  globalThis.taxonomyControlledValues=function(label){
+    const governed=byLabel.get(norm(label));
+    if(governed)return [...governed];
+    return typeof previous==='function'?previous.apply(this,arguments):[];
+  };
+
+  const refresh=()=>{
+    try{renderTaxonomy?.();}catch(_){}
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,300),{once:true});
+  else setTimeout(refresh,300);
+})();
+</script>
+
+
+<script id="ux-passengers-component-naming-20261023">
+(function(){
+  const REV='2026-10-23-passengers-component-naming-v1';
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+
+  const MAP=new Map([
+    [norm('Card Confirmación del pasajero SUMA'),'Card confirmación pasajero SUMA'],
+    [norm('Card Pasajero frecuente'),'Card pasajero SUMA']
+  ]);
+
+  function update(item){
+    if(!item||typeof item!=='object'||item.passengersNamingRevision===REV)return false;
+    let changed=false;
+
+    const current=clean(item.component);
+    const next=MAP.get(norm(current));
+    if(next && current!==next){
+      if(!clean(item.legacyComponent))item.legacyComponent=current;
+      item.component=next;
+      changed=true;
+    }
+
+    if(Array.isArray(item.components)){
+      const nextComponents=item.components.map(value=>MAP.get(norm(value))||value);
+      if(JSON.stringify(nextComponents)!==JSON.stringify(item.components)){
+        if(!Array.isArray(item.legacyComponents))item.legacyComponents=[...item.components];
+        item.components=nextComponents;
+        changed=true;
+      }
+    }
+
+    item.passengersNamingRevision=REV;
+    return changed;
+  }
+
+  function apply(){
+    let changed=false;
+
+    try{
+      (sourceItems||[]).forEach(doc=>{
+        if(update(doc))changed=true;
+        (doc?.insightRegister?.rows||[]).forEach(row=>{if(update(row))changed=true;});
+      });
+    }catch(_){}
+
+    try{(learnings||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+    try{(knowledgeUnits||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+    try{(openQuestionItems||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+
+    try{
+      (taxonomyProject?.state?.terms||[]).forEach(term=>{
+        const name=clean(term?.canonicalName||term?.name||term?.label);
+        const next=MAP.get(norm(name));
+        if(!next)return;
+        const aliases=Array.isArray(term.aliases)?[...term.aliases]:[];
+        if(!aliases.some(alias=>norm(alias)===norm(name)))aliases.push(name);
+        term.aliases=aliases;
+        term.canonicalName=next;
+        if('name' in term)term.name=next;
+        term.status='canonical';
+        term.governed=true;
+        changed=true;
+      });
+    }catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:true});}catch(_){try{safeStorageWrite?.();}catch(__){}}
+    }
+
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+    try{renderTaxonomy?.();}catch(_){}
+    try{renderLearnings?.();}catch(_){}
+  }
+
+  function init(){setTimeout(apply,250);setTimeout(apply,1100);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+  window.addEventListener('load',()=>setTimeout(apply,650),{once:true});
+})();
+</script>
+
+
+<script id="ux-extras-minifunnel-components-20261023">
+(function(){
+  const REV='2026-10-26-extras-minifunnel-components-v3';
+  const TARGETS={"silver puede disponer de asiento estandar gratuito en determinadas condiciones y descuento en otros tipos de asiento":{"minifunnel":"Asientos","component":"Selector por pasajero"},"priority boarding esta incluido para silver gold y platinum pero la web puede seguir mostrandolo como servicio de pago":{"minifunnel":"","component":"Card Priority Boarding"},"el beneficio de determinados equipajes deportivos para platinum existe pero su incorporacion al flujo digital esta pendiente":{"minifunnel":"Equipaje deportivo","component":"Selector por pasajero"},"el beneficio de asiento existe pero no se anticipa ni se identifica durante la seleccion":{"minifunnel":"Asientos","component":"Selector por pasajero"},"la gratuidad se muestra pero no se atribuye claramente al nivel suma":{"minifunnel":"Equipaje","component":"Selector por pasajero"},"silver gold y platinum disponen de una pieza adicional de equipaje en bodega segun las condiciones suma revisadas":{"minifunnel":"Equipaje","component":"Selector por pasajero"},"los beneficios de asiento cambian por nivel suma y por momento de la reserva":{"minifunnel":"Asientos","component":"Selector por pasajero"},"en equipaje conviene aplicar automaticamente el derecho suma cuando sea posible y explicar de donde procede":{"minifunnel":"Equipaje","component":"Selector por pasajero"},"en asientos conviene reflejar gratuidad o descuento suma directamente en la seleccion y explicar la condicion aplicada":{"minifunnel":"Asientos","component":"Selector por pasajero"},"el beneficio de asientos existe pero no se comunica ni se hace localizable para el pasajero suma":{"minifunnel":"Asientos","component":"Selector por pasajero"},"la maleta gratuita se aplica correctamente pero no se explica que procede del nivel suma":{"minifunnel":"Equipaje","component":"Selector por pasajero"},"mostrar el estatus sin traducirlo en un beneficio visible aporta poco valor":{"minifunnel":"Asientos","component":"Selector por pasajero"},"los beneficios de equipaje pueden depender de que el viajero frecuente este correctamente asociado":{"minifunnel":"Equipaje","component":"Selector por pasajero"}};
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+
+  function update(item){
+    if(!item||typeof item!=='object'||item.extrasMinifunnelRevision===REV)return false;
+    const insight=clean(item.insight||item['Insight / hallazgo']||item.hallazgo||item.text);
+    const target=TARGETS[norm(insight)];
+    if(!target)return false;
+
+    let changed=false;
+    const desired={product:'Booking',funnel:'Extras',minifunnel:target.minifunnel||'',component:target.component||''};
+    for(const [field,next] of Object.entries(desired)){
+      const before=clean(item[field]);
+      if(before!==next){
+        const legacy='legacy'+field.charAt(0).toUpperCase()+field.slice(1);
+        if(before&&!clean(item[legacy]))item[legacy]=before;
+        item[field]=next;changed=true;
+      }
+    }
+    if(Array.isArray(item.components)){
+      const next=desired.component?[desired.component]:[];
+      if(JSON.stringify(item.components)!==JSON.stringify(next)){
+        if(item.components.length&&!Array.isArray(item.legacyComponents))item.legacyComponents=[...item.components];
+        item.components=next;changed=true;
+      }
+    }
+    item.extrasMinifunnelRevision=REV;
+    return changed;
+  }
+
+  function apply(){
+    let changed=false;
+    try{if(typeof ensureGovernedJourneyTerms==='function'&&ensureGovernedJourneyTerms())changed=true;}catch(_){}
+    try{
+      (sourceItems||[]).forEach(doc=>{
+        if(update(doc))changed=true;
+        (doc?.insightRegister?.rows||[]).forEach(row=>{if(update(row))changed=true;});
+      });
+    }catch(_){}
+    try{(knowledgeUnits||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+    try{(openQuestionItems||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:true});}catch(_){try{safeStorageWrite?.();}catch(__){}}
+    }
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+    try{renderTaxonomy?.();}catch(_){}
+    try{renderLearnings?.();}catch(_){}
+    try{globalThis.__dsSyncSelects?.();}catch(_){}
+  }
+
+  function init(){setTimeout(apply,300);setTimeout(apply,1200);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+  window.addEventListener('load',()=>setTimeout(apply,650),{once:true});
+})();
+</script>
+
+
+<script id="ux-correct-extras-selector-component-20261023">
+(function(){
+  const REV='2026-10-23-extras-selector-component-v2';
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+
+  function isCurrentExtrasSeatContext(item){
+    return norm(item?.product)==='booking' &&
+      norm(item?.funnel)==='extras' &&
+      norm(item?.minifunnel)==='asientos';
+  }
+
+  function update(item){
+    if(!item||typeof item!=='object'||item.extrasSelectorCorrectionRevision===REV)return false;
+    let changed=false;
+
+    if(isCurrentExtrasSeatContext(item) && ['mapa de asientos','leyenda'].includes(norm(item.component))){
+      if(!clean(item.legacyComponent))item.legacyComponent=item.component;
+      item.component='Selector por pasajero';
+      changed=true;
+    }
+
+    if(isCurrentExtrasSeatContext(item) && Array.isArray(item.components)){
+      const next=item.components.map(value=>
+        ['mapa de asientos','leyenda'].includes(norm(value))?'Selector por pasajero':value
+      );
+      const deduped=next.filter((value,index,array)=>array.findIndex(other=>norm(other)===norm(value))===index);
+      if(JSON.stringify(deduped)!==JSON.stringify(item.components)){
+        if(!Array.isArray(item.legacyComponents))item.legacyComponents=[...item.components];
+        item.components=deduped;
+        changed=true;
+      }
+    }
+
+    item.extrasSelectorCorrectionRevision=REV;
+    return changed;
+  }
+
+  function retireSpeculativeTerms(){
+    let changed=false;
+    try{
+      (taxonomyProject?.state?.terms||[]).forEach(term=>{
+        const level=norm(term?.level);
+        const name=norm(term?.canonicalName||term?.name||term?.label);
+        if(level==='component' && ['mapa de asientos','leyenda'].includes(name) && term?.status!=='retired'){
+          term.status='retired';
+          term.governed=false;
+          changed=true;
+        }
+      });
+    }catch(_){}
+    return changed;
+  }
+
+  function apply(){
+    let changed=retireSpeculativeTerms();
+
+    try{
+      (sourceItems||[]).forEach(doc=>{
+        if(update(doc))changed=true;
+        (doc?.insightRegister?.rows||[]).forEach(row=>{if(update(row))changed=true;});
+      });
+    }catch(_){}
+    try{(knowledgeUnits||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+    try{(openQuestionItems||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+    try{(learnings||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:true});}catch(_){try{safeStorageWrite?.();}catch(__){}}
+    }
+
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+    try{renderTaxonomy?.();}catch(_){}
+    try{renderLearnings?.();}catch(_){}
+    try{globalThis.__dsSyncSelects?.();}catch(_){}
+  }
+
+  function init(){setTimeout(apply,300);setTimeout(apply,1200);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+  window.addEventListener('load',()=>setTimeout(apply,650),{once:true});
+})();
+</script>
+
+
+<script id="ux-dimension-audit-20261023">
+(function(){
+  const REV='2026-10-23-dimension-audit-v1';
+  const MAP={"estar inscrito en un programa de fidelizacion no implica concentrar la compra en una sola aerolinea":"Negocio y conversión","sencillez utilidad economica flexibilidad y facilidad de uso pesan mas que beneficios aspiracionales durante la decision":"Negocio y conversión","la experiencia y la reduccion de esfuerzo pueden ser mas relevantes para la fidelidad que la acumulacion de puntos por si sola":"Usabilidad e interacción","la personalizacion aporta mas valor cuando primero simplifica y da control y solo despues recomienda productos":"Personalización · Usabilidad e interacción","los beneficios de fidelizacion pueden leerse como reconocimiento conveniencia y exploracion":"Contenido y copy","el usuario necesita entender antes de pagar cuanto ganara y como cambia la acumulacion entre opciones":"Contenido y copy","silver gold y platinum disponen de una pieza adicional de equipaje en bodega segun las condiciones suma revisadas":"Personalización","los beneficios de asiento cambian por nivel suma y por momento de la reserva":"Personalización","los beneficios de prioridad fast track recogida prioritaria sala vip y upgrades dependen del nivel y de condiciones adicionales":"Personalización","la aplicabilidad de un beneficio suma no puede resolverse solo con el nivel del usuario":"Personalización · Tecnología y restricciones","mantener reglas y condiciones suma en multiples lugares aumenta el riesgo de inconsistencias":"Tecnología y restricciones","la principal oportunidad es convertir suma en una capa de servicio integrada en la compra no anadir mas mensajes promocionales":"Personalización · Navegación y flujo","en fare families deberia distinguirse que incluye la tarifa que anade suma y cual es el resultado final para el pasajero":"Contenido y copy · Personalización","mostrar millas estimadas por tarifa puede hacer visible parte del valor futuro antes de elegir":"Contenido y copy","la identificacion suma puede reducir esfuerzo si evita volver a introducir datos ya conocidos":"Usabilidad e interacción · Personalización","en equipaje conviene aplicar automaticamente el derecho suma cuando sea posible y explicar de donde procede":"Personalización · Usabilidad e interacción","en asientos conviene reflejar gratuidad o descuento suma directamente en la seleccion y explicar la condicion aplicada":"Personalización · Usabilidad e interacción","el summary puede reunir cuanto gana el usuario cuanto puede utilizar y su progreso hacia el siguiente nivel":"Arquitectura de información · Personalización","para usuarios no identificados comunicar un beneficio concreto y contextual puede incentivar el login o registro sin convertirlo en el objetivo principal":"Negocio y conversión · Contenido y copy","antes de disenar la solucion es necesario confirmar que informacion y reglas pueden resolverse realmente durante el booking":"Tecnología y restricciones · Datos y medición","el mensaje inicial no deja claro si las millas mostradas son saldo total o maximo aplicable a la reserva":"Contenido y copy","el estado sin activar informa de millas disponibles pero no explica desde que cantidad pueden usarse ni su efecto sobre el precio":"Contenido y copy · Usabilidad e interacción","la propuesta inicial puede tener una version con o sin equivalencia economica segun la capacidad tecnica":"Tecnología y restricciones","mostrar 0 millas inmediatamente despues de activar el canje contradice la intencion del usuario":"Usabilidad e interacción","el campo de cantidad parece editable aunque el usuario solo puede seleccionar valores permitidos":"Usabilidad e interacción","la sincronizacion entre selector y slider funciona y no es el problema principal a resolver":"Usabilidad e interacción","el estado activado debe indicar directamente cual es la siguiente accion valida":"Usabilidad e interacción · Contenido y copy","tras seleccionar millas el resultado economico obliga a interpretar una formula en lugar de confirmar directamente el resultado":"Contenido y copy","el resultado economico se reparte entre el componente y el footer y genera duplicidad de responsabilidades":"Arquitectura de información","el componente deberia confirmar la cantidad aplicada y el saldo restante mientras el footer concentra precio y ahorro":"Arquitectura de información","el resultado del canje necesita una nomenclatura y formato de cantidades consistentes":"Contenido y copy","la home reconoce correctamente al usuario suma una vez identificado":"Personalización","el mensaje previo al login no concreta que valor obtiene el usuario durante la reserva":"Contenido y copy","la comparacion de fare families no utiliza el contexto suma del usuario identificado":"Personalización","availability podria ofrecer una recuperacion contextual del login para usuarios no identificados":"Navegación y flujo","el upsell de tarifa no incorpora el valor especifico del usuario suma":"Personalización","el estado inicial del slider de millas no explica con claridad que puede hacer el usuario ni que beneficio obtiene":"Contenido y copy · Interfaz y jerarquía visual","el estado activado del canje no guia con suficiente claridad ni explica bien las opciones disponibles":"Usabilidad e interacción · Contenido y copy","la interfaz no confirma con claridad que el numero suma ya esta asociado al pasajero":"Usabilidad e interacción","el perfil del usuario logado puede volver a ofrecerse en el pasajero 2 aunque ya este asociado al pasajero 1":"Personalización · Usabilidad e interacción","los extras incluidos por nivel suma no se anticipan ni explican antes de la seleccion":"Contenido y copy · Personalización","el resumen economico mezcla millas precio original ahorro y total sin una jerarquia suficientemente clara":"Interfaz y jerarquía visual · Arquitectura de información","el beneficio de asientos existe pero no se comunica ni se hace localizable para el pasajero suma":"Personalización · Usabilidad e interacción","la maleta gratuita se aplica correctamente pero no se explica que procede del nivel suma":"Contenido y copy · Personalización","los servicios anadidos a 0 no se atribuyen a suma una vez contratados":"Contenido y copy · Personalización","el valor suma pierde visibilidad cuando la interfaz no explica de donde procede cada ventaja":"Contenido y copy · Personalización","la experiencia suma necesita continuidad contextual durante el booking no repeticion identica":"Navegación y flujo · Personalización","el login puede recuperarse dentro del booking":"Navegación y flujo","el login gana valor cuando se vincula a un beneficio concreto":"Contenido y copy · Negocio y conversión","la recompensa potencial puede hacerse visible antes de identificar o registrar al usuario":"Negocio y conversión · Contenido y copy","la acumulacion puede formar parte de la comparacion de fare families":"Contenido y copy","los beneficios personalizados por nivel pueden integrarse dentro de la fare family":"Personalización","la fidelizacion puede incorporarse como argumento adicional en el upsell":"Negocio y conversión · Personalización","la fidelizacion se gestiona a nivel de pasajero":"Personalización","el mensaje de millas puede adaptarse a la situacion real del usuario":"Personalización · Contenido y copy","mostrar el estatus sin traducirlo en un beneficio visible aporta poco valor":"Personalización · Contenido y copy","los beneficios de equipaje pueden depender de que el viajero frecuente este correctamente asociado":"Personalización · Tecnología y restricciones","la fidelizacion aparece en servicios adicionales pero no de forma homogenea":"Personalización","la presencia de fidelizacion no es continua durante todo el booking":"Navegación y flujo","los beneficios deben dejar claro de donde proceden":"Contenido y copy"};
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+
+  function update(item){
+    if(!item||typeof item!=='object'||item.dimensionAuditRevision===REV)return false;
+    const insight=clean(item.insight||item['Insight / hallazgo']||item.hallazgo||item.text);
+    const next=MAP[norm(insight)];
+    if(!next)return false;
+
+    let changed=false;
+    const current=clean(item.uxLine||item.dimension||item['Dimensión']||item['Dimensión UX']);
+    if(!current){
+      item.uxLine=next;
+      item.dimension=next;
+      changed=true;
+    }
+    item.dimensionAuditRevision=REV;
+    return changed;
+  }
+
+  function apply(){
+    let changed=false;
+    try{
+      (sourceItems||[]).forEach(doc=>{
+        if(update(doc))changed=true;
+        (doc?.insightRegister?.rows||[]).forEach(row=>{if(update(row))changed=true;});
+      });
+    }catch(_){}
+    try{(knowledgeUnits||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+    try{(openQuestionItems||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:true});}catch(_){try{safeStorageWrite?.();}catch(__){}}
+    }
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+    try{renderTaxonomy?.();}catch(_){}
+  }
+
+  function init(){setTimeout(apply,300);setTimeout(apply,1200);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+  window.addEventListener('load',()=>setTimeout(apply,650),{once:true});
+})();
+</script>
+
+
+
+<script id="ux-dimension-governance-rule-20261026">
+(function(){
+  globalThis.UXDimensionGovernance=Object.freeze({
+    required:false,
+    rule:'Dimensión UX describe la naturaleza UX del hallazgo cuando esa naturaleza es clara. Los hechos, métricas, reglas de producto, negocio, dispositivo o restricciones pueden quedar sin dimensión si clasificar no aporta información útil.',
+    maxDimensions:2,
+    values:Object.freeze(["Accesibilidad","Arquitectura de información","Claridad y comprensión","Consistencia","Contenido y copy","Control y autonomía","Encontrabilidad","Feedback y estado","Flujo y secuenciación","Fricción y eficiencia","Jerarquía visual","Navegación","Orientación y ayuda","Personalización"])
+  });
+})();
+</script>
+
+
+
+<script id="ux-correct-asientos-component-and-design-20261023">
+(function(){
+  const REV='2026-10-23-asientos-component-design-v1';
+  const TARGETS=new Set(['silver puede disponer de asiento estandar gratuito en determinadas condiciones y descuento en otros tipos de asiento','el beneficio de asiento existe pero no se anticipa ni se identifica durante la seleccion','los beneficios de asiento cambian por nivel suma y por momento de la reserva','en asientos conviene reflejar gratuidad o descuento suma directamente en la seleccion y explicar la condicion aplicada','el beneficio de asientos existe pero no se comunica ni se hace localizable para el pasajero suma','mostrar el estatus sin traducirlo en un beneficio visible aporta poco valor']);
+  const CLEAR_SOLUTION=new Set(['mostrar el estatus sin traducirlo en un beneficio visible aporta poco valor','el beneficio de asientos existe pero no se comunica ni se hace localizable para el pasajero suma','en asientos conviene reflejar gratuidad o descuento suma directamente en la seleccion y explicar la condicion aplicada']);
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+
+  function update(item){
+    if(!item||typeof item!=='object'||item.asientosComponentDesignRevision===REV)return false;
+    const insight=clean(item.insight||item['Insight / hallazgo']||item.hallazgo||item.text);
+    const key=norm(insight);
+    if(!TARGETS.has(key))return false;
+
+    let changed=false;
+
+    if(norm(item.product)==='booking'&&norm(item.funnel)==='extras'&&norm(item.minifunnel)==='asientos'){
+      const before=clean(item.component);
+      if(before){
+        if(!clean(item.legacyComponent))item.legacyComponent=before;
+        item.component='';
+        changed=true;
+      }
+      if(Array.isArray(item.components)&&item.components.length){
+        if(!Array.isArray(item.legacyComponents))item.legacyComponents=[...item.components];
+        item.components=[];
+        changed=true;
+      }
+    }
+
+    if(CLEAR_SOLUTION.has(key)){
+      for(const field of ['solutionId','solutionUx','designRationale','designRef','solutionStatus','solutionRelation','idSolution','figma','figmaUrl']){
+        if(clean(item[field])){item[field]='';changed=true;}
+      }
+    }
+
+    item.asientosComponentDesignRevision=REV;
+    return changed;
+  }
+
+  function apply(){
+    let changed=false;
+    try{
+      (sourceItems||[]).forEach(doc=>{
+        if(update(doc))changed=true;
+        (doc?.insightRegister?.rows||[]).forEach(row=>{if(update(row))changed=true;});
+      });
+    }catch(_){}
+    try{(knowledgeUnits||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+    try{(openQuestionItems||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+    try{(learnings||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:true});}catch(_){try{safeStorageWrite?.();}catch(__){}}
+    }
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+    try{renderTaxonomy?.();}catch(_){}
+    try{renderLearnings?.();}catch(_){}
+  }
+
+  function init(){setTimeout(apply,450);setTimeout(apply,1500);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+  window.addEventListener('load',()=>setTimeout(apply,800),{once:true});
+})();
+</script>
+
+
+<script id="ux-final-cleanup-governance-20261023">
+(function(){
+  const REV='2026-10-23-final-cleanup-v1';
+  const HEADER_DIMENSIONS={"la arquitectura mejora la encontrabilidad de determinados accesos de autoservicio":"Navegación y flujo · Usabilidad e interacción","el equilibrio con la busqueda no esta resuelto":"Interfaz y jerarquía visual · Negocio y conversión","el resultado depende del sistema completo de home":"Arquitectura de información","desktop y mobile no deben tratarse igual":"Interfaz y jerarquía visual","la priorizacion de tareas operativas mejora el acceso al autoservicio en mobile":"Navegación y flujo","el aumento del autoservicio no muestra una perdida relevante en el journey de busqueda":"Navegación y flujo · Negocio y conversión","mobile requiere una priorizacion especifica de la jerarquia del header":"Interfaz y jerarquía visual · Navegación y flujo","la navegacion debe priorizar tareas relacionadas con el viaje":"Navegación y flujo","el buscador necesita conservar un papel dominante":"Interfaz y jerarquía visual · Negocio y conversión","la complejidad depende mas de como se organiza que del volumen":"Arquitectura de información","el lenguaje de navegacion debe alinearse con la intencion del usuario":"Contenido y copy · Navegación y flujo","air europa tiene margen para evolucionar hacia un modelo mas balanceado":"Arquitectura de información · Negocio y conversión","gestionar reserva funciona pero no hace falta duplicarlo":"Navegación y flujo · Arquitectura de información","check in debe seguir separado y visible":"Navegación y flujo · Interfaz y jerarquía visual","antes de volar no orienta bien hacia contenidos criticos":"Contenido y copy · Navegación y flujo","equipaje documentacion y asistencia especial tienen un peso elevado":"Navegación y flujo","ayuda funciona tambien como via de rescate":"Navegación y flujo · Usabilidad e interacción","el header deberia priorizar las necesidades operativas del pasajero":"Navegación y flujo · Arquitectura de información","el header concentra poco volumen global pero accesos de alta intencion":"Usabilidad e interacción · Navegación y flujo","la gestion del viaje concentra gran parte del uso observado":"Navegación y flujo","ofertas combina prioridad estrategica y uso pero no una senal clara de conversion":"Negocio y conversión · Datos y medición","algunas necesidades estrategicas condicionan la arquitectura sin equivaler a prioridad ux":"Negocio y conversión · Arquitectura de información","el comportamiento del header cambia entre mercados":"Datos y medición","identidad suma y ayuda contienen lineas futuras aun no validadas":"Negocio y conversión","la simplicidad visible del header oculta una arquitectura mas compleja":"Arquitectura de información","el naming no siempre permite anticipar correctamente el contenido":"Contenido y copy","la agrupacion mezcla categorias tareas y utilidades":"Arquitectura de información","una misma arquitectura no responde igual de bien a todos los contextos":"Arquitectura de información · Navegación y flujo","mobile amplifica fricciones ya presentes en desktop":"Navegación y flujo · Usabilidad e interacción","el header debe funcionar como sistema de orientacion y acceso no como contenedor de enlaces":"Navegación y flujo","la primera capa de navegacion debe ser breve clara y priorizada":"Arquitectura de información · Interfaz y jerarquía visual","navegacion principal y utilidades deben diferenciarse":"Arquitectura de información · Interfaz y jerarquía visual","el naming y el contexto forman parte de la orientacion":"Contenido y copy · Navegación y flujo","mobile requiere una priorizacion mas estricta que desktop":"Navegación y flujo · Interfaz y jerarquía visual","accesibilidad y necesidades de negocio deben integrarse sin degradar la jerarquia":"Accesibilidad · Negocio y conversión"};
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+
+  function update(item){
+    if(!item||typeof item!=='object'||item.finalCleanupRevision===REV)return false;
+    let changed=false;
+    const insight=clean(item.insight||item['Insight / hallazgo']||item.hallazgo||item.text);
+    const dimension=HEADER_DIMENSIONS[norm(insight)];
+    const current=clean(item.uxLine||item.dimension||item['Dimensión']||item['Dimensión UX']);
+    if(dimension&&!current){
+      item.uxLine=dimension;
+      item.dimension=dimension;
+      changed=true;
+    }
+    item.finalCleanupRevision=REV;
+    return changed;
+  }
+
+  function apply(){
+    let changed=false;
+    try{
+      (sourceItems||[]).forEach(doc=>{
+        if(update(doc))changed=true;
+        (doc?.insightRegister?.rows||[]).forEach(row=>{if(update(row))changed=true;});
+      });
+    }catch(_){}
+    try{(knowledgeUnits||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+    try{(openQuestionItems||[]).forEach(item=>{if(update(item))changed=true;});}catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:true});}catch(_){try{safeStorageWrite?.();}catch(__){}}
+    }
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+    try{renderTaxonomy?.();}catch(_){}
+    try{renderLearnings?.();}catch(_){}
+  }
+
+  function init(){setTimeout(apply,400);setTimeout(apply,1400);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+  window.addEventListener('load',()=>setTimeout(apply,800),{once:true});
+})();
+</script>
+
+
+<script id="ux-dimension-review-all-initiatives-20261026">
+(function(){
+  const REV='2026-10-26-dimension-review-v2-all-initiatives';
+  const MAP={"el login intermedio dentro del booking no es viable actualmente con la solucion disponible de amadeus":"Flujo y secuenciación · Fricción y eficiencia","no es sencillo exponer una cantidad exacta de millas acumulables por cada tarifa":"Claridad y comprensión","el porcentaje adicional de acumulacion por nivel suma puede utilizarse como alternativa a mostrar millas exactas por tarifa":"Claridad y comprensión · Contenido y copy","los beneficios suma con impacto directo en booking estan identificados para asientos equipaje en bodega y priority boarding":"","silver puede disponer de asiento estandar gratuito en determinadas condiciones y descuento en otros tipos de asiento":"","amadeus parece conocer desde etapas tempranas quien viaja su nivel suma y los beneficios que le corresponden":"Personalización","si la elegibilidad suma esta disponible antes de entrar en el minifunnel el beneficio puede anticiparse en lugar de descubrirse durante la interaccion":"Flujo y secuenciación · Personalización","los beneficios pueden variar entre pasajeros de una misma reserva y deben mantenerse asociados a cada persona":"Personalización","priority boarding esta incluido para silver gold y platinum pero la web puede seguir mostrandolo como servicio de pago":"Consistencia · Claridad y comprensión","el beneficio de determinados equipajes deportivos para platinum existe pero su incorporacion al flujo digital esta pendiente":"","el usuario identificado presenta una conversion claramente superior al no identificado":"","la tasa de conversion observada aumenta progresivamente con el nivel suma":"","la mayoria de las sesiones analizadas no estan logadas":"","la identificacion forma parte de manera mucho mas habitual de la experiencia en app que en web":"","el proceso de login presenta senales relevantes de friccion antes de entrar al booking":"Fricción y eficiencia","en home desktop el usuario logado esta principalmente orientado a iniciar una busqueda de vuelo":"","en desktop los usuarios logados muestran mayor peso relativo en tarifas business":"","cash miles tiene uso real entre usuarios logados y su visibilidad y comprension son relevantes":"Encontrabilidad · Claridad y comprensión","en desktop los usuarios logados muestran mayor peso relativo en equipaje adicional y wi fi":"","en desktop el usuario logado presenta un ticket medio superior al no logado":"","el acceso presenta una friccion elevada en ios y android":"Fricción y eficiencia","business tiene mayor peso relativo entre usuarios logados en los tres entornos moviles":"","cash miles tiene un uso real dentro del booking mobile":"Encontrabilidad · Claridad y comprensión","asientos sigue siendo el extra principal pero equipaje y wi fi ganan peso relativo entre usuarios logados":"","el mayor valor economico del usuario identificado no se reproduce de forma homogenea entre plataformas":"","el acceso a suma es visible pero comunica sus ventajas de forma demasiado generica":"Contenido y copy · Claridad y comprensión","la seleccion de tarifa no aprovecha que el usuario esta identificado para hacer visible el valor suma":"Personalización","el upsell explica el salto de tarifa pero no incorpora el valor adicional de suma":"Personalización","el cta sticky puede permitir avanzar sin que el usuario llegue a descubrir cash miles":"Encontrabilidad · Jerarquía visual","la recuperacion automatica del perfil funciona bien pero la interfaz puede confirmar mejor que suma ya esta aplicado":"Feedback y estado","los beneficios suma no se anticipan antes de entrar en cada extra":"Flujo y secuenciación · Personalización","el beneficio de asiento existe pero no se anticipa ni se identifica durante la seleccion":"Encontrabilidad · Accesibilidad","la gratuidad se muestra pero no se atribuye claramente al nivel suma":"Claridad y comprensión","al plegar las cards se pierde contexto sobre que beneficio suma se ha aplicado y a quien":"Feedback y estado · Personalización","estar inscrito en un programa de fidelizacion no implica concentrar la compra en una sola aerolinea":"","sencillez utilidad economica flexibilidad y facilidad de uso pesan mas que beneficios aspiracionales durante la decision":"Fricción y eficiencia","la experiencia y la reduccion de esfuerzo pueden ser mas relevantes para la fidelidad que la acumulacion de puntos por si sola":"Fricción y eficiencia","la personalizacion aporta mas valor cuando primero simplifica y da control y solo despues recomienda productos":"Personalización · Control y autonomía","los beneficios de fidelizacion pueden leerse como reconocimiento conveniencia y exploracion":"","el usuario necesita entender antes de pagar cuanto ganara y como cambia la acumulacion entre opciones":"Claridad y comprensión","silver gold y platinum disponen de una pieza adicional de equipaje en bodega segun las condiciones suma revisadas":"","los beneficios de asiento cambian por nivel suma y por momento de la reserva":"","los beneficios de prioridad fast track recogida prioritaria sala vip y upgrades dependen del nivel y de condiciones adicionales":"","la aplicabilidad de un beneficio suma no puede resolverse solo con el nivel del usuario":"Personalización · Feedback y estado","mantener reglas y condiciones suma en multiples lugares aumenta el riesgo de inconsistencias":"Consistencia","la principal oportunidad es convertir suma en una capa de servicio integrada en la compra no anadir mas mensajes promocionales":"Consistencia · Flujo y secuenciación","en fare families deberia distinguirse que incluye la tarifa que anade suma y cual es el resultado final para el pasajero":"Arquitectura de información · Claridad y comprensión","mostrar millas estimadas por tarifa puede hacer visible parte del valor futuro antes de elegir":"Claridad y comprensión","la identificacion suma puede reducir esfuerzo si evita volver a introducir datos ya conocidos":"Fricción y eficiencia · Personalización","en equipaje conviene aplicar automaticamente el derecho suma cuando sea posible y explicar de donde procede":"Feedback y estado · Personalización","en asientos conviene reflejar gratuidad o descuento suma directamente en la seleccion y explicar la condicion aplicada":"Claridad y comprensión · Feedback y estado","el summary puede reunir cuanto gana el usuario cuanto puede utilizar y su progreso hacia el siguiente nivel":"Arquitectura de información · Claridad y comprensión","el pago mixto de vuelos operados por air europa requiere actualmente un minimo de 1 500 millas":"","para usuarios no identificados comunicar un beneficio concreto y contextual puede incentivar el login o registro sin convertirlo en el objetivo principal":"Contenido y copy · Personalización","antes de disenar la solucion es necesario confirmar que informacion y reglas pueden resolverse realmente durante el booking":"","el slider de millas esta condicionado por el funcionamiento actual de amadeus":"","el mensaje inicial no deja claro si las millas mostradas son saldo total o maximo aplicable a la reserva":"Claridad y comprensión · Contenido y copy","el estado sin activar informa de millas disponibles pero no explica desde que cantidad pueden usarse ni su efecto sobre el precio":"Orientación y ayuda · Claridad y comprensión","la propuesta inicial puede tener una version con o sin equivalencia economica segun la capacidad tecnica":"Claridad y comprensión","mostrar 0 millas inmediatamente despues de activar el canje contradice la intencion del usuario":"Feedback y estado · Claridad y comprensión","el campo de cantidad parece editable aunque el usuario solo puede seleccionar valores permitidos":"Claridad y comprensión","la sincronizacion entre selector y slider funciona y no es el problema principal a resolver":"Consistencia","el estado activado debe indicar directamente cual es la siguiente accion valida":"Orientación y ayuda · Feedback y estado","tras seleccionar millas el resultado economico obliga a interpretar una formula en lugar de confirmar directamente el resultado":"Claridad y comprensión · Feedback y estado","el resultado economico se reparte entre el componente y el footer y genera duplicidad de responsabilidades":"Arquitectura de información · Consistencia","el componente deberia confirmar la cantidad aplicada y el saldo restante mientras el footer concentra precio y ahorro":"Arquitectura de información","el resultado del canje necesita una nomenclatura y formato de cantidades consistentes":"Consistencia · Contenido y copy","la home reconoce correctamente al usuario suma una vez identificado":"Personalización · Feedback y estado","el mensaje previo al login no concreta que valor obtiene el usuario durante la reserva":"Contenido y copy · Claridad y comprensión","la comparacion de fare families no utiliza el contexto suma del usuario identificado":"Personalización · Claridad y comprensión","availability podria ofrecer una recuperacion contextual del login para usuarios no identificados":"Flujo y secuenciación · Fricción y eficiencia","el upsell de tarifa no incorpora el valor especifico del usuario suma":"Personalización","el estado inicial del slider de millas no explica con claridad que puede hacer el usuario ni que beneficio obtiene":"Claridad y comprensión · Orientación y ayuda","el estado activado del canje no guia con suficiente claridad ni explica bien las opciones disponibles":"Orientación y ayuda · Claridad y comprensión","la recuperacion automatica de datos personales y numero suma reduce esfuerzo en paxes":"Fricción y eficiencia · Personalización","la interfaz no confirma con claridad que el numero suma ya esta asociado al pasajero":"Feedback y estado · Claridad y comprensión","el perfil del usuario logado puede volver a ofrecerse en el pasajero 2 aunque ya este asociado al pasajero 1":"Feedback y estado · Personalización","los extras incluidos por nivel suma no se anticipan ni explican antes de la seleccion":"Flujo y secuenciación · Claridad y comprensión","el resumen economico mezcla millas precio original ahorro y total sin una jerarquia suficientemente clara":"Jerarquía visual · Arquitectura de información","el beneficio de asientos existe pero no se comunica ni se hace localizable para el pasajero suma":"Encontrabilidad · Accesibilidad","la maleta gratuita se aplica correctamente pero no se explica que procede del nivel suma":"Claridad y comprensión · Feedback y estado","los servicios anadidos a 0 no se atribuyen a suma una vez contratados":"Claridad y comprensión · Personalización","el valor suma pierde visibilidad cuando la interfaz no explica de donde procede cada ventaja":"Claridad y comprensión","la experiencia suma necesita continuidad contextual durante el booking no repeticion identica":"Consistencia · Flujo y secuenciación","la viabilidad de varias mejoras depende de que datos suma puede devolver amadeus en cada punto del booking":"","el login puede recuperarse dentro del booking":"Flujo y secuenciación","el login gana valor cuando se vincula a un beneficio concreto":"Contenido y copy · Claridad y comprensión","la recompensa potencial puede hacerse visible antes de identificar o registrar al usuario":"Contenido y copy","la acumulacion puede formar parte de la comparacion de fare families":"Arquitectura de información · Claridad y comprensión","los beneficios personalizados por nivel pueden integrarse dentro de la fare family":"Personalización · Claridad y comprensión","la fidelizacion puede incorporarse como argumento adicional en el upsell":"Personalización","el usuario logado obtiene valor mediante recuperacion de perfil y reduccion de esfuerzo":"Fricción y eficiencia · Personalización","la fidelizacion se gestiona a nivel de pasajero":"Personalización","el mensaje de millas puede adaptarse a la situacion real del usuario":"Personalización · Claridad y comprensión","mostrar el estatus sin traducirlo en un beneficio visible aporta poco valor":"Claridad y comprensión · Personalización","los beneficios de equipaje pueden depender de que el viajero frecuente este correctamente asociado":"Personalización · Claridad y comprensión","la fidelizacion aparece en servicios adicionales pero no de forma homogenea":"Consistencia","la presencia de fidelizacion no es continua durante todo el booking":"Consistencia · Flujo y secuenciación","los beneficios deben dejar claro de donde proceden":"Claridad y comprensión · Contenido y copy","el buscador concentra el mayor volumen de interaccion del above the fold":"","en desktop cta destino y fecha de ida concentran gran parte de la actividad del buscador":"","en mobile la interaccion se concentra todavia mas en la construccion secuencial de la busqueda":"Flujo y secuenciación","mobile genera mas busquedas pero presenta mayor abandono entre busqueda y resultados":"Fricción y eficiencia","desktop presenta una transicion mas eficiente hacia disponibilidad en el periodo analizado":"Fricción y eficiencia","la home tiene una segunda intencion relevante resolver tareas operativas":"Arquitectura de información","los shortcuts de autogestion mantienen uso en mobile aunque su peso relativo sea menor que el buscador":"","en mobile los banners generan interaccion y avance posterior hacia busqueda y reserva":"","desktop tambien registra valor del banner aunque con menor conversion final que mobile en el periodo":"","desktop suele presentar el buscador como pieza principal del above the fold y permite una lectura global del formulario":"Jerarquía visual","mobile necesita una entrada mas reducida o secuencial que desktop":"Flujo y secuenciación · Fricción y eficiencia","simplificar mobile no debe impedir revisar la busqueda completa antes de avanzar":"Control y autonomía","el avance guiado cobra mas valor en mobile porque reduce pasos manuales":"Flujo y secuenciación · Fricción y eficiencia","origen y destino condicionan la percepcion inicial y pueden facilitar exploracion ademas de precision":"Encontrabilidad","el calendario aporta mas valor cuando ayuda a decidir y no solo a seleccionar fechas":"Control y autonomía","tipo de viaje y fechas forman una misma decision y conviene mantenerlos proximos":"Arquitectura de información","pasajeros clase y condiciones que afectan al precio suelen agruparse o situarse proximas":"Arquitectura de información","residente y familia numerosa necesitan una ubicacion clara dentro de la configuracion de busqueda":"Encontrabilidad · Arquitectura de información","recuperar busquedas previas aporta continuidad especialmente en mobile":"Personalización · Fricción y eficiencia","la home tambien debe facilitar tareas operativas pero con jerarquia secundaria":"Arquitectura de información · Jerarquía visual","avisos y ayuda deben funcionar como capas de soporte y ser especialmente selectivos en mobile":"Orientación y ayuda · Jerarquía visual","el cta de busqueda debe ser inequivoco y cerrar de forma natural la construccion del formulario":"Claridad y comprensión · Flujo y secuenciación","la capa comercial puede acompanar al buscador pero el equilibrio es mas critico en mobile":"Jerarquía visual","la fluidez cognitiva sugiere reducir competencia visual alrededor de la tarea de busqueda":"Jerarquía visual · Claridad y comprensión","la ley de hick aporta una explicacion plausible para reducir equivalencia visual entre opciones":"Jerarquía visual · Claridad y comprensión","la saliencia visual plantea proteger el cta frente a campanas avisos y acciones secundarias":"Jerarquía visual","el calendario puede reforzar control si facilita explorar ajustar y corregir antes de avanzar":"Control y autonomía","reducir incertidumbre es especialmente relevante en mobile":"Claridad y comprensión","reconocimiento antes que recuerdo favorece mantener visibles los datos configurados":"Feedback y estado · Control y autonomía","progressive disclosure permite conservar funcionalidad sin mostrar todo con el mismo peso":"Arquitectura de información · Claridad y comprensión","la aversion a la perdida se usa como marco para justificar avisos contextuales de informacion critica":"Orientación y ayuda · Contenido y copy","la consistencia entre bloques puede reforzar percepcion de solidez y reducir fragmentacion":"Consistencia · Jerarquía visual","el buscador concentra la interaccion mas vinculada al inicio del booking y debe marcar la jerarquia del primer impacto":"Jerarquía visual","la fecha de ida es un punto critico pero una interaccion alta no equivale automaticamente a friccion":"","el cta se reconoce y se utiliza la oportunidad esta en proteger su exclusividad visual":"Jerarquía visual","mobile debe tratarse como una experiencia especifica por la secuencia y el esfuerzo tactil":"Flujo y secuenciación · Fricción y eficiencia","el tipo de viaje no se comporta como un ajuste marginal":"Arquitectura de información","los productos secundarios tienen mucho menos uso que la busqueda de vuelos en el primer impacto":"","la home combina intencion de compra y autogestion":"Arquitectura de información","la repeticion de gestiona tu reserva muestra demanda pero tambien dispersion de la arquitectura":"Arquitectura de información · Encontrabilidad","el banner aporta interaccion pero no deberia convertirse en una segunda accion dominante":"Jerarquía visual","la baja interaccion de un aviso no demuestra baja importancia funcional":"","el buscador debe evaluarse como la entrada al funnel completo no como un modulo aislado":"Flujo y secuenciación","simplificar significa ordenar decisiones por momento no eliminar funcionalidad":"Flujo y secuenciación · Arquitectura de información","mobile necesita una interaccion propia y no una version comprimida de desktop":"Flujo y secuenciación","el calendario puede ser una herramienta de decision no solo un selector operativo":"Control y autonomía","el buscador inicial no necesita resolver todas las decisiones del viaje":"Arquitectura de información · Flujo y secuenciación","el rendimiento forma parte de la experiencia del primer impacto":"Fricción y eficiencia","labels estados y errores son parte central de la calidad del buscador":"Accesibilidad · Feedback y estado","cada seleccion debe producir una consecuencia clara y visible":"Feedback y estado","la personalizacion util debe reducir esfuerzo sin aplicar decisiones de forma opaca":"Personalización · Control y autonomía","la consistencia debe mantenerse a nivel conceptual sin forzar una interaccion identica entre dispositivos":"Consistencia","el buscador se reconoce como entrada principal al proceso pero concentra demasiada carga visual":"Jerarquía visual · Claridad y comprensión","desktop concentra demasiadas decisiones en el mismo nivel visual":"Jerarquía visual · Arquitectura de información","mobile amplifica el peso de elementos secundarios y capas previas a la busqueda":"Jerarquía visual · Flujo y secuenciación","la recuperacion de la ultima busqueda es una funcionalidad que conviene conservar":"Personalización · Fricción y eficiencia","el primer impacto necesita una jerarquia explicita entre conversion autoservicio y contenido comercial":"Jerarquía visual · Arquitectura de información","el autoservicio forma parte del valor de la home y no debe desaparecer al reforzar el buscador":"Arquitectura de información · Navegación","el claim cumple un condicionante seo pero su formulacion analizada es mas aspiracional que accionable":"Contenido y copy · Claridad y comprensión","el formato separado de imagen y texto es adecuado pero el peso del banner debe controlarse":"Jerarquía visual","en mobile los accesos rapidos son utiles pero pueden necesitar un tratamiento mas compacto":"Navegación · Fricción y eficiencia","el rediseno debe consolidar el buscador como componente de sistema no como una solucion puntual":"Consistencia · Arquitectura de información","la arquitectura mejora la encontrabilidad de determinados accesos de autoservicio":"Encontrabilidad","el equilibrio con la busqueda no esta resuelto":"Jerarquía visual","el resultado depende del sistema completo de home":"Arquitectura de información","desktop y mobile no deben tratarse igual":"","la priorizacion de tareas operativas mejora el acceso al autoservicio en mobile":"Encontrabilidad","el aumento del autoservicio no muestra una perdida relevante en el journey de busqueda":"","mobile requiere una priorizacion especifica de la jerarquia del header":"Jerarquía visual","la navegacion debe priorizar tareas relacionadas con el viaje":"Navegación","el buscador necesita conservar un papel dominante":"Jerarquía visual","la complejidad depende mas de como se organiza que del volumen":"Arquitectura de información · Claridad y comprensión","el lenguaje de navegacion debe alinearse con la intencion del usuario":"Contenido y copy · Navegación","air europa tiene margen para evolucionar hacia un modelo mas balanceado":"Arquitectura de información","gestionar reserva funciona pero no hace falta duplicarlo":"Arquitectura de información · Consistencia","check in debe seguir separado y visible":"Encontrabilidad · Navegación","antes de volar no orienta bien hacia contenidos criticos":"Contenido y copy · Orientación y ayuda","equipaje documentacion y asistencia especial tienen un peso elevado":"Navegación","ayuda funciona tambien como via de rescate":"Orientación y ayuda","el header deberia priorizar las necesidades operativas del pasajero":"Arquitectura de información · Navegación","el header concentra poco volumen global pero accesos de alta intencion":"","la gestion del viaje concentra gran parte del uso observado":"","ofertas combina prioridad estrategica y uso pero no una senal clara de conversion":"","algunas necesidades estrategicas condicionan la arquitectura sin equivaler a prioridad ux":"","el comportamiento del header cambia entre mercados":"","identidad suma y ayuda contienen lineas futuras aun no validadas":"","la simplicidad visible del header oculta una arquitectura mas compleja":"Arquitectura de información · Claridad y comprensión","el naming no siempre permite anticipar correctamente el contenido":"Contenido y copy · Claridad y comprensión","la agrupacion mezcla categorias tareas y utilidades":"Arquitectura de información · Consistencia","una misma arquitectura no responde igual de bien a todos los contextos":"Arquitectura de información","mobile amplifica fricciones ya presentes en desktop":"Fricción y eficiencia","el header debe funcionar como sistema de orientacion y acceso no como contenedor de enlaces":"Orientación y ayuda · Navegación","la primera capa de navegacion debe ser breve clara y priorizada":"Arquitectura de información · Claridad y comprensión","navegacion principal y utilidades deben diferenciarse":"Arquitectura de información · Jerarquía visual","el naming y el contexto forman parte de la orientacion":"Contenido y copy · Orientación y ayuda","mobile requiere una priorizacion mas estricta que desktop":"Jerarquía visual","accesibilidad y necesidades de negocio deben integrarse sin degradar la jerarquia":"Accesibilidad · Jerarquía visual"};
+  const CANONICAL=new Set(["Accesibilidad","Arquitectura de información","Claridad y comprensión","Consistencia","Contenido y copy","Control y autonomía","Encontrabilidad","Feedback y estado","Flujo y secuenciación","Fricción y eficiencia","Jerarquía visual","Navegación","Orientación y ayuda","Personalización"]);
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+  const split=value=>clean(value).split(/[;|·\n]/).map(v=>v.trim()).filter(Boolean);
+
+  function reviewedDimension(item){
+    if(!item||typeof item!=='object')return null;
+    const insight=clean(item.insight||item['Insight / hallazgo']||item.hallazgo||item.text);
+    const key=norm(insight);
+    return Object.prototype.hasOwnProperty.call(MAP,key)?MAP[key]:null;
+  }
+
+  function setDimension(item,next){
+    if(next===null)return false;
+    const normalized=split(next).filter(value=>CANONICAL.has(value)).slice(0,2).join(' · ');
+    const current=clean(item.uxLine||item.dimension||item['Dimensión UX']||item['Dimensión']);
+    let changed=current!==normalized;
+    if(changed){
+      item.uxLine=normalized;
+      item.dimension=normalized;
+      if(Object.prototype.hasOwnProperty.call(item,'Dimensión UX'))item['Dimensión UX']=normalized;
+      if(Object.prototype.hasOwnProperty.call(item,'Dimensión'))item['Dimensión']=normalized;
+      if(Array.isArray(item.uxLines))item.uxLines=normalized?split(normalized):[];
+    }
+    item.dimensionGovernanceRevision=REV;
+    return changed;
+  }
+
+  function apply(){
+    let changed=false;
+    const update=item=>{const next=reviewedDimension(item);if(setDimension(item,next))changed=true;};
+    try{(publicDemoRows||[]).forEach(update);}catch(_){}
+    try{
+      (sourceItems||[]).forEach(doc=>{
+        update(doc);
+        (doc?.insightRegister?.rows||[]).forEach(update);
+      });
+    }catch(_){}
+    try{(knowledgeUnits||[]).forEach(update);}catch(_){}
+    try{(openQuestionItems||[]).forEach(update);}catch(_){}
+
+    if(changed){
+      try{safeStorageWrite?.({project:true});}catch(_){
+        try{safeStorageWrite?.();}catch(__){}
+      }
+    }
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+    try{renderExplore?.();}catch(_){}
+    try{renderSources?.();}catch(_){}
+    try{renderTaxonomy?.();}catch(_){}
+  }
+
+  function init(){
+    apply();
+    setTimeout(apply,800);
+    setTimeout(apply,2200);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+  window.addEventListener('load',()=>setTimeout(apply,1400),{once:true});
+})();
+</script>
+
+
+<script id="ux-restore-home-component-provenance-20261026">
+(function(){
+  const REV='2026-10-26-home-component-provenance-v1';
+  const allowed=new Set(['Header','Buscador','Calendario','Accesos rápidos','Banner promocional','Avisos','Hero Banner','Claim']);
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+  function update(item){
+    if(!item||typeof item!=='object')return false;
+    if(norm(item.product)!=='home')return false;
+    let changed=false;
+    if(clean(item.funnel)){item.funnel='';changed=true;}
+    if(clean(item.minifunnel)){item.minifunnel='';changed=true;}
+    const legacy=clean(item.legacyComponent);
+    const current=clean(item.component);
+    const legacyKey=norm(legacy);
+    const canonicalLegacy=
+      ['hero','hero banner','hero / contenido comercial'].includes(legacyKey)?'Hero Banner':
+      legacyKey==='contenido comercial'?'Claim':
+      allowed.has(legacy)?legacy:'';
+    if(!current&&canonicalLegacy){
+      item.component=canonicalLegacy;
+      if(Array.isArray(item.components)&&!item.components.length)item.components=[canonicalLegacy];
+      changed=true;
+    }else if(!current&&legacyKey==='above the fold'){
+      if(clean(item.zone)!=='Above the fold'){item.zone='Above the fold';changed=true;}
+      if(clean(item.scope)!=='Transversal'){item.scope='Transversal';changed=true;}
+      if(Array.isArray(item.components)&&item.components.length){item.components=[];changed=true;}
+    }
+    if(changed)item.homeComponentProvenanceRevision=REV;
+    return changed;
+  }
+  function apply(){
+    let changed=false;
+    const touch=item=>{if(update(item))changed=true;};
+    try{(publicDemoRows||[]).forEach(touch);}catch(_){}
+    try{(sourceItems||[]).forEach(doc=>{touch(doc);(doc?.insightRegister?.rows||[]).forEach(touch);});}catch(_){}
+    try{(knowledgeUnits||[]).forEach(touch);}catch(_){}
+    try{(openQuestionItems||[]).forEach(touch);}catch(_){}
+    try{(learnings||[]).forEach(touch);}catch(_){}
+    try{(evidenceItems||[]).forEach(touch);}catch(_){}
+    try{(experiments||[]).forEach(touch);}catch(_){}
+    try{(patternItems||[]).forEach(touch);}catch(_){}
+    if(changed){try{safeStorageWrite?.({project:true});}catch(_){try{safeStorageWrite?.();}catch(__){}}}
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{renderExplore?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(apply,180),{once:true});
+  else setTimeout(apply,180);
+  window.addEventListener('load',()=>setTimeout(apply,900),{once:true});
+})();
+</script>
+
+<script id="ux-extras-canonical-invariant-20261026">
+(function(){
+  const REV='2026-10-26-extras-canonical-invariant-v1';
+  const clean=value=>String(value??'').trim();
+  const norm=value=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+  const MINI=new Map([
+    ['asientos','Asientos'],['equipaje','Equipaje'],['priority boarding','Priority Boarding'],
+    ['wi fi','Wi-Fi'],['wifi','Wi-Fi'],['menu a bordo','Menú a bordo'],['mascotas','Mascotas'],
+    ['equipaje deportivo','Equipaje deportivo'],['equipajes deportivos','Equipaje deportivo']
+  ]);
+  const SPORTS='el beneficio de determinados equipajes deportivos para platinum existe pero su incorporacion al flujo digital esta pendiente';
+
+  function update(item){
+    if(!item||typeof item!=='object')return false;
+    if(norm(item.product)!=='booking'||norm(item.funnel)!=='extras')return false;
+    let changed=false;
+    const insight=norm(item.insight||item['Insight / hallazgo']||item.hallazgo||item.text);
+    if(insight===SPORTS && clean(item.minifunnel)!=='Equipaje deportivo'){
+      if(clean(item.minifunnel)&&!clean(item.legacyMinifunnel))item.legacyMinifunnel=item.minifunnel;
+      item.minifunnel='Equipaje deportivo';changed=true;
+    }
+    const canonical=MINI.get(norm(item.minifunnel));
+    if(!canonical)return changed;
+    if(clean(item.minifunnel)!==canonical){item.minifunnel=canonical;changed=true;}
+    if(clean(item.component)!=='Selector por pasajero'){
+      if(clean(item.component)&&!clean(item.legacyComponent))item.legacyComponent=item.component;
+      item.component='Selector por pasajero';changed=true;
+    }
+    if(Array.isArray(item.components)&&JSON.stringify(item.components)!==JSON.stringify(['Selector por pasajero'])){
+      if(item.components.length&&!Array.isArray(item.legacyComponents))item.legacyComponents=[...item.components];
+      item.components=['Selector por pasajero'];changed=true;
+    }
+    if(changed)item.extrasCanonicalInvariantRevision=REV;
+    return changed;
+  }
+
+  function apply(){
+    let changed=false;
+    const touch=item=>{if(update(item))changed=true;};
+    try{(publicDemoRows||[]).forEach(touch);}catch(_){}
+    try{(sourceItems||[]).forEach(doc=>{touch(doc);(doc?.insightRegister?.rows||[]).forEach(touch);});}catch(_){}
+    try{(knowledgeUnits||[]).forEach(touch);}catch(_){}
+    try{(openQuestionItems||[]).forEach(touch);}catch(_){}
+    try{(learnings||[]).forEach(touch);}catch(_){}
+    try{(evidenceItems||[]).forEach(touch);}catch(_){}
+    try{(experiments||[]).forEach(touch);}catch(_){}
+    try{(patternItems||[]).forEach(touch);}catch(_){}
+    if(changed){try{safeStorageWrite?.({project:true});}catch(_){try{safeStorageWrite?.();}catch(__){}}}
+    try{globalThis.__uxSimpleExploreRefresh?.();}catch(_){}
+    try{globalThis.__dsSyncSelects?.();}catch(_){}
+    try{renderOverview?.();}catch(_){}
+    try{renderExplore?.();}catch(_){}
+    try{renderTaxonomy?.();}catch(_){}
+    try{renderLearnings?.();}catch(_){}
+  }
+  function init(){apply();setTimeout(apply,500);setTimeout(apply,1200);setTimeout(apply,2400);setTimeout(apply,3600);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+  window.addEventListener('load',()=>setTimeout(apply,1600),{once:true});
+})();
+</script>
+
+
+<style id="ux-taxonomy-level-colors-v6166">
+  /* Diferenciación visual de niveles. Capa aditiva: no altera taxonomía ni datos. */
+  #taxonomy{
+    --tax-product-fg:#175cd3;
+    --tax-product-bg:#eff8ff;
+    --tax-product-border:#b2ddff;
+
+    --tax-funnel-fg:#067647;
+    --tax-funnel-bg:#ecfdf3;
+    --tax-funnel-border:#abefc6;
+
+    --tax-minifunnel-fg:#b54708;
+    --tax-minifunnel-bg:#fff6ed;
+    --tax-minifunnel-border:#f9dbaf;
+
+    --tax-component-fg:#5925dc;
+    --tax-component-bg:#f4f3ff;
+    --tax-component-border:#d9d6fe;
+  }
+
+  /* La leyenda superior usa exactamente el mismo código visual que el árbol. */
+  #taxonomy .ux-taxonomy-canonical-path span:nth-of-type(1){
+    color:var(--tax-product-fg);
+    background:var(--tax-product-bg);
+    border-color:var(--tax-product-border);
+  }
+  #taxonomy .ux-taxonomy-canonical-path span:nth-of-type(2){
+    color:var(--tax-funnel-fg);
+    background:var(--tax-funnel-bg);
+    border-color:var(--tax-funnel-border);
+  }
+  #taxonomy .ux-taxonomy-canonical-path span:nth-of-type(3){
+    color:var(--tax-minifunnel-fg);
+    background:var(--tax-minifunnel-bg);
+    border-color:var(--tax-minifunnel-border);
+  }
+  #taxonomy .ux-taxonomy-canonical-path span:nth-of-type(4){
+    color:var(--tax-component-fg);
+    background:var(--tax-component-bg);
+    border-color:var(--tax-component-border);
+  }
+
+  /* En el árbol: una marca lateral + fondo suave permiten leer el nivel sin depender solo de sangría. */
+  #taxonomy [data-taxonomy-term][data-taxonomy-level]{
+    position:relative;
+    border-radius:7px;
+    transition:background .14s ease,color .14s ease,box-shadow .14s ease;
+  }
+  #taxonomy [data-taxonomy-term][data-taxonomy-level]::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:50%;
+    width:3px;
+    height:18px;
+    border-radius:999px;
+    transform:translateY(-50%);
+    opacity:.78;
+  }
+
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="product"]{
+    color:var(--tax-product-fg);
+  }
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="product"]::before{
+    background:var(--tax-product-fg);
+  }
+
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="funnel"]{
+    color:var(--tax-funnel-fg);
+  }
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="funnel"]::before{
+    background:var(--tax-funnel-fg);
+  }
+
+  #taxonomy [data-taxonomy-term][data-taxonomy-level="minifunnel"]{
+    color:var(--tax-minifunnel-fg);
+  }
