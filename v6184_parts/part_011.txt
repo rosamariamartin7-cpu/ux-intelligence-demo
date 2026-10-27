@@ -1,0 +1,1000 @@
+    }
+    function openExperiment(id){const item=experiments.find(value=>value.id===id);if(!item)return;const relatedLearnings=item.learningIds.map(learningId=>learnings.find(value=>value.id===learningId)).filter(Boolean);const sourceName=`Header · Análisis test A/B ${item.device.toLowerCase()}`;const header=`<div class="drawer-kicker">Test A/B · ${item.device}</div><h2>${item.title}</h2><p class="drawer-lead">${item.result}</p><div class="drawer-tags"><span class="status-badge ${outcomeClass(item.outcome)}">Resultado ${item.outcome.toLowerCase()}</span></div><div class="drawer-context"><div><strong>Dónde aplica:</strong> ${pathOf(item)}</div><div><strong>Dispositivo:</strong> ${item.device} · ${item.duration}</div>${contextMetadata(item)}</div>`;const body=`${knowledgeStateDisclosure(item,{result:true})}${taxonomyLegacyDisclosure(item,'experiment')}<section class="drawer-section"><h3>Hipótesis</h3><p>${item.hypothesis}</p></section><section class="drawer-section"><h3>Resultado observado</h3><p>${item.result}</p><div class="metric-list">${item.metrics.map(metric=>`<div class="metric-row"><span>${metric.label}</span><strong>${metric.value}</strong></div>`).join('')}</div><div class="detail-note"><strong>Qué significa “${item.outcome}”:</strong> ${outcomeDefinitions[item.outcome]}</div></section><section class="drawer-section"><h3>Cómo interpretarlo</h3><p>${item.interpretation}</p></section><section class="drawer-section"><h3>Qué haríamos después</h3><p>${item.recommendation}</p></section><section class="drawer-section"><h3>Límites</h3>${list(item.limits)}</section><section class="drawer-section"><h3>Estado de implementación</h3><p>${item.pro}</p></section>${experimentLineageMarkup(item)}<section class="drawer-section related-section"><h3>Learnings relacionados</h3>${learningRelations(relatedLearnings)}</section><section class="drawer-section related-section"><h3>Fuentes</h3>${sourceReferences([sourceName],item)}</section>`;openDrawer(header,body);}
+    function openPattern(id){const item=patternItems.find(value=>value.id===id);if(!item)return;const relatedLearnings=learnings.filter(learning=>item.proof.includes(learning.id)||(learning.component&&learning.product===item.product&&learning.screen===item.screen&&componentsOf(learning).some(component=>componentsOf(item).includes(component)))).slice(0,4);const relatedSources=[...new Set(relatedLearnings.flatMap(learning=>learning.sourceNames))].slice(0,6);const header=`<div class="drawer-kicker">Patrón · ${componentsOf(item).join(' · ')}</div><h2>${item.title}</h2><p class="drawer-lead">${item.description}</p><div class="drawer-tags"><span class="status-badge ${confidenceClass(item.confidence)}">Confianza ${item.confidence.toLowerCase()}</span></div><div class="drawer-context"><div><strong>Dónde aplica:</strong> ${pathOf(item)}</div><div><strong>Dispositivo:</strong> ${item.device}</div>${contextMetadata(item)}</div>`;const body=`${knowledgeStateDisclosure(item)}${taxonomyLegacyDisclosure(item,'pattern')}<section class="drawer-section"><h3>Qué es</h3><p>${item.description}</p></section><section class="drawer-section"><h3>Cómo aplicarlo</h3><p>${item.do}</p></section><section class="drawer-section"><h3>Qué evitar</h3><p>${item.avoid}</p></section><section class="drawer-section"><h3>En qué se basa</h3><p>${cleanProof(item.proof)}</p></section>${relatedLearnings.length?`<section class="drawer-section related-section"><h3>Learnings relacionados</h3>${learningRelations(relatedLearnings)}</section>`:''}${relatedSources.length?`<section class="drawer-section related-section"><h3>Fuentes</h3>${sourceReferences(relatedSources,item)}</section>`:''}`;openDrawer(header,body);}
+    function documentLearningRelations(item){
+      const linkDecisions=new Set(['Reforzar learning','Reforzar learning existente','Ampliar learning','Contradice learning','Crear nuevo learning']);
+      const operations=(item.analysis?.publication?.operations||[]).filter(operation=>linkDecisions.has(operation.decision));
+      const used=learnings.filter(learning=>
+        catalogSources(learning).some(source=>source.id===item.id)||
+        (learning.publicationHistory||[]).some(entry=>entry.documentId===item.id)||
+        learning.documentId===item.id||operations.some(operation=>operation.learningId===learning.id)
+      );
+      const proposedIds=hasDocumentAnalysis(item)&&!isDocumentPublished(item)?new Set(buildReviewClusters(item.analysis).filter(insight=>linkDecisions.has(insight.decision)).map(insight=>insight.learningId)):new Set();
+      return {used,proposed:learnings.filter(learning=>proposedIds.has(learning.id)&&!used.some(existing=>existing.id===learning.id))};
+    }
+    function insightRegisterSection(item){
+      if(item.supportingDocument)return `<section class="drawer-section"><h3>Uso en UX Intel</h3><p>Este PDF se conserva como fuente de apoyo para consulta y trazabilidad. No genera conocimiento estructurado hasta que exista una síntesis revisada.</p></section>`;
+      const register=item.insightRegister;
+      if(!register)return `<section class="drawer-section"><h3>Síntesis UX</h3><p>Este documento todavía no tiene una síntesis UX estructurada. Añade un Excel revisado para incorporar conocimiento curado.</p><button class="relation-action" type="button" data-add-insight-register="${escapeHtml(item.id)}">Añadir Excel revisado</button></section>`;
+      const canPrepare=item.analysis?.documentFirstV2?.mode==='active-new-ingest'||item.analysis?.documentFirstV2?.mode==='insight-register-primary';
+      return `<section class="drawer-section"><h3>Síntesis UX</h3><p><strong>${escapeHtml(register.file?.name||'Excel revisado')}</strong> · ${register.rows?.length||0} filas curadas · ${register.reviewedByUx?'Revisado por UX':'Revisión UX no confirmada'}</p><p>Es la capa editorial del mismo documento; no crea otra fuente ni otra Knowledge Base.</p><div class="form-actions"><button class="relation-action" type="button" data-view-insight-register="${escapeHtml(item.id)}">Abrir Excel revisado</button><button class="relation-action" type="button" data-add-insight-register="${escapeHtml(item.id)}">Actualizar Excel revisado</button>${canPrepare?`<button class="action-button" type="button" data-analyze-insight-register="${escapeHtml(item.id)}">Analizar con síntesis UX</button>`:''}</div></section>`;
+    }
+    function processedDocumentResult(item){
+      const related=documentKnowledgeRelations(item),publication=item.analysis?.publication||{},counts=publication.counts||{};
+      const created=related.learnings.filter(learning=>learning.documentId===item.id&&learning.publicationOperationId);
+      const updated=related.learnings.filter(learning=>(learning.publicationHistory||[]).some(entry=>entry.documentId===item.id));
+      const recommendations=related.units.filter(unit=>['Recomendación','Recomendación de sistema'].includes(unit.type));
+      const limits=item.analysis?.documentFirstV2?.documentLimits||item.analysis?.documentEditorial?.limits||item.analysis?.limits||[];
+      const recommendationCount=recommendations.length||counts.recommendations||0,questionCount=related.questions.length||counts.questions||0;
+      const learningLinks=(records,label)=>records.length?`<div class="document-result-list"><p><strong>${escapeHtml(label)}</strong></p>${records.map(learning=>`<p><button class="text-button" type="button" data-learning="${escapeHtml(learning.id)}">${escapeHtml(learning.title)}</button></p>`).join('')}</div>`:'';
+      return `<section class="document-result-panel"><header><h3>Qué conocimiento aportó</h3><p>${escapeHtml(documentKnowledgeOverview(item).text)}</p></header><div class="document-result-stats"><div class="document-result-stat"><strong>${created.length||counts.newLearnings||0}</strong><span>Learnings creados</span></div><div class="document-result-stat"><strong>${updated.length||(counts.reinforced||0)+(counts.expanded||0)}</strong><span>Learnings reforzados o ampliados</span></div><div class="document-result-stat"><strong>${recommendationCount}</strong><span>Recomendaciones</span></div><div class="document-result-stat"><strong>${questionCount}</strong><span>Preguntas abiertas</span></div><div class="document-result-stat"><strong>${counts.context||0}</strong><span>Bloques de evidencia/contexto</span></div><div class="document-result-stat"><strong>${limits.length}</strong><span>Límites documentales</span></div></div>${learningLinks(created,'Learnings creados')}${learningLinks(updated,'Learnings reforzados o ampliados')}<div class="document-result-actions"><button class="action-button" type="button" data-source-knowledge="${escapeHtml(item.id)}">Ver conocimiento relacionado</button>${documentCanUpdateSource(item)?`<button class="relation-action" type="button" data-source-update="${escapeHtml(item.id)}">Actualizar fuente documental</button>`:''}</div></section>`;
+    }
+    function documentDrawerMeta(item,deviceScope='No especificado'){
+      const location=documentApplicationPath(item)||'Pendiente de clasificar';
+      return `<div class="document-drawer-meta">
+        <div><span>Dónde aplica</span><strong>${escapeHtml(location)}</strong></div>
+        <div><span>Dispositivo</span><strong>${escapeHtml(deviceScope||'No especificado')}</strong></div>
+        <div><span>Fecha del documento</span><strong>${escapeHtml(documentDate(item))}</strong></div>
+        <div><span>Ingesta</span><strong>${escapeHtml(formatDateEs(item.ingestedAt))}</strong></div>
+        <div><span>Iniciativa</span><strong>${escapeHtml(item.initiative||'Sin clasificar')}</strong></div>
+      </div>`;
+    }
+    function drawerFileFooter(item,kind){
+      const downloadAttr=kind==='excel'?`data-download-insight-register="${escapeHtml(item.id)}"`:`data-doc-download-direct="${escapeHtml(item.id)}"`;
+      const label=kind==='excel'?'Descargar Excel':'Descargar PDF';
+      return `<div class="drawer-footer"><button class="secondary-button" type="button" data-close-editor>Cerrar</button><button class="action-button" type="button" ${downloadAttr}>${label}</button></div>`;
+    }
+    function openSource(id){
+      const item=sourceItems.find(value=>value.id===id);if(!item)return;
+      if(item.insightRegister){openInsightRegister(item);return;}
+      item.documentProfile=UXInsightRegister.documentProfile(item,item.documentProfile||{});
+      const related=documentLearningRelations(item),analysis=item.analysis,hasAnalysis=hasDocumentAnalysis(item);
+      const interpretation=hasAnalysis?documentInterpretation(item):null,insights=hasAnalysis?reviewInsightsForDocument(item,interpretation):[];
+      const deviceScope=analysis?.metadata?.devices?.join(', ')||'No especificado',primary=documentPrimaryAction(item),knowledge=documentKnowledgeOverview(item);
+
+      if(item.supportingDocument){
+        const filename=item.originalName||item.fileMeta?.name||'';
+        const header=`<div class="drawer-kicker" data-document-detail="${escapeHtml(item.id)}">PDF de apoyo</div><h2>${escapeHtml(item.name)}</h2>${filename?`<p class="drawer-file-name">${escapeHtml(filename)}</p>`:''}${documentDrawerMeta(item,deviceScope)}`;
+        const body=`<section class="drawer-section drawer-section-emphasis"><h3>Uso en UX Intel</h3><p>Este PDF se conserva como documentación de apoyo y fuente de consulta. No genera registros de conocimiento automáticamente.</p></section><section class="drawer-section"><h3>Archivo original</h3><p>${escapeHtml(filename||item.name)}</p></section>${drawerFileFooter(item,'pdf')}`;
+        openDrawer(header,body);return;
+      }
+
+      const filename=item.originalName||item.fileMeta?.name||'';
+      const header=`<div class="drawer-kicker" data-document-detail="${escapeHtml(item.id)}">${escapeHtml(item.type||'Documento')}</div><h2>${escapeHtml(item.name)}</h2>${filename?`<p class="drawer-file-name">${escapeHtml(filename)}</p>`:''}${documentDrawerMeta(item,deviceScope)}`;
+      const analysisCopy=documentAnalysisRecoverable(item)?'Hay información histórica trazable disponible para recuperar este análisis.':!documentHydrationComplete?'Recuperando el análisis guardado…':item.status==='Analizando'?'El análisis está en curso. La revisión estará disponible cuando termine.':hasAnalysis?`${insights.length} insights · ${analysis.findings.length} registros originales · ${interpretation.units.length} unidades válidas · ${analysis.pages??'No disponible'} páginas.`:documentHistoricalUnavailable(item)?'Análisis histórico no disponible en esta copia. Se conservan las relaciones existentes. No se ha vuelto a analizar el archivo.':'Este documento no tiene un análisis guardado.';
+      const sourceUpdateAction=documentCanUpdateSource(item)?`<button class="relation-action" type="button" data-source-update="${item.id}">Actualizar fuente documental</button>`:'';
+      const action=hasAnalysis||primary?.action==='view'?`<div class="form-actions"><button class="relation-action" type="button" data-source-view="${item.id}">Ver ficha</button>${sourceUpdateAction}</div>`:primary?`<div class="form-actions"><button class="relation-action" type="button" ${primary.action==='knowledge'?'data-source-knowledge':'data-source-analyze'}="${item.id}">${primary.label}</button>${sourceUpdateAction}</div>`:sourceUpdateAction;
+      const analysisSection=`<section class="drawer-section"><h3>Ficha del documento</h3><p>${escapeHtml(analysisCopy)}</p><p class="document-knowledge-note document-knowledge-${knowledge.kind}">${escapeHtml(knowledge.text)}</p>${isDocumentPublished(item)?`<p>Publicado · ${escapeHtml(formatDateEs(analysis.publication.publishedAt))}</p>`:''}${action}</section>`;
+      const technicalBody=`<section class="drawer-section"><h3>Clasificación</h3><p>${escapeHtml(item.type)} · Iniciativa ${escapeHtml((item.initiatives||[]).join(' · ')||item.initiative||'sin clasificar')}</p></section>${taxonomyLegacyDisclosure(item,'document')}${documentSourceHistoryMarkup(item)}${analysisSection}${insightRegisterSection(item)}${documentSourceGenealogyMarkup(item)}${related.used.length?`<section class="drawer-section"><h3>Learnings que utilizan esta fuente</h3>${learningRelations(related.used)}</section>`:''}${related.proposed.length?`<section class="drawer-section"><h3>Relaciones propuestas</h3><p>Pendientes de consolidación; todavía no se han incorporado al conocimiento.</p>${learningRelations(related.proposed)}</section>`:''}${documentExtraRelations(item)}${item.fileMeta?drawerFileFooter(item,'pdf'):`<div class="drawer-footer"><button class="secondary-button" type="button" data-close-editor>Cerrar</button></div>`}`;
+      const processed=isDocumentPublished(item)||['Procesado','Publicado'].includes(item.status)&&hasRelatedDocumentKnowledge(item);
+      const body=processed?`${processedDocumentResult(item)}<details class="document-trace-disclosure"><summary>Ver ficha completa y trazabilidad</summary>${technicalBody}</details>`:technicalBody;
+      openDrawer(header,body);
+    }
+
+    const panelNames={overview:'Resumen',explore:'Explorar conocimiento',learnings:'Learnings',evidence:'Evidencias',experiments:'Test A/B',patterns:'Patrones',sources:'Documentos',taxonomy:'Taxonomía y glosario',review:'Revisión del documento'};
+    const mobileMenuButton=document.querySelector('.mobile-menu');
+    function setMobileMenu(open,returnFocus=false){document.body.classList.toggle('menu-open',open);mobileMenuButton.setAttribute('aria-expanded',String(open));mobileMenuButton.setAttribute('aria-label',open?'Cerrar menú':'Abrir menú');if(open)document.querySelector('.nav-button.active')?.focus();else if(returnFocus)mobileMenuButton.focus();}
+    function renderExplore(){
+      try{
+        globalThis.__uxSimpleExploreRefresh?.();
+      }catch(error){
+        console.error("Error al refrescar Explorar", error);
+      }
+    }
+
+    function showPanel(id){const menuWasOpen=document.body.classList.contains('menu-open');document.querySelectorAll('.panel').forEach(panel=>panel.classList.toggle('active',panel.id===id));document.querySelectorAll('.nav-button').forEach(button=>{const current=button.dataset.panel===id;button.classList.toggle('active',current);if(current)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});document.getElementById('breadcrumb-current').textContent=panelNames[id];setMobileMenu(false);if(id==='review')renderReview();if(id==='explore')renderExplore();if(menuWasOpen){const heading=document.getElementById(id)?.querySelector('h1');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}}window.scrollTo({top:0,behavior:'smooth'});}
+    function activateReviewTab(key,moveFocus=false){
+      const workspace=document.getElementById('review-workspace');if(!workspace)return;
+      const tabs=[...workspace.querySelectorAll('[role="tab"]')],panes=[...workspace.querySelectorAll('[role="tabpanel"]')];
+      const tab=tabs.find(item=>item.dataset.reviewTab===key),panel=panes.find(item=>item.dataset.reviewPane===key);if(!tab||!panel)return;
+      tabs.forEach(item=>{const active=item.dataset.reviewTab===key;item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));item.tabIndex=active?0:-1;});
+      panes.forEach(pane=>{const active=pane.dataset.reviewPane===key;pane.classList.toggle('active',active);pane.hidden=!active;pane.setAttribute('aria-hidden',String(!active));});
+      if(moveFocus){tab.focus();tab.scrollIntoView({block:'nearest',inline:'nearest'});}
+    }
+    document.querySelectorAll('[data-panel]').forEach(button=>button.addEventListener('click',()=>showPanel(button.dataset.panel)));
+    document.addEventListener('click',event=>{const reviewTab=event.target.closest?.('[data-review-tab]');if(!reviewTab)return;event.preventDefault();activateReviewTab(reviewTab.dataset.reviewTab,true);});
+    document.addEventListener('keydown',event=>{const currentTab=event.target.closest?.('[role="tab"]');if(!currentTab)return;if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const tabs=[...currentTab.closest('[role="tablist"]').querySelectorAll('[role="tab"]')],index=tabs.indexOf(currentTab);const next=event.key==='Home'?tabs[0]:event.key==='End'?tabs[tabs.length-1]:event.key==='ArrowRight'?tabs[(index+1)%tabs.length]:tabs[(index-1+tabs.length)%tabs.length];activateReviewTab(next.dataset.reviewTab,true);}else if(['Enter',' '].includes(event.key)){event.preventDefault();activateReviewTab(currentTab.dataset.reviewTab,true);}});
+    document.addEventListener('click',event=>{
+      if(event.target.closest('[data-start-review]')){event.preventDefault();startPendingReview();return;}
+      if(event.target.closest('[data-approve-all-findings],[data-approve-routine-clusters],[data-cluster-approve],[data-finding-approve],[data-finding-discard],[data-finding-edit],[data-insight-edit],[data-relation-approve]')&&!reviewCanEdit(activeReviewDocument()))return;
+      const sourceDetail=event.target.closest('[data-open-source-detail]');if(sourceDetail)openSource(sourceDetail.dataset.openSourceDetail);
+      const jump=event.target.closest('[data-panel-jump]');if(jump){showPanel(jump.dataset.panelJump);if(jump.dataset.resetFilters)resetFilterGroup(jump.dataset.resetFilters);}
+      const product=event.target.closest('[data-product-jump]');if(product)goToKnowledgeContext({product:product.dataset.productJump});
+      const contextLink=event.target.closest('[data-knowledge-context]');if(contextLink){const [product,screen,component]=JSON.parse(contextLink.dataset.knowledgeContext);goToKnowledgeContext({product,screen,component});}
+      const fullLearning=event.target.closest('[data-open-full-learning]');if(fullLearning){openFullLearning(fullLearning.dataset.openFullLearning);return;}
+      const learning=event.target.closest('[data-learning]');if(learning){openLearning(learning.dataset.learning);taxonomyAddDrawerAction('learning',learning.dataset.learning);}
+      const detail=event.target.closest('[data-detail]');if(detail?.dataset.detail==='evidence'){openEvidence(detail.dataset.id);taxonomyAddDrawerAction('evidence',detail.dataset.id);}if(detail?.dataset.detail==='experiment'){openExperiment(detail.dataset.id);taxonomyAddDrawerAction('experiment',detail.dataset.id);}if(detail?.dataset.detail==='pattern'){openPattern(detail.dataset.id);taxonomyAddDrawerAction('pattern',detail.dataset.id);}
+      const relatedSource=event.target.closest('[data-source-name]');if(relatedSource){const name=decodeURIComponent(relatedSource.dataset.sourceName);closeDrawer();showPanel('sources');const initiative=document.getElementById('source-initiative');initiative.value=normalizeText(name).includes('header')?'Header':normalizeText(name).includes('buscador')?'Buscador':'Todas';renderSources();updateActiveFilters('source');showToast('Documento localizado',name);}
+      const relatedDownload=event.target.closest('[data-related-download]');if(relatedDownload)showToast('Descargar documento',decodeURIComponent(relatedDownload.dataset.relatedDownload));
+      const directDownload=event.target.closest('[data-doc-download-direct]');if(directDownload){const item=sourceItems.find(value=>value.id===directDownload.dataset.docDownloadDirect);if(item)downloadDocument(item);}
+      const addRegister=event.target.closest('[data-add-insight-register]');if(addRegister){insightRegisterTargetId=addRegister.dataset.addInsightRegister;insightRegisterUploadIntent='attach';insightRegisterInput.click();return;}
+const viewRegister=event.target.closest('[data-view-insight-register]');if(viewRegister){const item=sourceItems.find(value=>value.id===viewRegister.dataset.viewInsightRegister);if(item)openInsightRegister(item);return;}
+      const downloadRegister=event.target.closest('[data-download-insight-register]');if(downloadRegister){const item=sourceItems.find(value=>value.id===downloadRegister.dataset.downloadInsightRegister);if(item)downloadInsightRegister(item);return;}
+      const analyzeRegister=event.target.closest('[data-analyze-insight-register]');if(analyzeRegister){const item=sourceItems.find(value=>value.id===analyzeRegister.dataset.analyzeInsightRegister);if(item)analyzeWithInsightRegister(item);return;}
+      const sourceAnalyze=event.target.closest('[data-source-analyze]');
+      if(sourceAnalyze){const item=sourceItems.find(record=>record.id===sourceAnalyze.dataset.sourceAnalyze);if(item&&!isDocumentPublished(item)&&documentHydrationComplete){uploadTargetId=item.id;uploadIntent='analyze';uploadInput.click();}}
+      const sourceUpdate=event.target.closest('[data-source-update]');
+      if(sourceUpdate){const item=sourceItems.find(record=>record.id===sourceUpdate.dataset.sourceUpdate);if(documentCanUpdateSource(item)){uploadTargetId=item.id;uploadIntent='link';uploadInput.click();}}
+      const sourceUpdateChoice=event.target.closest('[data-source-update-choice]');
+      if(sourceUpdateChoice&&pendingSourceUpdate?.file){const item=sourceItems.find(record=>record.id===sourceUpdateChoice.dataset.sourceUpdateChoice);if(item)openSourceUpdateConfirmation(pendingSourceUpdate.file,item);}
+      if(event.target.closest('[data-cancel-source-update]')){pendingSourceUpdate=null;closeDrawer();}
+      if(event.target.closest('[data-confirm-source-update]')&&pendingSourceUpdate?.file&&pendingSourceUpdate.documentId){const pending=pendingSourceUpdate;pendingSourceUpdate=null;closeDrawer();processDocumentFile(pending.file,pending.documentId,{linkExisting:true});}
+      if(event.target.closest('[data-select-pilot-file]')){uploadTargetId=activeReviewDocument()?.id||PILOT_SOURCE_ID;uploadInput.click();}
+      if(event.target.closest('[data-approve-routine-clusters]')){(async()=>{const documentItem=activeReviewDocument(),clusters=reviewInsightsForDocument(documentItem).filter(cluster=>!cluster.needsDecision&&!insightIsReviewed(cluster));let count=0;for(const cluster of clusters){if(!await setClusterReviewDecision(documentItem,cluster.id,cluster.decision,'approved'))break;count++;}renderReview();showToast('Propuestas rutinarias revisadas',`${count} insights confirmados sin publicar conocimiento.`);})();}
+      const clusterApprove=event.target.closest('[data-cluster-approve]');if(clusterApprove){const documentItem=activeReviewDocument(),cluster=reviewInsightsForDocument(documentItem).find(item=>item.id===clusterApprove.dataset.clusterApprove);if(cluster)setClusterReviewDecision(documentItem,cluster.id,cluster.decision,'approved').then(saved=>{if(saved){renderReview();showToast('Decisión revisada','El insight queda revisado. No se ha publicado nada.');}});}
+
+
+      const insightEdit=event.target.closest('[data-insight-edit]');if(insightEdit){event.preventDefault();openInsightEditor(insightEdit.dataset.insightEdit);}
+      const relationApprove=event.target.closest('[data-relation-approve]');if(relationApprove){const documentItem=activeReviewDocument(),relation=documentItem?.analysis?.relations?.find(item=>item.id===relationApprove.dataset.relationApprove);if(relation){relation.status='approved';touchReview(documentItem);safeStorageWrite();renderReview();}}
+      if(event.target.closest('[data-open-publish-preview]'))openPublishPreview();
+      const previewExpand=event.target.closest('#publication-preview [data-preview-expand]');if(previewExpand)previewExpand.closest('#publication-preview').querySelectorAll('details').forEach(details=>{details.open=previewExpand.dataset.previewExpand==='true';});
+      if(event.target.closest('[data-confirm-publish]'))publishReview();
+      if(event.target.closest('[data-back-to-review]'))closeDrawer();
+      if(event.target.closest('[data-view-published-knowledge]')){closeDrawer();showPanel('learnings');showToast('Conocimiento publicado','Puedes consultar los learnings, evidencias, preguntas y patterns incorporados.');}
+      if(event.target.closest('[data-close-editor]'))closeDrawer();
+      if(event.target.closest('.drawer-close'))closeDrawer();
+      const menuButton=event.target.closest('[data-action-menu]');
+      if(menuButton){event.stopPropagation();const menu=document.querySelector(`[data-menu="${menuButton.dataset.actionMenu}"]`);document.querySelectorAll('.action-menu').forEach(value=>value!==menu&&value.classList.remove('open'));menu.classList.toggle('open');}
+      else if(!event.target.closest('.action-menu'))document.querySelectorAll('.action-menu').forEach(value=>value.classList.remove('open'));
+    });
+    const importWorkspaceModal=document.getElementById('import-workspace-modal');
+    document.addEventListener('keydown',event=>{const target=event.target.closest?.('[data-learning],[data-detail]');if(target&&(event.key==='Enter'||event.key===' ')){event.preventDefault();if(target.dataset.learning){openLearning(target.dataset.learning);taxonomyAddDrawerAction('learning',target.dataset.learning);}else if(target.dataset.detail==='evidence'){openEvidence(target.dataset.id);taxonomyAddDrawerAction('evidence',target.dataset.id);}else if(target.dataset.detail==='pattern'){openPattern(target.dataset.id);taxonomyAddDrawerAction('pattern',target.dataset.id);}else{openExperiment(target.dataset.id);taxonomyAddDrawerAction('experiment',target.dataset.id);}}if(event.key==='Tab'){if(drawer.classList.contains('open'))keepFocusInside(drawer,event);else if(!importWorkspaceModal.hidden)keepFocusInside(importWorkspaceModal,event);else if(!deleteModal.hidden)keepFocusInside(deleteModal,event);else if(document.body.classList.contains('menu-open'))keepFocusInside(document.getElementById('primary-navigation'),event);}if(event.key==='Escape'){setMobileMenu(false,true);closeDrawer();closeSearch();closeImportWorkspaceModal();closeDelete();}});
+    drawerBackdrop.addEventListener('click',closeDrawer);
+    mobileMenuButton.addEventListener('click',()=>setMobileMenu(mobileMenuButton.getAttribute('aria-expanded')!=='true'));
+    document.querySelector('.sidebar-backdrop').addEventListener('click',()=>setMobileMenu(false,true));
+
+    const toast=document.getElementById('toast');
+    function showToast(title,copy){toast.querySelector('strong').textContent=title;toast.querySelector('span').textContent=copy;toast.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>toast.classList.remove('show'),3200);}
+    function workspaceBackupFilename(date=new Date(),prefix='UX_Intelligence_workspace'){
+      const pad=value=>String(value).padStart(2,'0');
+      return `${prefix}_${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}_${pad(date.getHours())}-${pad(date.getMinutes())}.json`;
+    }
+    function downloadWorkspaceBackup(state,filename,{notify=false}={}){
+      try{
+        const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json;charset=utf-8'});
+        const url=URL.createObjectURL(blob);
+        const link=document.createElement('a');
+        link.href=url;
+        link.download=filename;
+        link.click();
+        setTimeout(()=>URL.revokeObjectURL(url),1000);
+        if(notify)showToast('Copia de seguridad creada','Se ha exportado el conocimiento y el estado de UX Intelligence. Los archivos PDF y Excel físicos no están incluidos.');
+        return true;
+      }catch(error){
+        console.error('No se pudo exportar el workspace',error);
+        if(notify)showToast('No se ha podido exportar','No se ha podido crear la copia de seguridad del workspace.');
+        return false;
+      }
+    }
+    function exportWorkspaceBackup(){
+      const historyChanged=normalizeLearningHistoryState();
+      if(historyChanged)safeStorageWrite({project:false});
+      const backupState={...buildWorkspaceState(),exportedAt:new Date().toISOString()};
+      downloadWorkspaceBackup(backupState,workspaceBackupFilename(),{notify:true});
+    }
+    function workspaceStructuredRecordCount(documents){
+      try{
+        const records=globalThis.UXSimpleKnowledge?.allRecords?.(documents);
+        if(Array.isArray(records))return records.length;
+      }catch(error){console.warn('[UX Intel backup] No se pudo contar con UXSimpleKnowledge',error);}
+      return (documents||[]).reduce((total,item)=>total+(item?.simpleKnowledgeActive&&Array.isArray(item?.insightRegister?.rows)?item.insightRegister.rows.length:0),0);
+    }
+    function validateWorkspaceBackup(state){
+      if(!state||typeof state!=='object'||Array.isArray(state))throw new Error('El archivo no contiene un workspace válido.');
+      const version=Number(state.workspaceSchemaVersion);
+      if(!Number.isFinite(version))throw new Error('El archivo no indica una versión de workspace válida.');
+      if(version!==WORKSPACE_SCHEMA_VERSION)throw new Error(`Este backup usa el esquema ${version}. UX Intel necesita el esquema ${WORKSPACE_SCHEMA_VERSION}.`);
+      ['documents','knowledgeUnits','openQuestionItems','learningState','patternState'].forEach(key=>{if(!Array.isArray(state[key]))throw new Error(`El backup no contiene ${key} en el formato esperado.`);});
+      return state;
+    }
+    function replaceWorkspaceState(state){
+      const clone=value=>JSON.parse(JSON.stringify(value||[]));
+      sourceItems.splice(0,sourceItems.length,...clone(state.documents));
+      knowledgeUnits.splice(0,knowledgeUnits.length,...clone(state.knowledgeUnits));
+      openQuestionItems.splice(0,openQuestionItems.length,...clone(state.openQuestionItems));
+      learnings.splice(0,learnings.length,...clone(state.learningState));
+      patternItems.splice(0,patternItems.length,...clone(state.patternState));
+      learnings.forEach(item=>{
+        if(!Object.prototype.hasOwnProperty.call(item,'createdAt'))item.createdAt='';
+        if(!Object.prototype.hasOwnProperty.call(item,'updatedAt'))item.updatedAt='';
+      });
+      normalizeLearningHistoryState();
+      activeReviewDocumentId=null;
+    }
+    function refreshWorkspaceAfterImport(){
+      refreshCatalogMetadata();
+      refreshDocumentDateFilter();
+      refreshAllTaxonomyFilters?.();
+      optionSet(document.getElementById('learning-market'),'Todos',[...new Set([...learnings.map(item=>item.market),...sourceItems.flatMap(item=>(item.insightRegister?.rows||[]).map(row=>row.market))].filter(Boolean))]);
+      optionSet(document.getElementById('evidence-kind'),'Todos',[...new Set(evidenceItems.map(item=>item.kind))]);
+      setDocumentAnalysisTypeFilter();
+      refreshInitiativeFilters();
+      renderOverview();renderLearnings();renderEvidence();renderExperiments();renderPatterns();renderSources();renderReview();renderExplore();renderTaxonomy();
+    }
+    let pendingWorkspaceImport=null,importWorkspaceReturnFocus=null;
+    function closeImportWorkspaceModal(){
+      if(importWorkspaceModal.hidden)return;
+      importWorkspaceModal.hidden=true;
+      pendingWorkspaceImport=null;
+      if(importWorkspaceReturnFocus?.isConnected)importWorkspaceReturnFocus.focus();
+      importWorkspaceReturnFocus=null;
+    }
+    function workspaceComparable(value,{ignoreTimestamps=true}={}){
+      const ignored=ignoreTimestamps?new Set(['createdAt','updatedAt','attachedAt','ingestedAt','exportedAt']):new Set();
+      const normalize=input=>{
+        if(Array.isArray(input))return input.map(normalize);
+        if(input&&typeof input==='object'){
+          const output={};
+          Object.keys(input).sort().forEach(key=>{if(!ignored.has(key))output[key]=normalize(input[key]);});
+          return output;
+        }
+        return input??null;
+      };
+      return JSON.stringify(normalize(value));
+    }
+    function workspaceDocumentComparable(item){
+      const normalized={...(item||{})};
+      normalized.funnel=String(item?.funnel||'');
+      normalized.minifunnel=String(item?.minifunnel||'');
+      normalized.documentScopeMode=String(item?.documentScopeMode||'');
+      normalized.components=Array.isArray(item?.components)?item.components:[];
+      normalized.initiatives=Array.isArray(item?.initiatives)?item.initiatives:[];
+      normalized.zone=String(item?.zone||'');
+      normalized.scope=String(item?.scope||'');
+      normalized.market=String(item?.market||'');
+      return workspaceComparable(normalized);
+    }
+    function workspaceEntityDiff(currentItems,nextItems,comparable=item=>workspaceComparable(item)){
+      const currentMap=new Map((currentItems||[]).map(item=>[String(item?.id||''),item]).filter(([id])=>id));
+      const nextMap=new Map((nextItems||[]).map(item=>[String(item?.id||''),item]).filter(([id])=>id));
+      const added=[...nextMap.keys()].filter(id=>!currentMap.has(id));
+      const removed=[...currentMap.keys()].filter(id=>!nextMap.has(id));
+      const modified=[...currentMap.keys()].filter(id=>nextMap.has(id)&&comparable(currentMap.get(id))!==comparable(nextMap.get(id)));
+      return {added,removed,modified,currentMap,nextMap};
+    }
+    function workspaceRecordMap(documents){
+      const map=new Map();
+      (documents||[]).forEach(documentItem=>{
+        (documentItem?.insightRegister?.rows||[]).forEach((row,index)=>{
+          const rowId=String(row?.id||row?.sourceRow||index+1);
+          map.set(`${documentItem.id}::${rowId}`,row);
+        });
+      });
+      return map;
+    }
+    function workspaceRecordDiff(currentDocuments,nextDocuments){
+      const currentMap=workspaceRecordMap(currentDocuments),nextMap=workspaceRecordMap(nextDocuments);
+      const added=[...nextMap.keys()].filter(id=>!currentMap.has(id));
+      const removed=[...currentMap.keys()].filter(id=>!nextMap.has(id));
+      const modified=[...currentMap.keys()].filter(id=>nextMap.has(id)&&workspaceComparable(currentMap.get(id))!==workspaceComparable(nextMap.get(id)));
+      return {added,removed,modified,currentMap,nextMap};
+    }
+    function workspaceInitiativeMembership(state){
+      const membership=new Map(),add=(name,member)=>{
+        const value=String(name||'').trim();if(!value||normalizeText(value)==='sin clasificar'||normalizeText(value)==='documentacion')return;
+        if(!membership.has(value))membership.set(value,new Set());
+        membership.get(value).add(member);
+      };
+      (state?.documents||[]).forEach(item=>{
+        const names=[item?.initiative,...(item?.initiatives||[])];
+        [...new Set(names.filter(Boolean))].forEach(name=>add(name,`D:${item.id}`));
+      });
+      (state?.learningState||[]).forEach(item=>{
+        const names=[item?.initiative,...(item?.initiatives||[])];
+        [...new Set(names.filter(Boolean))].forEach(name=>add(name,`L:${item.id}`));
+      });
+      return membership;
+    }
+    function inferWorkspaceInitiativeRenames(currentState,nextState){
+      const current=workspaceInitiativeMembership(currentState),next=workspaceInitiativeMembership(nextState);
+      const removed=[...current.keys()].filter(name=>![...next.keys()].some(candidate=>normalizeText(candidate)===normalizeText(name)));
+      const added=[...next.keys()].filter(name=>![...current.keys()].some(candidate=>normalizeText(candidate)===normalizeText(name)));
+      const signature=set=>[...set].sort().join('|'),renames=[];
+      removed.forEach(from=>{
+        const match=added.find(to=>signature(current.get(from))&&signature(current.get(from))===signature(next.get(to))&&!renames.some(item=>item.to===to));
+        if(match)renames.push({from,to:match});
+      });
+      return renames;
+    }
+    function workspaceDocumentScope(item){
+      if(!item)return 'Sin clasificar';
+      if(normalizeText(item.scope)==='transversal'||item.documentScopeMode==='transversal')return [item.product,'Transversal'].filter(Boolean).join(' › ');
+      const raw=[item.product,item.funnel,item.minifunnel,item.component].map(value=>String(value||'').trim()).filter(Boolean),parts=[];
+      raw.forEach(value=>{if(!parts.length||normalizeText(parts[parts.length-1])!==normalizeText(value))parts.push(value);});
+      return parts.join(' › ')||'Sin clasificar';
+    }
+    function workspaceClassificationChanges(documentDiff){
+      const keys=['initiative','initiatives','product','funnel','minifunnel','screen','component','element','scope','documentScopeMode'];
+      return documentDiff.modified.map(id=>{
+        const current=documentDiff.currentMap.get(id),next=documentDiff.nextMap.get(id);
+        const changed=keys.some(key=>workspaceComparable(current?.[key])!==workspaceComparable(next?.[key]));
+        if(!changed)return null;
+        const currentInitiative=String(current?.initiative||(current?.initiatives||[]).join(' · ')||'Sin iniciativa');
+        const nextInitiative=String(next?.initiative||(next?.initiatives||[]).join(' · ')||'Sin iniciativa');
+        const initiativeChanged=normalizeText(currentInitiative)!==normalizeText(nextInitiative);
+        const currentScope=workspaceDocumentScope(current),nextScope=workspaceDocumentScope(next);
+        const scopeChanged=normalizeText(currentScope)!==normalizeText(nextScope);
+        return {id,name:next?.name||current?.name||id,currentInitiative,nextInitiative,initiativeChanged,currentScope,nextScope,scopeChanged};
+      }).filter(Boolean);
+    }
+    function workspaceImportDiff(currentState,nextState){
+      const documents=workspaceEntityDiff(currentState.documents,nextState.documents,workspaceDocumentComparable);
+      const records=workspaceRecordDiff(currentState.documents,nextState.documents);
+      const learnings=workspaceEntityDiff(currentState.learningState,nextState.learningState);
+      const renames=inferWorkspaceInitiativeRenames(currentState,nextState);
+      const classifications=workspaceClassificationChanges(documents);
+      return {documents,records,learnings,renames,classifications};
+    }
+    function workspaceDiffCountMarkup(label,diff){
+      return `<div class="workspace-import-count"><strong>${escapeHtml(label)}</strong><span>+${diff.added.length} añadidos · −${diff.removed.length} eliminados · ${diff.modified.length} modificados</span></div>`;
+    }
+    function renderWorkspaceImportDiff(currentState,nextState){
+      const diff=workspaceImportDiff(currentState,nextState),container=document.getElementById('import-workspace-diff');
+      if(!container)return diff;
+      const totalChanges=['documents','records','learnings'].reduce((total,key)=>total+diff[key].added.length+diff[key].removed.length+diff[key].modified.length,0);
+      const highlights=[];
+      diff.renames.forEach(item=>highlights.push(`<p class="workspace-import-change"><strong>Iniciativa:</strong> ${escapeHtml(item.from)} → ${escapeHtml(item.to)}</p>`));
+      diff.classifications.slice(0,8).forEach(item=>{
+        const changes=[];
+        if(item.initiativeChanged)changes.push(`iniciativa ${escapeHtml(item.currentInitiative)} → ${escapeHtml(item.nextInitiative)}`);
+        if(item.scopeChanged)changes.push(`dónde aplica ${escapeHtml(item.currentScope)} → ${escapeHtml(item.nextScope)}`);
+        if(changes.length)highlights.push(`<p class="workspace-import-change"><strong>${escapeHtml(item.name)}:</strong> ${changes.join(' · ')}</p>`);
+      });
+      if(diff.classifications.length>8)highlights.push(`<p class="workspace-import-change">Y ${diff.classifications.length-8} cambios de clasificación adicionales.</p>`);
+      container.innerHTML=`<div class="workspace-import-counts">${workspaceDiffCountMarkup('Documentos',diff.documents)}${workspaceDiffCountMarkup('Registros',diff.records)}${workspaceDiffCountMarkup('Learnings',diff.learnings)}</div>${totalChanges===0?'<p class="workspace-import-equivalent">El backup es equivalente al estado actual: no se han detectado cambios de contenido.</p>':`<div class="workspace-import-section"><h3>Cambios destacados al importar</h3>${highlights.length?highlights.join(''):'<p class="workspace-import-equivalent">Hay cambios de contenido, pero no afectan a iniciativa o clasificación de documento.</p>'}</div>`}`;
+      return diff;
+    }
+    function openWorkspaceImportConfirmation(state,fileName){
+      const currentState=buildWorkspaceState();
+      const currentDocs=currentState.documents.length,currentRecords=workspaceStructuredRecordCount(currentState.documents),currentLearnings=currentState.learningState.length;
+      const nextDocs=state.documents.length,nextRecords=workspaceStructuredRecordCount(state.documents),nextLearnings=state.learningState.length;
+      pendingWorkspaceImport={state,fileName,currentState};
+      importWorkspaceReturnFocus=document.activeElement;
+      document.getElementById('import-workspace-copy').textContent=`Estado actual: ${currentDocs} documentos · ${currentRecords} registros · ${currentLearnings} learnings. Backup: ${nextDocs} documentos · ${nextRecords} registros · ${nextLearnings} learnings. Revisa debajo qué cambiaría realmente. Antes de importar se descargará automáticamente una copia del estado actual. Los PDF y Excel guardados en este navegador no se borrarán.`;
+      renderWorkspaceImportDiff(currentState,state);
+      importWorkspaceModal.hidden=false;
+      document.getElementById('import-workspace-cancel').focus();
+    }
+    async function confirmWorkspaceImport(){
+      if(!pendingWorkspaceImport)return;
+      const {state,currentState}=pendingWorkspaceImport;
+      const beforeImportBackup={...currentState,exportedAt:new Date().toISOString()};
+      const exported=downloadWorkspaceBackup(beforeImportBackup,workspaceBackupFilename(new Date(),'UX_Intelligence_backup_before_import'));
+      if(!exported){showToast('Importación cancelada','No se ha podido crear la copia automática previa. No se ha sustituido el workspace.');return;}
+      replaceWorkspaceState(state);
+      if(!safeStorageWrite({project:false})){
+        replaceWorkspaceState(currentState);
+        safeStorageWrite({project:false});
+        closeImportWorkspaceModal();
+        refreshWorkspaceAfterImport();
+        showToast('Importación cancelada','El backup no se ha podido guardar. Se ha mantenido el estado anterior.');
+        return;
+      }
+      if(typeof queueProjectHistory==='function'){
+        try{
+          const historySaved=await queueProjectHistory();
+          if(!historySaved)throw new Error('El histórico del proyecto no ha confirmado el guardado.');
+        }catch(error){
+          console.error('No se pudo actualizar el histórico tras importar el workspace',error);
+          replaceWorkspaceState(currentState);
+          safeStorageWrite({project:false});
+          closeImportWorkspaceModal();
+          closeDrawer();
+          refreshWorkspaceAfterImport();
+          showToast('Importación cancelada','El histórico del proyecto no se ha podido actualizar. Se ha restaurado el estado anterior y conservas la copia automática descargada.');
+          return;
+        }
+      }
+      closeImportWorkspaceModal();
+      closeDrawer();
+      refreshWorkspaceAfterImport();
+      showToast('Backup importado','El workspace se ha restaurado. Los archivos físicos existentes se han conservado y seguirán vinculados cuando coincida su identificador.');
+    }
+    async function readWorkspaceImportFile(file){
+      try{
+        const state=validateWorkspaceBackup(JSON.parse(await file.text()));
+        openWorkspaceImportConfirmation(state,file.name||'backup.json');
+      }catch(error){
+        console.error('No se pudo leer el backup del workspace',error);
+        showToast('Backup no válido',String(error?.message||'No se puede importar este archivo.'));
+      }
+    }
+    document.getElementById('export-workspace')?.addEventListener('click',exportWorkspaceBackup);
+    const importWorkspaceInput=document.getElementById('import-workspace-input');
+    document.getElementById('import-workspace')?.addEventListener('click',()=>importWorkspaceInput.click());
+    importWorkspaceInput?.addEventListener('change',()=>{const file=importWorkspaceInput.files?.[0];importWorkspaceInput.value='';if(file)readWorkspaceImportFile(file);});
+    document.getElementById('import-workspace-cancel')?.addEventListener('click',closeImportWorkspaceModal);
+    document.getElementById('import-workspace-close')?.addEventListener('click',closeImportWorkspaceModal);
+    document.getElementById('import-workspace-confirm')?.addEventListener('click',confirmWorkspaceImport);
+    importWorkspaceModal?.addEventListener('click',event=>{if(event.target===importWorkspaceModal)closeImportWorkspaceModal();});
+    const uploadInput=document.getElementById('document-upload');
+    const insightRegisterInput=document.getElementById('insight-register-upload');
+    let excelReturnPanel='sources',pdfReturnPanel='sources';
+    document.getElementById('add-evidence').addEventListener('click',()=>{excelReturnPanel=document.querySelector('.panel.active')?.id||'sources';insightRegisterTargetId='__new_excel__';insightRegisterUploadIntent='new';insightRegisterInput.click();});
+    document.getElementById('add-document').addEventListener('click',()=>{pdfReturnPanel=document.querySelector('.panel.active')?.id||'sources';uploadTargetId=null;uploadIntent='supporting';uploadInput.click();});
+    async function storeNewDocumentSource(file){
+      const fileName=String(file?.name||'documento'),item={id:`UP-${Date.now()}`,name:canonicalDocumentTitle(fileName.replace(/\.[^.]+$/,'')),product:'',screen:'',component:'',element:'',initiative:'Sin clasificar',type:'Sin clasificar',exactDate:'No especificada',documentDate:null,ingestedAt:new Date().toISOString(),status:'Pendiente de Insight Register',simpleKnowledgeActive:false,originalName:fileName,fileMeta:{name:fileName,size:file?.size||0,type:file?.type||'',lastModified:file?.lastModified||0}};
+      try{await saveDocumentBlob(item.id,file);sourceItems.unshift(item);if(!safeStorageWrite({project:false}))throw new Error('No se ha podido guardar el documento.');renderSources();renderOverview();showPanel('sources');openSource(item.id);showToast('Documento guardado','La fuente original está preservada. Añade su Excel revisado para incorporar conocimiento a la base activa.');}
+      catch(error){const index=sourceItems.findIndex(value=>value.id===item.id);if(index>=0)sourceItems.splice(index,1);await deleteDocumentBlob(item.id).catch(()=>{});console.error('[UX Intel source ingest]',error);showToast('No se ha guardado el documento',String(error?.message||error));}
+    }
+    async function storeSupportingDocument(file){
+      const fileName=String(file?.name||'documentacion.pdf');
+      if(!fileName.toLowerCase().endsWith('.pdf')){showToast('Formato no compatible','La documentación adicional debe ser un PDF.');return;}
+      const item={id:`PDF-${Date.now()}`,name:canonicalDocumentTitle(fileName.replace(/\.[^.]+$/,'')),product:'',screen:'',component:'',element:'',initiative:'Documentación',initiatives:[],type:'Documentación adicional',exactDate:'No especificada',documentDate:null,ingestedAt:new Date().toISOString(),status:'Disponible',supportingDocument:true,simpleKnowledgeActive:false,originalName:fileName,fileMeta:{name:fileName,size:file?.size||0,type:file?.type||'application/pdf',lastModified:file?.lastModified||0}};
+      try{
+        await saveDocumentBlob(item.id,file);sourceItems.unshift(item);
+        if(!safeStorageWrite({project:false}))throw new Error('No se ha podido guardar el PDF.');
+        if(projectHistory.ready&&!projectHistory.error&&documentHydrationComplete)await queueProjectHistory();
+        renderSources();renderOverview();showPanel(pdfReturnPanel||'sources');openSource(item.id);
+        showToast('PDF añadido','Se conserva como documentación de apoyo. No genera conocimiento automáticamente.');
+      }catch(error){const index=sourceItems.findIndex(value=>value.id===item.id);if(index>=0)sourceItems.splice(index,1);await deleteDocumentBlob(item.id).catch(()=>{});safeStorageWrite({project:false});console.error('[UX Intel supporting PDF]',error);showToast('No se ha guardado el PDF',String(error?.message||error));}
+    }
+    const LEARNING_SUGGESTION_VERSION='2026-09-21.2';
+    function learningSuggestionHash(value){
+      let hash=2166136261;
+      const text=String(value||'');
+      for(let index=0;index<text.length;index++){hash^=text.charCodeAt(index);hash=Math.imul(hash,16777619);}
+      return (hash>>>0).toString(36);
+    }
+    function learningSuggestionRowText(row){
+      return [row?.insight,row?.evidence,row?.uxImplication,row?.recommendation,row?.openQuestion,row?.uxLine,row?.component,row?.element,row?.screen,row?.minifunnel].filter(Boolean).join(' · ');
+    }
+    function learningSuggestionRowSignature(row,index){
+      return [row?.sourceRow||index+1,row?.insight,row?.evidence,row?.uxImplication,row?.recommendation,row?.recordType,row?.product,row?.funnel,row?.minifunnel,row?.screen,row?.component,row?.element,row?.initiative,row?.impactUx].map(value=>String(value||'').trim()).join('|');
+    }
+    function learningSuggestionSourceRows(entries){return entries.map(entry=>entry.row?.sourceRow||entry.index+1).sort((a,b)=>Number(a)-Number(b));}
+    function learningSuggestionEvidence(entries,item){
+      const origin=String(entries[0]?.row?.origin||'').trim()||documentAnalysisType(item)||sourceDisplayType(item);
+      return entries.slice(0,5).map(entry=>`${origin}: ${String(entry.row?.insight||entry.row?.evidence||entry.row?.recommendation||'Hallazgo revisado').trim()}`);
+    }
+    function learningSuggestionImpact(entries){
+      const values=entries.map(entry=>String(entry.row?.impactUx||'').trim());
+      return values.includes('Alto')?'Alto':values.includes('Medio')?'Medio':values.includes('Bajo')?'Bajo':'Medio';
+    }
+    function learningSuggestionLearningText(learning){
+      return [learning?.title,learning?.know,learning?.text,...(learning?.applications||[]),...(learning?.components||[]),learning?.component,learning?.screen,learning?.element].filter(Boolean).join(' ');
+    }
+    function learningSuggestionInitiativeMatches(learning,item,row){
+      const rowInitiative=String(row?.initiative||item?.initiative||'').trim();
+      if(!rowInitiative)return false;
+      return [learning?.initiative,...(learning?.initiatives||[])].some(value=>initiativeNameEquals(value,rowInitiative));
+    }
+    function learningSuggestionSpecificAnchorScore(row,learning){
+      const anchor=String(learning?.element||'').trim();
+      if(!anchor)return 1;
+      return semanticSimilarity(
+        [row?.insight,row?.component,row?.element,row?.uxLine].filter(Boolean).join(' '),
+        [learning?.title,anchor].filter(Boolean).join(' ')
+      );
+    }
+    function learningSuggestionTitleScore(row,learning){
+      return semanticSimilarity(String(row?.insight||''),String(learning?.title||''));
+    }
+    function learningSuggestionScore(entry,learning,item){
+      const row=entry.row,text=learningSuggestionRowText(row),learningText=learningSuggestionLearningText(learning);
+      const titleScore=learningSuggestionTitleScore(row,learning);
+      let score=semanticSimilarity(text,learningText)+Math.min(.18,titleScore*.28);
+      if(learningSuggestionInitiativeMatches(learning,item,row))score+=.04;
+      if(row?.product&&learning?.product&&normalizeText(row.product)===normalizeText(learning.product))score+=.02;
+      if(row?.screen&&learning?.screen&&normalizeText(row.screen)===normalizeText(learning.screen))score+=.01;
+      const rowComponent=normalizeText(row?.component||''),learningComponent=normalizeText(learning?.component||'');
+      if(rowComponent&&learningComponent&&rowComponent===learningComponent)score+=.04;
+      const rowContext=[row?.minifunnel,row?.component,row?.element,row?.uxLine].filter(Boolean).join(' ');
+      score+=Math.min(.04,semanticSimilarity(rowContext,learningText)*.16);
+
+      // Los learnings ligados a un elemento concreto (calendario, CTA, última búsqueda...)
+      // necesitan evidencia temática real; compartir Home/Buscador no basta.
+      const anchorScore=learningSuggestionSpecificAnchorScore(row,learning);
+      if(learning?.element&&anchorScore<.16)score=Math.min(score,.29);
+
+      // Lo mismo para componentes específicos: "Accesos rápidos" no debe absorber
+      // registros genéricos de Buscador o Above the fold.
+      const genericComponents=new Set(['','buscador','home','multipantalla','transversal']);
+      if(learningComponent&&!genericComponents.has(learningComponent)){
+        const componentScore=semanticSimilarity(String(row?.component||''),String(learning?.component||''));
+        if(componentScore<.35&&titleScore<.35)score=Math.min(score,.29);
+      }
+      return Math.max(0,Math.min(1,score));
+    }
+    function learningSuggestionIsContradiction(row){
+      return explicitContradictionSignal([learningSuggestionRowText(row),row?.observations,row?.recordType].filter(Boolean).join(' · '));
+    }
+    function learningSuggestionServiceTheme(entry){
+      const text=normalizeText(learningSuggestionRowText(entry.row));
+      const context=normalizeText([entry.row?.minifunnel,entry.row?.screen,entry.row?.component].filter(Boolean).join(' '));
+      if(/asiento|equipaje|priority|fast track|sala vip/.test(context))return false;
+      return /reduccion de esfuerzo|reducir esfuerzo|prerrellen|autocomplet|evita volver a introducir|evitar repetir|tareas repet|conveniencia|reconocimiento|personalizacion|capa de servicio|informacion ya conocida/.test(text);
+    }
+    function learningSuggestionGovernanceTheme(entry){
+      const row=entry.row||{};
+      const text=normalizeText([row.insight,row.uxImplication,row.uxLine,row.component].filter(Boolean).join(' '));
+      const recordType=normalizeText(row.recordType||'');
+      if(recordType==='restriccion')return true;
+      return /fuente de verdad|gobernanza|dependencia tecnica|restriccion tecnica|amadeus|pss|contenido desactualizado|reglas.*sistema|responsable.*regla/.test(text);
+    }
+    function learningSuggestionCandidateId(targetKey,entries){return `LS-${learningSuggestionHash(`${targetKey}|${learningSuggestionSourceRows(entries).join(',')}`)}`;}
+    function learningSuggestionExistingAction(entries,learning,scores){
+      if(entries.some(entry=>learningSuggestionIsContradiction(entry.row)))return 'Contradice learning';
+      const contextText=learningSuggestionLearningText(learning);
+      const expanded=entries.filter(entry=>semanticSimilarity([entry.row?.component,entry.row?.screen,entry.row?.uxLine].filter(Boolean).join(' '),contextText)<.10).length;
+      const average=scores.reduce((sum,value)=>sum+value,0)/Math.max(1,scores.length);
+      return expanded/Math.max(1,entries.length)>.45||average<.36?'Ampliar learning':'Reforzar learning existente';
+    }
+    function learningSuggestionNewTitle(item,theme,entries){
+      if(theme==='service-effort'){
+        const initiative=String(item?.initiative||entries[0]?.row?.initiative||'').trim();
+        if(/suma|frequent flyer/i.test(initiative))return 'Si ya sabemos quién es el usuario, no deberíamos pedirle lo mismo otra vez';
+        return 'Si ya tenemos información del usuario, debemos usarla para evitar pasos repetidos';
+      }
+      const representative=String(entries[0]?.row?.insight||entries[0]?.row?.uxImplication||'Nuevo aprendizaje a consolidar').trim();
+      return representative.length>120?`${representative.slice(0,117).trim()}…`:representative;
+    }
+    function learningSuggestionNewSummary(theme,entries){
+      if(theme==='service-effort')return 'Cuando el sistema ya dispone de datos del usuario, debemos aprovecharlos para evitar repeticiones y aplicar las ventajas disponibles.';
+      return entries.slice(0,3).map(entry=>String(entry.row?.uxImplication||entry.row?.insight||'').trim()).filter(Boolean).join(' ');
+    }
+    function learningSuggestionGenericClusters(entries){
+      const clusters=[];
+      entries.forEach(entry=>{
+        let best=null,bestScore=0;
+        clusters.forEach(cluster=>{
+          const score=Math.max(...cluster.entries.map(other=>semanticSimilarity(learningSuggestionRowText(entry.row),learningSuggestionRowText(other.row))));
+          if(score>bestScore){bestScore=score;best=cluster;}
+        });
+        if(best&&bestScore>=.24)best.entries.push(entry);else clusters.push({entries:[entry]});
+      });
+      return clusters;
+    }
+    function sameLearningSuggestionRows(left,right){
+      const a=[...(left||[])].map(String).sort(),b=[...(right||[])].map(String).sort();
+      return a.length===b.length&&a.every((value,index)=>value===b[index]);
+    }
+    function learningSuggestionResolvedRowRefs(item,state=null){
+      const resolved=new Set(),register=item?.insightRegister||{},current=state||register.learningSuggestions||{};
+      const addRefs=entry=>{
+        if(!entry||!entry.status||entry.status==='pending')return;
+        (entry.rowRefs||[]).forEach(value=>resolved.add(String(value)));
+      };
+      (current.history||[]).forEach(addRefs);
+      (current.candidates||[]).forEach(addRefs);
+      learningDecisionLogRead().forEach(entry=>{
+        if(String(entry?.documentId||'')===String(item?.id||'')&&entry?.status&&entry.status!=='pending'){
+          (entry.rowRefs||[]).forEach(value=>resolved.add(String(value)));
+        }
+      });
+      try{
+        learnings.forEach(learning=>{
+          (learning.publicationHistory||[]).forEach(entry=>{
+            if(String(entry?.documentId||'')===String(item?.id||'')){
+              (entry.rowRefs||[]).forEach(value=>resolved.add(String(value)));
+            }
+          });
+        });
+      }catch(_){}
+      return resolved;
+    }
+
+    function restoreLearningSuggestionCandidate(candidate,previousCandidates,item){
+      const previous=(previousCandidates||[]).find(entry=>entry.fingerprint===candidate.fingerprint)
+        ||(previousCandidates||[]).find(entry=>sameLearningSuggestionRows(entry.rowRefs,candidate.rowRefs)&&(entry.edited||(entry.status&&entry.status!=='pending')));
+      if(previous){
+        const restored={...candidate,...previous,fingerprint:candidate.fingerprint,rowRefs:candidate.rowRefs};
+        if(previous.status&&previous.status!=='pending')return restored;
+        if(previous.edited)return restored;
+      }
+      const rowsKey=learningDecisionRowsKey(candidate.rowRefs);
+      const remembered=[...learningDecisionLogRead()].reverse().find(entry=>
+        String(entry.documentId||'')===String(item?.id||'')&&
+        ((rowsKey&&entry.rowsKey===rowsKey)||(candidate.fingerprint&&entry.fingerprint===candidate.fingerprint))
+      );
+      if(remembered&&remembered.status&&remembered.status!=='pending'){
+        return {
+          ...candidate,
+          status:remembered.status,
+          action:remembered.action||candidate.action,
+          targetLearningId:remembered.learningId||candidate.targetLearningId,
+          appliedLearningId:remembered.learningId||candidate.appliedLearningId,
+          title:remembered.title||candidate.title,
+          know:remembered.know||candidate.know,
+          text:remembered.text||candidate.text,
+          edited:Boolean(remembered.edited||candidate.edited),
+          resolvedAt:remembered.savedAt||candidate.resolvedAt||''
+        };
+      }
+      try{
+        for(const learning of learnings){
+          const publication=(learning.publicationHistory||[]).find(entry=>
+            String(entry?.documentId||'')===String(item?.id||'')&&
+            sameLearningSuggestionRows(entry?.rowRefs,candidate.rowRefs)
+          );
+          if(publication){
+            return {
+              ...candidate,
+              status:'confirmed',
+              action:publication.decision||candidate.action,
+              targetLearningId:learning.id,
+              appliedLearningId:learning.id,
+              resolvedAt:publication.publishedAt||candidate.resolvedAt||''
+            };
+          }
+        }
+      }catch(_){}
+      return candidate;
+    }
+    function buildLearningSuggestions(item,previousState=null){
+      const register=item?.insightRegister;if(!register?.rows?.length)return null;
+      const allEntries=register.rows.map((row,index)=>({row,index}));
+      const rowFingerprint=learningSuggestionHash(allEntries.map(entry=>learningSuggestionRowSignature(entry.row,entry.index)).join('\n'));
+      const previousCandidates=previousState?.candidates||register.learningSuggestions?.candidates||[];
+      const resolvedRows=learningSuggestionResolvedRowRefs(item,previousState||register.learningSuggestions);
+      const entries=allEntries.filter(entry=>!resolvedRows.has(String(entry.row?.sourceRow||entry.index+1)));
+      const resolvedCandidates=(previousCandidates||[]).filter(candidate=>candidate?.status&&candidate.status!=='pending');
+      const historicalResolved=[];
+      (previousState?.history||register.learningSuggestions?.history||[]).forEach(historyEntry=>{
+        if(!historyEntry?.status||historyEntry.status==='pending')return;
+        const alreadyPresent=resolvedCandidates.some(candidate=>
+          sameLearningSuggestionRows(candidate?.rowRefs,historyEntry?.rowRefs)&&
+          String(candidate?.status||'')===String(historyEntry.status||'')&&
+          String(candidate?.targetLearningId||candidate?.appliedLearningId||'')===String(historyEntry?.learningId||'')
+        );
+        if(alreadyPresent)return;
+        const refs=new Set((historyEntry.rowRefs||[]).map(String));
+        const historicalEntries=allEntries.filter(entry=>refs.has(String(entry.row?.sourceRow||entry.index+1)));
+        const action=historyEntry.decision||(historyEntry.status==='evidence-only'?'Mantener solo como evidencia':'Reforzar learning existente');
+        historicalResolved.push({
+          action,
+          targetLearningId:historyEntry.learningId||'',
+          appliedLearningId:historyEntry.learningId||'',
+          newLearningTitle:'',
+          summary:historyEntry.correctionReason||'Decisión ya resuelta y conservada en el historial.',
+          impactUx:historicalEntries.length?learningSuggestionImpact(historicalEntries):'Medio',
+          rationale:historyEntry.correctionReason||'Decisión histórica ya revisada.',
+          evidence:historicalEntries.length?learningSuggestionEvidence(historicalEntries,item):[],
+          theme:historyEntry.status==='evidence-only'?'evidence-only':'',
+          id:historyEntry.candidateId||learningSuggestionCandidateId(historyEntry.learningId||action,historicalEntries),
+          fingerprint:historyEntry.fingerprint||learningSuggestionHash(`${historyEntry.learningId||action}|${(historyEntry.rowRefs||[]).join(',')}`),
+          rowRefs:[...(historyEntry.rowRefs||[])],
+          status:historyEntry.status,
+          resolvedAt:historyEntry.at||'',
+          createdAt:historyEntry.at||new Date().toISOString()
+        });
+      });
+      const reserved=new Set(),candidates=[...resolvedCandidates,...historicalResolved];
+      const addCandidate=(candidate,entriesForCandidate)=>{
+        const rowRefs=learningSuggestionSourceRows(entriesForCandidate),targetKey=candidate.targetLearningId||candidate.theme||candidate.action;
+        const fingerprint=learningSuggestionHash(`${targetKey}|${rowRefs.join(',')}`);
+        candidates.push(restoreLearningSuggestionCandidate({...candidate,id:learningSuggestionCandidateId(targetKey,entriesForCandidate),fingerprint,rowRefs,status:'pending',createdAt:new Date().toISOString()},previousCandidates,item));
+        entriesForCandidate.forEach(entry=>reserved.add(entry.index));
+      };
+
+      const serviceEntries=entries.filter(learningSuggestionServiceTheme);
+      if(serviceEntries.length>=3)addCandidate({action:'Crear nuevo learning',theme:'service-effort',targetLearningId:'',newLearningTitle:learningSuggestionNewTitle(item,'service-effort',serviceEntries),summary:learningSuggestionNewSummary('service-effort',serviceEntries),impactUx:learningSuggestionImpact(serviceEntries),rationale:`${serviceEntries.length} registros repiten la misma idea: usar información ya conocida para reducir pasos y esfuerzo.`,evidence:learningSuggestionEvidence(serviceEntries,item)},serviceEntries);
+
+      const governanceEntries=entries.filter(entry=>!reserved.has(entry.index)&&learningSuggestionGovernanceTheme(entry));
+      const governanceIndexes=new Set(governanceEntries.map(entry=>entry.index));
+
+      const groups=new Map(),unmatched=[];
+      entries.filter(entry=>!reserved.has(entry.index)&&!governanceIndexes.has(entry.index)).forEach(entry=>{
+        const ranked=learnings.map(learning=>({learning,score:learningSuggestionScore(entry,learning,item)})).sort((a,b)=>b.score-a.score);
+        const best=ranked[0];
+        const titleScore=best?learningSuggestionTitleScore(entry.row,best.learning):0;
+        const anchorScore=best?learningSuggestionSpecificAnchorScore(entry.row,best.learning):0;
+        const qualifies=best&&(best.score>=.34||titleScore>=.22||(best.learning?.element&&anchorScore>=.35));
+        if(qualifies){
+          if(!groups.has(best.learning.id))groups.set(best.learning.id,{learning:best.learning,entries:[],scores:[]});
+          groups.get(best.learning.id).entries.push(entry);groups.get(best.learning.id).scores.push(best.score);
+        }else unmatched.push(entry);
+      });
+      groups.forEach(group=>{
+        const action=learningSuggestionExistingAction(group.entries,group.learning,group.scores);
+        addCandidate({action,targetLearningId:group.learning.id,newLearningTitle:'',summary:`${group.entries.length} ${group.entries.length===1?'registro aporta':'registros aportan'} evidencia nueva al learning existente y ${action==='Reforzar learning existente'?'refuerza su dirección actual':'amplía su contexto o aplicaciones'}.`,impactUx:learningSuggestionImpact(group.entries),rationale:`Coincidencia con ${group.learning.id} · ${Math.round((group.scores.reduce((sum,value)=>sum+value,0)/group.scores.length)*100)}% de afinidad media.`,evidence:learningSuggestionEvidence(group.entries,item)},group.entries);
+      });
+
+      const genericClusters=learningSuggestionGenericClusters(unmatched).filter(cluster=>cluster.entries.length>=3);
+      genericClusters.slice(0,2).forEach((cluster,index)=>addCandidate({action:'Crear nuevo learning',theme:`cluster-${index+1}`,targetLearningId:'',newLearningTitle:learningSuggestionNewTitle(item,`cluster-${index+1}`,cluster.entries),summary:learningSuggestionNewSummary(`cluster-${index+1}`,cluster.entries),impactUx:learningSuggestionImpact(cluster.entries),rationale:`${cluster.entries.length} registros no encajan con suficiente claridad en un learning existente y comparten una misma línea temática.`,evidence:learningSuggestionEvidence(cluster.entries,item)},cluster.entries));
+
+      const evidenceOnly=entries.filter(entry=>!reserved.has(entry.index));
+      if(evidenceOnly.length)addCandidate({action:'Mantener solo como evidencia',theme:'evidence-only',targetLearningId:'',newLearningTitle:'Registros que todavía no justifican un learning independiente',summary:'Estos registros aportan contexto, reglas u oportunidades útiles, pero todavía no hay suficiente evidencia común para convertirlos en un learning propio.',impactUx:learningSuggestionImpact(evidenceOnly),rationale:`${evidenceOnly.length} registros quedan como evidencia estructurada sin forzar una conclusión consolidada.`,evidence:learningSuggestionEvidence(evidenceOnly,item)},evidenceOnly);
+
+      const resolvedOutput=candidates.filter(candidate=>candidate?.status&&candidate.status!=='pending');
+      const pendingOutput=candidates.filter(candidate=>!candidate?.status||candidate.status==='pending').slice(0,Math.max(0,6-resolvedOutput.length));
+      const state={version:LEARNING_SUGGESTION_VERSION,generatedAt:new Date().toISOString(),rowsFingerprint:rowFingerprint,candidates:[...resolvedOutput,...pendingOutput],history:[...(previousState?.history||register.learningSuggestions?.history||[])]};
+      register.learningSuggestions=state;return state;
+    }
+    function ensureLearningSuggestions(item,{force=false,previousState=null}={}){
+      const register=item?.insightRegister;if(!register?.rows?.length)return null;
+      const fingerprint=learningSuggestionHash(register.rows.map((row,index)=>learningSuggestionRowSignature(row,index)).join('\n'));
+      const current=register.learningSuggestions;
+      if(!force&&current?.version===LEARNING_SUGGESTION_VERSION&&current?.rowsFingerprint===fingerprint)return current;
+      return buildLearningSuggestions(item,previousState||current);
+    }
+    function learningSuggestionTarget(candidate){return candidate?.targetLearningId?learnings.find(learning=>learning.id===candidate.targetLearningId):null;}
+    function learningSuggestionStatusLabel(candidate){return candidate.status==='confirmed'?'Confirmado':candidate.status==='evidence-only'?'Solo evidencia':'Pendiente';}
+    function learningSuggestionStatusClass(candidate){return candidate.status==='confirmed'?'system-success':candidate.status==='evidence-only'?'neutral':'system-pending';}
+    function learningSuggestionsMarkup(item){
+      const state=ensureLearningSuggestions(item);
+      if(!state?.candidates?.length)return `<section class="drawer-section learning-suggestion-section"><div class="learning-suggestion-head"><div><h3>Sugerencias de learning</h3><p>No se han detectado propuestas de consolidación para este Excel.</p></div></div></section>`;
+      const pending=state.candidates.filter(candidate=>candidate.status==='pending').length;
+      return `<section class="drawer-section learning-suggestion-section"><div class="learning-suggestion-head"><div><h3>Sugerencias de learning</h3><p>UX Intel ha comparado los registros con los learnings existentes. Nada se incorpora al conocimiento consolidado sin tu confirmación.</p></div><span class="learning-suggestion-count">${pending} ${pending===1?'pendiente':'pendientes'}</span></div><div class="learning-suggestion-list">${state.candidates.map(candidate=>{
+        const target=learningSuggestionTarget(candidate),title=target?.title||candidate.newLearningTitle||'Propuesta de learning',resolved=candidate.status!=='pending';
+        return `<article class="learning-suggestion-card"><div class="learning-suggestion-card-head"><div class="learning-suggestion-copy"><span class="learning-suggestion-action">${escapeHtml(candidate.action)}</span><h4>${escapeHtml(title)}</h4><p>${escapeHtml(candidate.summary||candidate.rationale||'')}</p><div class="learning-suggestion-meta"><span>${candidate.rowRefs.length} ${candidate.rowRefs.length===1?'registro relacionado':'registros relacionados'}</span>${target?`<span>Objetivo: ${escapeHtml(target.id)}</span>`:''}<span>Impacto UX: ${escapeHtml(candidate.impactUx||'No informado')}</span></div></div><span class="status-badge learning-suggestion-status ${learningSuggestionStatusClass(candidate)}">${escapeHtml(learningSuggestionStatusLabel(candidate))}</span></div><details class="learning-suggestion-details"><summary>Ver registros que la sustentan</summary><ul>${(candidate.evidence||[]).map(value=>`<li>${escapeHtml(value)}</li>`).join('')}</ul></details>${resolved?'':`<div class="learning-suggestion-actions"><button class="action-button" type="button" data-learning-suggestion-confirm="${escapeHtml(candidate.id)}" data-source-id="${escapeHtml(item.id)}">Confirmar</button><button class="secondary-button" type="button" data-learning-suggestion-edit="${escapeHtml(candidate.id)}" data-source-id="${escapeHtml(item.id)}">Editar</button><button class="text-button" type="button" data-learning-suggestion-evidence="${escapeHtml(candidate.id)}" data-source-id="${escapeHtml(item.id)}">Mantener solo como evidencia</button></div>`}</article>`;
+      }).join('')}</div></section>`;
+    }
+    function learningSuggestionRows(item,candidate){
+      const refs=new Set((candidate?.rowRefs||[]).map(value=>String(value)));
+      return (item?.insightRegister?.rows||[]).filter((row,index)=>refs.has(String(row?.sourceRow||index+1)));
+    }
+    function learningSuggestionEntryRows(item,candidate){
+      const refs=new Set((candidate?.rowRefs||[]).map(value=>String(value)));
+      return (item?.insightRegister?.rows||[]).map((row,index)=>({row,index})).filter(entry=>refs.has(String(entry.row?.sourceRow||entry.index+1)));
+    }
+    function learningSuggestionCountText(value,count){
+      const text=String(value||'').trim();
+      if(!text)return text;
+      const label=count===1?'1 registro':`${count} registros`;
+      return text.replace(/^\d+\s+registros?\b/i,label);
+    }
+    function learningSuggestionSplitCandidate(item,entries){
+      if(!entries?.length)return null;
+      const rowRefs=learningSuggestionSourceRows(entries);
+      const fingerprint=learningSuggestionHash(`manual-split|${rowRefs.join(',')}`);
+      return {
+        action:'Mantener solo como evidencia',
+        theme:'manual-split',
+        targetLearningId:'',
+        newLearningTitle:'Registros separados de la propuesta',
+        summary:'Estos registros se han separado manualmente de otra propuesta. Puedes mantenerlos como evidencia o editarlos para asociarlos a otro learning.',
+        impactUx:learningSuggestionImpact(entries),
+        rationale:'Separados manualmente durante la revisión UX de la sugerencia.',
+        evidence:learningSuggestionEvidence(entries,item),
+        id:`LS-${fingerprint}`,
+        fingerprint,
+        rowRefs,
+        status:'pending',
+        createdAt:new Date().toISOString(),
+        manualSplit:true
+      };
+    }
+    function appendLearningSuggestionSplit(item,entries,currentCandidate){
+      if(!entries?.length)return null;
+      const state=item?.insightRegister?.learningSuggestions;if(!state)return null;
+      const split=learningSuggestionSplitCandidate(item,entries);if(!split)return null;
+      const already=state.candidates.some(candidate=>candidate!==currentCandidate&&sameLearningSuggestionRows(candidate?.rowRefs,split.rowRefs));
+      if(!already)state.candidates.push(split);
+      return split;
+    }
+
+    function nextLearningIdForInitiative(item){
+      const initiative=String(item?.initiative||'UX').trim();
+      const same=learnings.filter(learning=>[learning.initiative,...(learning.initiatives||[])].some(value=>initiativeNameEquals(value,initiative)));
+      const prefixes=same.map(learning=>String(learning.id||'').match(/^(L-[A-Z0-9]+)-\d+$/)?.[1]).filter(Boolean);
+      const prefix=prefixes[0]||`L-${normalizeText(initiative).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,8).toUpperCase()||'UX'}`;
+      const numbers=learnings.map(learning=>{const match=String(learning.id||'').match(/^(L-[A-Z0-9]+)-(\d+)$/);return match&&match[1]===prefix?Number(match[2]):null;}).filter(value=>Number.isFinite(value));
+      return `${prefix}-${String((numbers.length?Math.max(...numbers):0)+1).padStart(2,'0')}`;
+    }
+    function learningHistoryRowRefs(refs){
+      return [...new Set([...(refs||[])].map(value=>String(value)))];
+    }
+    function learningHistoryRowsNested(left,right){
+      const a=learningHistoryRowRefs(left),b=learningHistoryRowRefs(right);
+      if(!a.length||!b.length)return false;
+      const aInB=a.every(value=>b.includes(value));
+      const bInA=b.every(value=>a.includes(value));
+      return aInB||bInA;
+    }
+    function learningHistoryWithinWindow(left,right){
+      const a=Date.parse(left||''),b=Date.parse(right||'');
+      return Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<=10*60*1000;
+    }
+    function dedupeLearningPublicationHistory(entries){
+      const output=[];
+      [...(entries||[])].forEach(entry=>{
+        const refs=learningHistoryRowRefs(entry?.rowRefs);
+        if(!refs.length||!entry?.documentId){output.push(entry);return;}
+        let duplicateIndex=-1;
+        for(let index=output.length-1;index>=0;index--){
+          const previous=output[index];
+          if(String(previous?.documentId||'')!==String(entry.documentId||''))continue;
+          if(String(previous?.decision||'')!==String(entry?.decision||''))continue;
+          const exactRows=sameLearningSuggestionRows(previous?.rowRefs,entry?.rowRefs);
+          const nestedRecent=learningHistoryRowsNested(previous?.rowRefs,entry.rowRefs)&&learningHistoryWithinWindow(previous?.publishedAt,entry?.publishedAt);
+          if(!exactRows&&!nestedRecent)continue;
+          duplicateIndex=index;
+          break;
+        }
+        if(duplicateIndex<0){output.push(entry);return;}
+        const previous=output[duplicateIndex];
+        const previousRefs=learningHistoryRowRefs(previous?.rowRefs);
+        const previousAt=Date.parse(previous?.publishedAt||'');
+        const currentAt=Date.parse(entry?.publishedAt||'');
+        const preferCurrent=refs.length>previousRefs.length||(refs.length===previousRefs.length&&currentAt>=previousAt);
+        if(preferCurrent){
+          output.splice(duplicateIndex,1);
+          output.push(entry);
+        }
+      });
+      return output;
+    }
+    function dedupeLearningSuggestionHistory(entries){
+      const output=[];
+      [...(entries||[])].forEach(entry=>{
+        const refs=learningHistoryRowRefs(entry?.rowRefs);
+        if(!refs.length){output.push(entry);return;}
+        let duplicateIndex=-1;
+        for(let index=output.length-1;index>=0;index--){
+          const previous=output[index];
+          if(String(previous?.learningId||'')!==String(entry?.learningId||''))continue;
+          if(String(previous?.decision||'')!==String(entry?.decision||''))continue;
+          const exactRows=sameLearningSuggestionRows(previous?.rowRefs,entry?.rowRefs);
+          const nestedRecent=learningHistoryRowsNested(previous?.rowRefs,entry.rowRefs)&&learningHistoryWithinWindow(previous?.at,entry?.at);
+          if(!exactRows&&!nestedRecent)continue;
+          duplicateIndex=index;
+          break;
+        }
+        if(duplicateIndex<0){output.push(entry);return;}
+        const previous=output[duplicateIndex];
+        const previousRefs=learningHistoryRowRefs(previous?.rowRefs);
+        const previousAt=Date.parse(previous?.at||'');
+        const currentAt=Date.parse(entry?.at||'');
+        const preferCurrent=refs.length>previousRefs.length||(refs.length===previousRefs.length&&currentAt>=previousAt);
+        if(preferCurrent){
+          output.splice(duplicateIndex,1);
+          output.push(entry);
+        }
+      });
+      return output;
+    }
+    function normalizeLearningHistoryState(){
+      let changed=false;
+      learnings.forEach(learning=>{
+        const current=[...(learning?.publicationHistory||[])];
+        const cleaned=dedupeLearningPublicationHistory(current);
+        if(JSON.stringify(current)!==JSON.stringify(cleaned)){
+          learning.publicationHistory=cleaned;
+          changed=true;
+        }
+      });
+      sourceItems.forEach(item=>{
+        const state=item?.insightRegister?.learningSuggestions;
+        if(!state)return;
+        const current=[...(state.history||[])];
+        const cleaned=dedupeLearningSuggestionHistory(current);
+        if(JSON.stringify(current)!==JSON.stringify(cleaned)){
+          state.history=cleaned;
+          changed=true;
+        }
+      });
+      return changed;
+    }
+
+
+    // Mantiene las preguntas abiertas sincronizadas con nueva evidencia ya revisada.
+    // Solo actúa cuando una fila declara explícitamente su estado (Resuelta / Parcial / Abierta)
+    // y la relación semántica con una pregunta existente es suficientemente fuerte.
+    function questionResolutionStatus(row){
+      const value=normalizeText(row?.status||'');
+      if(value==='resuelta')return 'resolved';
+      if(value==='parcial')return 'partial';
+      if(value==='abierta')return 'open';
+      return '';
+    }
+    function questionResolutionRowText(row){
+      return [row?.insight,row?.evidence,row?.implication,row?.recommendation,row?.openQuestion,row?.product,row?.funnel,row?.minifunnel,row?.screen,row?.component,row?.element]
+        .filter(Boolean).join(' · ');
+    }
+    function questionOwnerCompatible(owner,row){
+      const ownerProduct=normalizeText(owner?.product||''),rowProduct=normalizeText(row?.product||'');
+      return !(ownerProduct&&rowProduct&&ownerProduct!==rowProduct);
+    }
+    function questionLooksLikeDesignQuestion(question){
+      const value=normalizeText(question||'');
+      const asksHow=/^[¿?¡!\s]*(como|de que forma|que patron|que tratamiento|como deberia|como deben)/.test(value);
+      const designTopic=/(comunic|mostrar|presentar|explicar|diseñ|patron|interaccion|mensaje|jerarquia|visual)/.test(value);
+      return asksHow&&designTopic;
+    }
+    function questionTopicBonus(question,row){
+      const q=normalizeText(question||''),text=normalizeText(questionResolutionRowText(row));
+      let bonus=0;
+      ['upsell','fare families','fare family','priority boarding','asientos','equipaje','login','multipasajero'].forEach(term=>{
+        if(q.includes(term)&&text.includes(term))bonus+=0.10;
+      });
+      ['millas','acumulacion','beneficios','tarifa','suma','pasajero','elegibilidad','descuento'].forEach(term=>{
+        if(q.includes(term)&&text.includes(term))bonus+=0.025;
+      });
+      return Math.min(0.18,bonus);
+    }
+    function questionResolutionMatch(question,owner,rows){
+      // Las preguntas de diseño/representación siguen abiertas aunque una dependencia técnica se aclare.
+      if(questionLooksLikeDesignQuestion(question))return null;
+      let best=null;
+      (rows||[]).forEach(row=>{
+        const status=questionResolutionStatus(row);
+        if(!status||!questionOwnerCompatible(owner,row))return;
+        let score=semanticSimilarity(question,questionResolutionRowText(row))+questionTopicBonus(question,row);
+        if(normalizeText(owner?.product||'')&&normalizeText(owner?.product||'')===normalizeText(row?.product||''))score+=0.04;
+        const ownerComponent=normalizeText(owner?.component||''),rowComponent=normalizeText(row?.component||'');
+        if(ownerComponent&&rowComponent&&ownerComponent===rowComponent)score+=0.04;
+        const ownerScreen=normalizeText(owner?.screen||''),rowScreen=normalizeText(row?.screen||'');
+        if(ownerScreen&&rowScreen&&(ownerScreen===rowScreen||rowScreen.includes(ownerScreen)||ownerScreen.includes(rowScreen)))score+=0.03;
+        if(score>=0.30&&(!best||score>best.score))best={row,status,score};
+      });
+      return best;
+    }
+    function recordQuestionTransition(owner,from,to,status,item,row){
+      owner.questionHistory=Array.isArray(owner.questionHistory)?owner.questionHistory:[];
+      const entry={from:String(from||''),to:String(to||''),status,sourceName:item?.name||'',sourceFile:item?.originalName||'',at:new Date().toISOString(),rowRef:row?.sourceRow||''};
+      const duplicate=owner.questionHistory.some(value=>normalizeText(value?.from||'')===normalizeText(entry.from)&&normalizeText(value?.to||'')===normalizeText(entry.to)&&String(value?.sourceName||'')===entry.sourceName);
+      if(!duplicate)owner.questionHistory.push(entry);
+    }
+    function reconcileLearningQuestions(learning,rows,item){
+      const current=Array.isArray(learning?.open)?learning.open:[];
+      if(!current.length)return false;
+      let changed=false;
+      const next=[];
+      current.forEach(question=>{
+        const match=questionResolutionMatch(question,learning,rows);
+        if(!match){next.push(question);return;}
+        const replacement=String(match.row?.openQuestion||'').trim();
+        if(match.status==='resolved'){
+          changed=true;
+          if(replacement&&normalizeText(replacement)!==normalizeText(question))next.push(replacement);
+          recordQuestionTransition(learning,question,replacement,'resolved',item,match.row);
+          return;
+        }
+        if(replacement&&normalizeText(replacement)!==normalizeText(question)){
+          next.push(replacement);changed=true;
+          recordQuestionTransition(learning,question,replacement,match.status,item,match.row);
+        }else next.push(question);
+      });
+      const seen=new Set();
+      learning.open=next.filter(value=>{const key=normalizeText(value);if(!key||seen.has(key))return false;seen.add(key);return true;});
+      if(changed)learning.updatedAt=new Date().toISOString().slice(0,10);
+      return changed;
+    }
+    function reconcileStandaloneQuestions(rows,item){
+      let changed=false;
+      openQuestionItems.forEach(questionItem=>{
+        if(questionItem?.resolvedAt||!questionItem?.text)return;
+        const match=questionResolutionMatch(questionItem.text,questionItem,rows);
+        if(!match)return;
+        const replacement=String(match.row?.openQuestion||'').trim();
+        recordQuestionTransition(questionItem,questionItem.text,replacement,match.status,item,match.row);
+        if(match.status==='resolved'&&!replacement){
+          questionItem.resolvedAt=new Date().toISOString();
+          questionItem.resolvedBy=item?.name||'';
+          changed=true;
+          return;
+        }
+        if(replacement&&normalizeText(replacement)!==normalizeText(questionItem.text)){
+          questionItem.text=replacement;
+          questionItem.updatedAt=new Date().toISOString();
+          changed=true;
+        }
+      });
+      return changed;
+    }
+    function reconcileOpenQuestionsFromRows(rows,item){
+      const useful=(rows||[]).filter(row=>questionResolutionStatus(row));
+      if(!useful.length)return false;
+      let changed=false;
+      learnings.forEach(learning=>{if(reconcileLearningQuestions(learning,useful,item))changed=true;});
+      if(reconcileStandaloneQuestions(useful,item))changed=true;
+      return changed;
+    }
+    function reconcileResolvedQuestionKnowledge(){
+      // Conservada solo por compatibilidad con estados antiguos.
+      // UX Intel ya no modifica preguntas mediante matching global.
+      return false;
+    }
+
+    function applyLearningSuggestion(item,candidate){
+      const rows=learningSuggestionRows(item,candidate),publishedAt=new Date().toISOString(),entries=rows.map((row,index)=>({row,index})),evidence=learningSuggestionEvidence(entries,item);
+      const components=[...new Set(rows.map(row=>canonicalComponentName(row.component)).filter(Boolean))];
+      const applications=[...new Set(rows.flatMap(row=>[row.screen,row.component,row.element,...String(row.uxLine||'').split(/[;|·]/)]).map(value=>String(value||'').trim()).filter(Boolean))];
+      if(candidate.action==='Mantener solo como evidencia'){candidate.status='evidence-only';candidate.resolvedAt=publishedAt;return null;}
+      let learning=learningSuggestionTarget(candidate);
+      if(candidate.action==='Crear nuevo learning'){
+        const products=[...new Set(rows.map(row=>String(row.product||'').trim()).filter(Boolean))],screens=[...new Set(rows.map(row=>String(row.screen||'').trim()).filter(Boolean))],devices=[...new Set(rows.map(row=>String(row.channelEnvironment||row.device||'').trim()).filter(Boolean))],markets=[...new Set(rows.map(row=>String(row.market||'').trim()).filter(Boolean))];
+        const rawComponents=[...new Set(rows.map(row=>String(row.component||'').trim()).filter(Boolean))];
+        const inferredComponent=components.length===1?components[0]:(rawComponents.length===1?rawComponents[0]:'');
+        const enteredComponent=String(candidate.component||inferredComponent||'').trim();
