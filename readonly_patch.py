@@ -176,11 +176,63 @@ s = s.replace(
     1
 )
 
+
+# Vista pública independiente: no reutiliza el contenedor controlado por el renderer editable.
+_public_taxonomy_html = (
+    '<div id="ux-public-taxonomy-static" class="ux-public-taxonomy-static">'
+    '<nav class="ux-public-taxonomy-static-tree" aria-label="Taxonomía canónica de solo lectura">' + _tax_tree_html + '</nav>'
+    '<article class="ux-public-taxonomy-static-detail">' + _tax_detail_html + '</article>'
+    '</div>'
+)
+s = s.replace(
+    '<div class="taxonomy-layout">',
+    _public_taxonomy_html + '<div class="taxonomy-layout ux-public-taxonomy-editable-layout">',
+    1
+)
+
 static_taxonomy_guard_js = f"""
 <script id="ux-demo-static-taxonomy-guard">
 (() => {{
   const TREE_HTML={json.dumps(_tax_tree_html, ensure_ascii=False)};
   const TERMS={canonical_terms_js};
+
+  function bindIndependentPublicTaxonomy(){{
+    const root=document.getElementById('ux-public-taxonomy-static');
+    if(!root||root.dataset.bound==='true')return;
+    root.dataset.bound='true';
+    const tree=root.querySelector('.ux-public-taxonomy-static-tree');
+    const detail=root.querySelector('.ux-public-taxonomy-static-detail');
+    if(!tree||!detail)return;
+
+    const map=new Map(TERMS.map(item=>[String(item.id||''),item]));
+    const pathFor=term=>{{
+      const out=[];let current=term;let guard=0;
+      while(current&&guard++<20){{
+        out.unshift(String(current.canonicalName||current.name||''));
+        current=current.parentId?map.get(String(current.parentId)):null;
+      }}
+      return out;
+    }};
+    const show=term=>{{
+      if(!term)return;
+      const aliases=Array.isArray(term.aliases)?term.aliases.filter(Boolean):[];
+      detail.innerHTML='<div class="ux-ro-static-taxonomy-detail">'+
+        '<span class="eyebrow">'+String(term.level||'')+'</span>'+
+        '<h2>'+String(term.canonicalName||term.name||'')+'</h2>'+
+        '<p>'+pathFor(term).join(' › ')+'</p>'+
+        (aliases.length?'<div class="ux-ro-static-taxonomy-aliases"><strong>Aliases</strong><p>'+aliases.join(' · ')+'</p></div>':'')+
+        '</div>';
+      tree.querySelectorAll('[data-ro-static-taxonomy-id]').forEach(node=>node.classList.toggle('active',String(node.dataset.roStaticTaxonomyId||'')===String(term.id||'')));
+    }};
+    tree.addEventListener('click',event=>{{
+      const btn=event.target.closest('[data-ro-static-taxonomy-id]');
+      if(!btn)return;
+      event.preventDefault();event.stopImmediatePropagation();
+      show(map.get(String(btn.dataset.roStaticTaxonomyId||'')));
+    }},true);
+    const first=tree.querySelector('[data-ro-static-taxonomy-id]');
+    if(first)show(map.get(String(first.dataset.roStaticTaxonomyId||'')));
+  }}
 
   function pathFor(term){{
     const map=new Map(TERMS.map(item=>[String(item.id||''),item]));
@@ -228,8 +280,8 @@ static_taxonomy_guard_js = f"""
     }}
   }}
 
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',ensure,{{once:true}});
-  else ensure();
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{{ensure();bindIndependentPublicTaxonomy();}},{{once:true}});
+  else {{ensure();bindIndependentPublicTaxonomy();}}
   window.addEventListener('load',()=>{{ensure();setTimeout(ensure,300);setTimeout(ensure,1200);setTimeout(ensure,3000);}},{{once:true}});
   setInterval(()=>{{
     const taxonomy=document.getElementById('taxonomy');
@@ -451,6 +503,37 @@ readonly_css = r'''
 <style id="ux-demo-taxonomy-readonly-fallback">
 #taxonomy .taxonomy-layout{grid-template-columns:minmax(320px,.9fr) minmax(360px,1.1fr)!important;align-items:start}
 #taxonomy .taxonomy-tree,#taxonomy .taxonomy-detail{background:#fff;border:1px solid var(--border-secondary);border-radius:14px}
+
+/* En demo pública usamos una vista estática independiente del renderer editable */
+#taxonomy .ux-public-taxonomy-editable-layout{display:none!important;}
+#taxonomy .ux-public-taxonomy-static{
+  display:grid;grid-template-columns:minmax(320px,.9fr) minmax(360px,1.1fr);
+  gap:18px;align-items:start;
+}
+#taxonomy .ux-public-taxonomy-static-tree,
+#taxonomy .ux-public-taxonomy-static-detail{
+  background:#fff;border:1px solid var(--border-secondary);border-radius:14px;
+}
+#taxonomy .ux-public-taxonomy-static-tree{padding:12px;}
+#taxonomy .ux-public-taxonomy-static-detail{padding:22px;min-height:180px;}
+#taxonomy .ux-public-taxonomy-static-tree .ux-ro-static-taxonomy-term{
+  display:flex;align-items:center;width:calc(100% - (var(--ux-ro-depth,0) * 14px));
+  margin-left:calc(var(--ux-ro-depth,0) * 14px);
+  min-height:42px;padding:8px 10px;border:0;border-bottom:1px solid var(--border-secondary);
+  background:transparent;text-align:left;color:var(--text-primary);font:inherit;font-weight:600;cursor:pointer;
+}
+#taxonomy .ux-public-taxonomy-static-tree .ux-ro-static-taxonomy-term::before{
+  content:"";width:4px;height:22px;border-radius:999px;margin-right:10px;background:#d0d5dd;flex:0 0 auto;
+}
+#taxonomy .ux-public-taxonomy-static-tree [data-taxonomy-level="product"]::before{background:#2d69e1;}
+#taxonomy .ux-public-taxonomy-static-tree [data-taxonomy-level="funnel"]::before{background:#17b26a;}
+#taxonomy .ux-public-taxonomy-static-tree [data-taxonomy-level="minifunnel"]::before{background:#f79009;}
+#taxonomy .ux-public-taxonomy-static-tree [data-taxonomy-level="component"]::before{background:#7a5af8;}
+#taxonomy .ux-public-taxonomy-static-tree .ux-ro-static-taxonomy-term:hover,
+#taxonomy .ux-public-taxonomy-static-tree .ux-ro-static-taxonomy-term.active{background:#f5f8ff;}
+@media(max-width:820px){
+  #taxonomy .ux-public-taxonomy-static{grid-template-columns:1fr;}
+}
 #taxonomy .taxonomy-tree{padding:12px}
 #taxonomy .taxonomy-detail{padding:22px;min-height:180px}
 .ux-ro-taxonomy-node{margin-left:calc(var(--ux-depth,0) * 18px)}
