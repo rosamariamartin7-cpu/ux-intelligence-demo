@@ -696,6 +696,323 @@ else:
 if 'id="ux-demo-static-taxonomy-guard"' not in s:
     s = s.replace('</body>', static_taxonomy_guard_js + '\n</body>', 1)
 
+# UX_INTEL_SYNC_2026_10_29_BEGIN
+# Capa incremental: replica exclusivamente mejoras validadas en la app local.
+# No modifica la base documental, taxonomía canónica, learnings ni contenido.
+import re as _ux_re
+
+def _ux_required_replace(old, new, label, count=1):
+    global s
+    if old not in s:
+        raise SystemExit(f'ERROR UX sync: no se encuentra {label}')
+    s = s.replace(old, new, count)
+
+# 1) Fecha histórica de incorporación en los 198 registros públicos.
+_m = _ux_re.search(r'const publicDemoRows=(\[.*?\]);', s, _ux_re.S)
+if not _m:
+    raise SystemExit('ERROR UX sync: no se encuentra publicDemoRows para fechas')
+_rows = json.loads(_m.group(1))
+def _inc_date(row):
+    initiative=str(row.get('initiative') or '')
+    origin=str(row.get('origin') or '')
+    rid=str(row.get('id') or '')
+    try:
+        n=int(rid.split('-')[-1])
+    except Exception:
+        n=-1
+    if initiative=='SUMA Frequent Flyer':
+        if 1 <= n <= 36: return '2026-10'
+        if 37 <= n <= 87: return '2026-07'
+        if 88 <= n <= 101: return '2026-09'
+    if initiative=='Buscador':
+        if 144 <= n <= 153: return '2026-06'
+        if origin in ('Auditoría UX','Desk research'): return '2026-05'
+        if origin in ('Análisis de datos','Análisis conductual','Benchmark'): return '2026-06'
+    if initiative=='Header':
+        if 164 <= n <= 167: return '2026-06'
+        if 168 <= n <= 170: return '2026-07'
+        return {'Benchmark':'2026-06','Test con usuarios':'2026-05','Análisis de datos':'2026-04','Auditoría UX':'2026-06','Desk research':'2026-04'}.get(origin,'')
+    return ''
+for _row in _rows:
+    _row['incorporationDate']=_inc_date(_row)
+if len(_rows)!=198 or any(not str(r.get('incorporationDate') or '').strip() for r in _rows):
+    raise SystemExit('ERROR UX sync: las fechas públicas no cubren 198/198 registros')
+_rows_json=json.dumps(_rows,ensure_ascii=False,separators=(',',':'))
+s=s[:_m.start(1)]+_rows_json+s[_m.end(1):]
+
+# 2) Propagar la fecha al registro normalizado.
+_ux_required_replace("          ingestedAt:row.ingestedAt||rowDoc?.ingestedAt||''", "          ingestedAt:row.ingestedAt||rowDoc?.ingestedAt||'',\n          incorporationDate:row.incorporationDate||rowDoc?.incorporationDate||'',\n          reportDate:(row.reportDate||((rowDoc&&typeof documentDate==='function')?documentDate(rowDoc):''))", 'normalización principal')
+_ux_required_replace("          ingestedAt:doc.ingestedAt||'',", "          ingestedAt:doc.ingestedAt||'',\n          incorporationDate:row.incorporationDate||doc.incorporationDate||'',\n          reportDate:(row.reportDate||((typeof documentDate==='function')?documentDate(doc):'')),", 'normalización secundaria')
+
+# 3) Helper de presentación: mes/año histórico, sin usar el 23/10 del master.
+_helper_anchor='  function compactContextPath(record){'
+_helper=r'''
+  function incorporationTemporalValue(record){
+    const explicit=clean(record?.incorporationDate||'');
+    if(explicit)return explicit;
+    const report=clean(record?.reportDate||'');
+    if(report&&!['No especificada','No especificado'].includes(report))return report;
+    const workbook=clean(record?.workbook||'');
+    if(workbook==='UX_Intelligence_CRO_master_final.xlsx')return '';
+    return clean(record?.ingestedAt||'');
+  }
+
+  function incorporationDateDisplay(record){
+    const raw=incorporationTemporalValue(record);
+    if(!raw)return 'Sin fecha registrada';
+    const isoMonth=raw.match(/^(\d{4})-(\d{2})$/);
+    if(isoMonth){
+      const labels={'01':'ene','02':'feb','03':'mar','04':'abr','05':'may','06':'jun','07':'jul','08':'ago','09':'sept','10':'oct','11':'nov','12':'dic'};
+      return `${labels[isoMonth[2]]||isoMonth[2]} ${isoMonth[1]}`;
+    }
+    const isoDay=raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:T.*)?$/);
+    if(isoDay)return `${isoDay[3]}/${isoDay[2]}/${isoDay[1]}`;
+    const parsed=new Date(raw);
+    if(Number.isFinite(parsed.getTime())&&/T/.test(raw))return parsed.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+    return raw;
+  }
+
+'''
+if _helper_anchor not in s: raise SystemExit('ERROR UX sync: helper anchor')
+s=s.replace(_helper_anchor,_helper+_helper_anchor,1)
+
+# 4) Mostrar Fecha de incorporación en cada hallazgo.
+_old_meta="""      clean(r.origin)?`<div><span>Tipo de análisis</span><strong>${escapeHtml(r.origin)}</strong></div>`:'',
+      clean(r.impactUx)?`<div><span>Impacto UX</span><strong><span class=\"status-badge ${impactClass(r.impactUx)}\">${escapeHtml(r.impactUx)}</span></strong></div>`:''"""
+_new_meta="""      clean(r.origin)?`<div><span>Tipo de análisis</span><strong>${escapeHtml(r.origin)}</strong></div>`:'',
+      `<div><span>Fecha de incorporación</span><strong>${escapeHtml(incorporationDateDisplay(r))}</strong></div>`,
+      clean(r.impactUx)?`<div><span>Impacto UX</span><strong><span class=\"status-badge ${impactClass(r.impactUx)}\">${escapeHtml(r.impactUx)}</span></strong></div>`:''"""
+_ux_required_replace(_old_meta,_new_meta,'meta detalle hallazgo')
+
+# 5) Exportaciones: misma Fecha de incorporación en general y CRO.
+_export_anchor='  function fullExportValue(record,key){'
+if _export_anchor not in s: raise SystemExit('ERROR UX sync: fullExportValue')
+s=s.replace(_export_anchor,_export_anchor+"\n    if(key==='incorporationDateDisplay')return incorporationDateDisplay(record);",1)
+if "['Incluido en UX Intelligence','ingestedAt']" in s:
+    s=s.replace("['Incluido en UX Intelligence','ingestedAt']","['Fecha de incorporación','incorporationDateDisplay']",1)
+elif "['Fecha de incorporación','incorporationDateDisplay']" not in s:
+    raise SystemExit('ERROR UX sync: columna general fecha')
+_cro_old="""      ['Iniciativa','initiative'],['Producto','product'],['Funnel','funnel'],['Minifunnel','minifunnel'],['Componente','component'],
+      ['Dispositivo','device'],['Tipo de registro','recordType'],['Insight / hallazgo','insight'],['Evidencia','evidence'],"""
+_cro_new="""      ['Iniciativa','initiative'],['Producto','product'],['Funnel','funnel'],['Minifunnel','minifunnel'],['Componente','component'],
+      ['Fecha de incorporación','incorporationDateDisplay'],
+      ['Dispositivo','device'],['Tipo de registro','recordType'],['Insight / hallazgo','insight'],['Evidencia','evidence'],"""
+_ux_required_replace(_cro_old,_cro_new,'columnas CRO')
+s=s.replace('const widths=[18,14,18,18,24,16,18,55,60,50,13,22,30,16,60,65,20,20];','const widths=[18,14,18,18,24,18,16,18,55,60,50,13,22,30,16,60,65,20,20];',1)
+
+# 6) Learnings: visibles solo Producto · Funnel · Minifunnel · Componente.
+_lp_old='''            <div class="primary-filters">
+              <label class="filter-field">Producto<select class="filter-select hierarchy-product" data-hierarchy-level="product" id="learning-product"></select></label>
+              <label class="filter-field">Funnel<select class="filter-select hierarchy-funnel" data-hierarchy-level="funnel" id="learning-funnel"></select></label>
+              <label class="filter-field">Componente<select class="filter-select hierarchy-component" data-hierarchy-level="component" id="learning-component"></select></label>
+              <label class="filter-field">Impacto UX<select class="filter-select" id="learning-impact"></select></label>
+            </div>
+            <div class="secondary-filters" id="learning-secondary-filters" hidden>
+              <label class="filter-field">Minifunnel<select class="filter-select hierarchy-minifunnel" data-hierarchy-level="minifunnel" id="learning-minifunnel"></select></label>'''
+_lp_new='''            <div class="primary-filters">
+              <label class="filter-field">Producto<select class="filter-select hierarchy-product" data-hierarchy-level="product" id="learning-product"></select></label>
+              <label class="filter-field">Funnel<select class="filter-select hierarchy-funnel" data-hierarchy-level="funnel" id="learning-funnel"></select></label>
+              <label class="filter-field">Minifunnel<select class="filter-select hierarchy-minifunnel" data-hierarchy-level="minifunnel" id="learning-minifunnel"></select></label>
+              <label class="filter-field">Componente<select class="filter-select hierarchy-component" data-hierarchy-level="component" id="learning-component"></select></label>
+            </div>
+            <div class="secondary-filters" id="learning-secondary-filters" hidden>
+              <label class="filter-field">Impacto UX<select class="filter-select" id="learning-impact"></select></label>'''
+_ux_required_replace(_lp_old,_lp_new,'filtros visibles Learnings')
+
+# 7) Learnings: Iniciativa limita Producto/Funnel/Minifunnel/Componente.
+_h_start=s.find("    function hierarchyValues(product='Todos',funnel='Todos',minifunnel='Todos',group=''){")
+_h_end=s.find('    const renderers={',_h_start)
+if _h_start<0 or _h_end<0: raise SystemExit('ERROR UX sync: hierarchyValues')
+_h_new=r'''    function learningInitiativeScope(){
+      const selected=document.getElementById('learning-initiative')?.value||'Todos';
+      const exact=(actual,target)=>['Todos','Todas',''].includes(target)||normalizeText(actual||'')===normalizeText(target);
+      return learnings.filter(item=>{
+        if(['Todos','Todas',''].includes(selected))return true;
+        return governedLearningInitiatives(item).some(value=>exact(value,selected));
+      });
+    }
+    function learningProductValues(){
+      return [...new Set(learningInitiativeScope().map(item=>governedTaxonomyRecord(item).product).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+    }
+    function hierarchyValues(product='Todos',funnel='Todos',minifunnel='Todos',group=''){
+      const exact=(actual,selected)=>['Todos','Todas',''].includes(selected)||normalizeText(actual||'')===normalizeText(selected);
+      const sort=(values)=>[...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+      if(group==='learning'){
+        const contexts=learningInitiativeScope().map(item=>({item,current:governedTaxonomyRecord(item)}));
+        const inProduct=contexts.filter(({current})=>exact(current.product,product));
+        const funnels=sort(inProduct.map(({current})=>current.funnel));
+        const inFunnel=inProduct.filter(({current})=>exact(current.funnel,funnel));
+        const minifunnels=sort(inFunnel.map(({current})=>current.minifunnel));
+        const hasProduct=!['Todos','Todas',''].includes(product);
+        const hasFunnel=!['Todos','Todas',''].includes(funnel);
+        const hasMinifunnel=!['Todos','Todas',''].includes(minifunnel);
+        let componentItems=[];
+        if(hasMinifunnel)componentItems=inFunnel.filter(({current})=>exact(current.minifunnel,minifunnel));
+        else if(hasFunnel)componentItems=inFunnel.filter(({current})=>!String(current.minifunnel||'').trim());
+        else if(hasProduct&&normalizeText(product)==='home')componentItems=inProduct.filter(({current})=>!String(current.funnel||'').trim()&&!String(current.minifunnel||'').trim());
+        return {funnels,minifunnels,components:sort(componentItems.flatMap(({item})=>governedComponentNames(item)))};
+      }
+      const contexts=taxonomyContexts();
+      const inProduct=contexts.filter(ctx=>exact(ctx.product,product));
+      const funnels=sort(inProduct.map(ctx=>ctx.funnel));
+      const inFunnel=inProduct.filter(ctx=>exact(ctx.funnel,funnel));
+      const minifunnels=sort(inFunnel.map(ctx=>ctx.minifunnel));
+      const hasProduct=!['Todos','Todas',''].includes(product);
+      const hasFunnel=!['Todos','Todas',''].includes(funnel);
+      const hasMinifunnel=!['Todos','Todas',''].includes(minifunnel);
+      let componentContexts=[];
+      if(hasMinifunnel)componentContexts=inFunnel.filter(ctx=>exact(ctx.minifunnel,minifunnel));
+      else if(hasFunnel)componentContexts=inFunnel.filter(ctx=>!String(ctx.minifunnel||'').trim());
+      else if(hasProduct&&normalizeText(product)==='home')componentContexts=inProduct.filter(ctx=>!String(ctx.funnel||'').trim()&&!String(ctx.minifunnel||'').trim());
+      return {funnels,minifunnels,components:sort(componentContexts.map(ctx=>ctx.component).filter(Boolean))};
+    }
+'''
+s=s[:_h_start]+_h_new+s[_h_end:]
+
+# Producto de Learnings se repuebla según iniciativa.
+_prod_init="      optionSet(system.querySelector('.hierarchy-product'),'Todos',[...new Set(taxonomyContexts().map(ctx=>ctx.product).filter(Boolean))]);"
+_prod_new="      optionSet(system.querySelector('.hierarchy-product'),'Todos',group==='learning'?learningProductValues():[...new Set(taxonomyContexts().map(ctx=>ctx.product).filter(Boolean))]);"
+_ux_required_replace(_prod_init,_prod_new,'producto Learnings por iniciativa')
+_nonhier="      system.querySelectorAll('select:not([data-hierarchy-level])').forEach(select=>select.addEventListener('change',()=>{renderers[group]();updateActiveFilters(group);}));"
+_nonhier_new="""      system.querySelectorAll('select:not([data-hierarchy-level])').forEach(select=>select.addEventListener('change',()=>{
+        if(group==='learning'&&select.id==='learning-initiative'){
+          const product=document.getElementById('learning-product'),funnel=document.getElementById('learning-funnel'),minifunnel=document.getElementById('learning-minifunnel'),component=document.getElementById('learning-component');
+          if(product)optionSet(product,'Todos',learningProductValues(),'Todos');
+          if(funnel)funnel.value='Todos';if(minifunnel)minifunnel.value='Todos';if(component)component.value='Todos';
+          refreshHierarchy('learning');return;
+        }
+        renderers[group]();updateActiveFilters(group);
+      }));"""
+_ux_required_replace(_nonhier,_nonhier_new,'listener iniciativa Learnings')
+
+# Habilitación jerárquica de Learnings y refresco de Producto.
+_refresh_anchor="""    function refreshHierarchy(group,changed){
+      const product=document.getElementById(`${group}-product`);
+      const funnel=document.getElementById(`${group}-funnel`);
+      const minifunnel=document.getElementById(`${group}-minifunnel`);
+      const component=document.getElementById(`${group}-component`);
+      if(!product||!component)return;
+"""
+_refresh_new=_refresh_anchor+"""
+      if(group==='learning'){
+        const validProducts=learningProductValues();
+        const currentProduct=product.value;
+        optionSet(product,'Todos',validProducts,currentProduct);
+        if(!validProducts.some(value=>normalizeText(value)===normalizeText(currentProduct)))product.value='Todos';
+        product.disabled=validProducts.length===0;
+      }
+"""
+_ux_required_replace(_refresh_anchor,_refresh_new,'refresh Learnings')
+
+# 8) Explorar: Iniciativa limita toda la cascada.
+_fo_old="""  function filterOptions(field){
+    const fromData=unique(field);
+    if(field==='funnel'&&norm(filters.product||'')==='home')return [];
+    if(field==='minifunnel'&&!norm(filters.funnel||''))return [];
+    if(journeyLevels.has(field)){
+      // Nunca convertir valores observados en datos/Excel en vocabulario canónico.
+      // Si el canon no está disponible todavía, el filtro espera al canon.
+      return dedupe(taxonomyValues(field));
+    }
+    const governed=dedupe(controlledTaxonomyValues(field));
+    if(governed.length)return governed;
+    if(controlledFilterValues[field])return dedupe(controlledFilterValues[field]);
+    return fromData;
+  }"""
+_fo_new=r'''  function initiativeScopedJourneyValues(field,canonicalValues){
+    const selectedInitiative=norm(filters.initiative||'');
+    if(!selectedInitiative)return canonicalValues;
+    const selectedProduct=norm(filters.product||''),selectedFunnel=norm(filters.funnel||''),selectedMinifunnel=norm(filters.minifunnel||'');
+    const scoped=records.filter(record=>[...(record.initiatives||[]),record.initiative].filter(Boolean).map(norm).includes(selectedInitiative));
+    const observed=new Set();
+    scoped.forEach(record=>{
+      const product=norm(record.product||''),funnel=norm(record.funnel||''),minifunnel=norm(record.minifunnel||'');
+      if(field==='product'){if(record.product)observed.add(norm(record.product));return;}
+      if(selectedProduct&&product!==selectedProduct)return;
+      if(field==='funnel'){if(record.funnel)observed.add(norm(record.funnel));return;}
+      if(selectedFunnel&&funnel!==selectedFunnel)return;
+      if(field==='minifunnel'){if(record.minifunnel)observed.add(norm(record.minifunnel));return;}
+      if(field==='component'){
+        if(selectedMinifunnel){if(minifunnel!==selectedMinifunnel)return;}
+        else if(selectedFunnel){if(minifunnel)return;}
+        else if(selectedProduct==='home'){if(funnel||minifunnel)return;}
+        else return;
+        componentsOf(record).forEach(value=>{if(value)observed.add(norm(value));});
+      }
+    });
+    return canonicalValues.filter(value=>observed.has(norm(value)));
+  }
+  function filterOptions(field){
+    const fromData=unique(field);
+    if(field==='funnel'&&norm(filters.product||'')==='home')return [];
+    if(field==='minifunnel'&&!norm(filters.funnel||''))return [];
+    if(journeyLevels.has(field))return dedupe(initiativeScopedJourneyValues(field,taxonomyValues(field)));
+    const governed=dedupe(controlledTaxonomyValues(field));
+    if(governed.length)return governed;
+    if(controlledFilterValues[field])return dedupe(controlledFilterValues[field]);
+    return fromData;
+  }'''
+_ux_required_replace(_fo_old,_fo_new,'filterOptions Explorar')
+
+_hd_old=r'''  function hierarchyFilterDisabled(field){
+    if(field==='funnel')return norm(filters.product||'')==='home';
+    if(field==='minifunnel'){
+      if(!norm(filters.funnel||''))return true;
+      return taxonomyValues('minifunnel').length===0;
+    }
+    return false;
+  }'''
+_hd_new=r'''  function hierarchyFilterDisabled(field){
+    if(field==='product'){if(norm(filters.initiative||''))return filterOptions('product').length===0;return false;}
+    if(field==='funnel')return !norm(filters.product||'')||norm(filters.product||'')==='home';
+    if(field==='minifunnel'){if(!norm(filters.product||'')||!norm(filters.funnel||''))return true;return filterOptions('minifunnel').length===0;}
+    if(field==='component'){
+      if(!norm(filters.product||''))return true;
+      if(norm(filters.product||'')==='home')return filterOptions('component').length===0;
+      if(!norm(filters.funnel||''))return true;
+      return filterOptions('component').length===0;
+    }
+    return false;
+  }'''
+_ux_required_replace(_hd_old,_hd_new,'bloqueo jerárquico Explorar')
+
+_init_old="""        if(field==='product'){
+          filters.funnel='';
+          filters.minifunnel='';
+          filters.component='';
+          fillSelect('uxs-funnel','funnel','funnel');
+          fillSelect('uxs-minifunnel','minifunnel','minifunnel');
+          fillSelect('uxs-component','component','component');
+          try{globalThis.__dsSyncSelects?.();}catch(_){}
+        }else if(field==='funnel'){"""
+_init_new="""        if(field==='initiative'){
+          filters.product='';filters.funnel='';filters.minifunnel='';filters.component='';
+          fillSelect('uxs-product','product','product');fillSelect('uxs-funnel','funnel','funnel');fillSelect('uxs-minifunnel','minifunnel','minifunnel');fillSelect('uxs-component','component','component');
+          try{globalThis.__dsSyncSelects?.();}catch(_){}
+        }else if(field==='product'){
+          filters.funnel='';
+          filters.minifunnel='';
+          filters.component='';
+          fillSelect('uxs-funnel','funnel','funnel');
+          fillSelect('uxs-minifunnel','minifunnel','minifunnel');
+          fillSelect('uxs-component','component','component');
+          try{globalThis.__dsSyncSelects?.();}catch(_){}
+        }else if(field==='funnel'){"""
+_ux_required_replace(_init_old,_init_new,'cambio iniciativa Explorar')
+
+# 9) Marcador de build sincronizada.
+s=s.replace('data-build="2026-10-27-v6-184-strict-learning-taxonomy"','data-build="2026-10-29-v6-192-public-sync"',1)
+if '2026-10-29-v6-192-public-sync' not in s:
+    raise SystemExit('ERROR UX sync: no se pudo actualizar build')
+
+# Checks estructurales antes de escribir.
+if s.count('id="learning-minifunnel"') != 1: raise SystemExit('ERROR UX sync: learning-minifunnel duplicado')
+if "['Fecha de incorporación','incorporationDateDisplay']" not in s: raise SystemExit('ERROR UX sync: export fecha ausente')
+if 'initiativeScopedJourneyValues' not in s or 'learningInitiativeScope' not in s: raise SystemExit('ERROR UX sync: cascada iniciativa ausente')
+print('UX sync 2026-10-29 OK · fechas + exports + filtros jerárquicos')
+# UX_INTEL_SYNC_2026_10_29_END
+
+
 target.write_text(s, encoding="utf-8")
 print("UX Intelligence consolidated UI installed in read-only mode")
 print("Same UI · filters/search/downloads enabled · writes hidden")
