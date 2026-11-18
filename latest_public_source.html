@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-build="2026-11-18-v6-193-public">
+<html lang="es" data-build="2026-11-18-v6-194-public-245-records">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -12619,9 +12619,10 @@ return out;
   };
 
   function normalizedRecords(){
+    const directRowCount=getDocs().reduce((total,doc)=>total+(Array.isArray(doc?.insightRegister?.rows)?doc.insightRegister.rows.length:0),0);
     if(globalThis.UXSimpleKnowledge?.allRecords){
       const structured=globalThis.UXSimpleKnowledge.allRecords(getDocs());
-      if(structured.length){
+      if(structured.length&&structured.length>=directRowCount){
         return structured.map((row,index)=>{
           const rowDoc=getDocs().find(doc=>doc.id===row.documentId);
           const sourceRow=(rowDoc?.insightRegister?.rows||[]).find(candidate=>solutionInsightKey(candidate?.insight||candidate?.['Insight / hallazgo']||'')===solutionInsightKey(row?.insight||''));
