@@ -9,7 +9,7 @@ if not SOURCE.exists():
 
 s = SOURCE.read_text(encoding="utf-8")
 required = [
-    'data-build="2026-11-18-v6-194-public-245-records"',
+    'data-build="2026-11-18-v6-195-public-synced"',
     'const publicDemoRows=',
     'Metabuscadores',
     'id="uxs-export"',
@@ -50,8 +50,8 @@ readonly_css = r'''
 #taxonomy-manager-v2-edit-action,#taxonomy-manager-v2-merge-action,
 #taxonomy-manager-v2-confirm-action,#delete-modal,[data-delete-confirm],
 #storage-save-status{display:none!important}
-#uxs-export,#uxs-export-cro,[data-download-insight-register],
-[data-doc-download-direct],[data-doc-action="open"]{display:inline-flex!important}
+#uxs-export,#uxs-export-cro{display:inline-flex!important}
+[data-download-insight-register],[data-doc-download-direct],[data-doc-action="open"]{display:none!important}
 @media(max-width:820px){.ux-demo-readonly-badge{display:none}}
 </style>
 '''
@@ -71,7 +71,7 @@ readonly_js = r'''
     '[data-taxonomy-term-create]','[data-taxonomy-manager-v2-edit]','[data-taxonomy-manager-v2-merge]',
     '[data-taxonomy-manager-v2-delete]','[data-taxonomy-edit]','[data-taxonomy-delete]',
     '[data-propose-taxonomy]','[data-source-update]','[data-confirm-source-update]',
-    '[data-delete-confirm]','#import-workspace-confirm','#taxonomy-manager-v2-edit-action',
+    '[data-delete-confirm]','[data-download-insight-register]','[data-doc-download-direct]','[data-doc-action="open"]','#import-workspace-confirm','#taxonomy-manager-v2-edit-action',
     '#taxonomy-manager-v2-merge-action','#taxonomy-manager-v2-confirm-action'
   ];
   document.addEventListener('click', e => {
@@ -88,11 +88,11 @@ if 'id="ux-demo-readonly-latest-guard"' not in s:
 
 s = s.replace(
     'data-build="2026-11-17-v6-192-excel-sync"',
-    'data-build="2026-11-18-v6-194-public-245-records"',
+    'data-build="2026-11-18-v6-195-public-synced"',
     1
 )
 
 ROOT.mkdir(parents=True, exist_ok=True)
 TARGET.write_text(s, encoding="utf-8")
 print("UX Intelligence public snapshot installed")
-print("v6-192 · 245 registros · read-only · filters + exports")
+print("v6-195 · 245 registros · 45 documentos · read-only · solo exportaciones de Explorar")
