@@ -9,7 +9,7 @@ if not SOURCE.exists():
 
 s = SOURCE.read_text(encoding="utf-8")
 required = [
-    'data-build="2026-11-18-v6-193-public"',
+    'data-build="2026-11-18-v6-194-public-245-records"',
     'const publicDemoRows=',
     'Metabuscadores',
     'id="uxs-export"',
@@ -88,7 +88,7 @@ if 'id="ux-demo-readonly-latest-guard"' not in s:
 
 s = s.replace(
     'data-build="2026-11-17-v6-192-excel-sync"',
-    'data-build="2026-11-18-v6-193-public"',
+    'data-build="2026-11-18-v6-194-public-245-records"',
     1
 )
 
