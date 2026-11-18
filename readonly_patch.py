@@ -9,7 +9,7 @@ if not SOURCE.exists():
 
 s = SOURCE.read_text(encoding="utf-8")
 required = [
-    'data-build="2026-11-17-v6-192-excel-sync"',
+    'data-build="2026-11-18-v6-192-enrique-public"',
     'const publicDemoRows=',
     'Metabuscadores',
     'id="uxs-export"',
