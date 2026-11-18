@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-build="2026-11-18-v6-192-enrique-public">
+<html lang="es" data-build="2026-11-18-v6-193-public">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -8255,7 +8255,7 @@ text:"Pedir o recuperar la identificación dentro del booking tiene sentido cuan
         const items=catalogCollection(group);
         const values=[...items.flatMap(item=>item.initiatives||[]),...sharedInitiatives];
         const current=initiativeNameEquals(select.value,oldName)?newName:select.value;
-        optionSet(select,'Todos',values,current);
+        optionSet(select,'Todos',dedupeInitiativeNames(values),current);
       });
       globalThis.__uxSimpleExploreRefresh?.();
     }
@@ -8696,10 +8696,10 @@ text:"Pedir o recuperar la identificación dentro del booking tiene sentido cuan
         })();
         const pdfItems=sourceItems.filter(item=>item?.supportingDocument);
         const ignoredInitiatives=new Set(['Sin clasificar','Documentación','No especificado']);
-        const initiatives=[...new Set([
+        const initiatives=dedupeInitiativeNames([
           ...sourceItems.flatMap(item=>[item.initiative,...(item.initiatives||[])]),
           ...learnings.flatMap(item=>[item.initiative,...(item.initiatives||[])])
-        ].map(value=>String(value||'').trim()).filter(value=>value&&!ignoredInitiatives.has(value)))].sort((a,b)=>a.localeCompare(b,'es'));
+        ]).filter(value=>!ignoredInitiatives.has(value)).sort((a,b)=>a.localeCompare(b,'es'));
         const products=[...new Set(sharedRecords.map(row=>String(row.product||'').trim()).filter(Boolean))];
         document.getElementById('ux-base-learnings')?.replaceChildren(document.createTextNode(String(learnings.length)));
         document.getElementById('ux-base-insights')?.replaceChildren(document.createTextNode(String(sharedRecords.length)));
@@ -8814,8 +8814,12 @@ text:"Pedir o recuperar la identificación dentro del booking tiene sentido cuan
           // Se normaliza el alias histórico Usuarios SUMA sin modificar los datos originales.
           const itemInitiatives=item=>[...(Array.isArray(item?.initiatives)?item.initiatives:[]),item?.initiative]
             .map(value=>String(value||'').trim()).filter(Boolean);
-          const canonicalCoverageInitiative=value=>
-            normalizeText(value)===normalizeText('Usuarios SUMA')?'SUMA Frequent Flyer':value;
+          const canonicalCoverageInitiative=value=>{
+            const key=normalizeText(value);
+            return key===normalizeText('Usuarios SUMA')||key===normalizeText('SUMA Frequent Flyer')
+              ?'SUMA Frequent Flyer'
+              :value;
+          };
           const initiativeCoverageMap=new Map();
           const ensureInitiativeCoverage=name=>{
             const initiative=canonicalCoverageInitiative(name);
