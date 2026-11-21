@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071B45">
+<title>Metabuscadores | Air Europa - Prototipo de diseño (datos ficticios)</title>
+<style>
+:root{--navy:#071B45;--navy2:#102A61;--blue:#155EC9;--sky:#0F8DC8;--light:#EAF4FF;--surface:#F7F9FC;--line:#E5EAF1;--ink:#16233B;--muted:#61718B;--orange:#B86A23;--mint:#E9F5FA;--purple:#6366D9;--white:#fff;--r:18px;--slide-w:1440px;--slide-h:810px}
+*{box-sizing:border-box}html,body{height:100%;margin:0}body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#EDF1F6;color:var(--ink);-webkit-font-smoothing:antialiased;overflow:hidden}button,a{font:inherit}button{cursor:pointer}a{color:inherit}button:focus-visible,a:focus-visible{outline:3px solid #53A8EC;outline-offset:3px}.app{display:flex;height:100dvh;width:100%}.rail{width:94px;flex:0 0 94px;background:#071A43;color:white;display:flex;align-items:center;flex-direction:column;justify-content:space-between;padding:27px 0 25px;z-index:20}.rail-logo{font-size:12px;font-weight:900;letter-spacing:-.09em;border:1px solid #4d6998;border-radius:14px;width:46px;height:46px;display:flex;align-items:center;justify-content:center;color:#fff}.rail-track{display:flex;flex-direction:column;gap:8px;position:relative;align-items:center}.rail-btn{border:0;background:none;width:48px;height:31px;position:relative;display:flex;align-items:center;justify-content:center;color:#9bb1d1}.rail-btn:before{content:"";display:block;background:#627aab;width:6px;height:6px;border-radius:50%;transition:all .24s}.rail-btn.active:before{width:10px;height:10px;background:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.15)}.rail-btn:hover:before{background:#fff;width:9px;height:9px}.rail-btn .tip{position:absolute;left:55px;top:1px;background:#101c35;color:#fff;padding:10px 13px;white-space:nowrap;font-size:12px;letter-spacing:.01em;border-radius:8px;pointer-events:none;opacity:0;transform:translateX(-5px);transition:all .12s;box-shadow:0 8px 16px #09173535}.rail-btn:hover .tip,.rail-btn:focus-visible .tip{opacity:1;transform:translateX(0)}.rail-bottom{font-size:10px;color:#a5b5d0;writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:.17em;font-weight:700}.workspace{position:relative;flex:1;min-width:0;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 28px 74px}.stage-wrap{position:relative;width:var(--slide-w);height:var(--slide-h);flex:0 0 auto;transform-origin:top left}.deck{position:absolute;inset:0;background:white;border:1px solid #DFE6EF;box-shadow:0 24px 65px rgba(11,34,79,.1),0 3px 12px rgba(11,34,79,.06);overflow:hidden;border-radius:7px}.slide{position:absolute;inset:0;padding:66px 80px 52px;background:#fff;opacity:0;visibility:hidden;pointer-events:none;transform:translateX(30px);transition:opacity .25s,transform .25s,visibility .25s;display:flex;flex-direction:column}.slide.active{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(0)}.slide.cover{padding:0;background:var(--navy);color:#fff}.brand{display:inline-flex;align-items:center;gap:10px;font-size:22px;letter-spacing:.10em;font-weight:760;color:inherit}.brand svg{width:38px;height:38px}.eyebrow{font-size:12px;letter-spacing:.17em;text-transform:uppercase;font-weight:780;color:var(--blue)}.cover .eyebrow{color:#80C6EF}.brand-logo-shell{display:inline-flex;background:#fff;border-radius:11px;padding:6px 14px;align-items:center;justify-content:center;box-shadow:0 6px 20px #051a4238}.brand-logo-shell img{display:block;width:210px;height:64px;object-fit:contain}.title{font-size:40px;line-height:1.13;font-weight:780;letter-spacing:-.045em;margin:13px 0 0;max-width:1170px;color:var(--navy)}.subtitle{margin:15px 0 0;color:var(--muted);font-size:17px;line-height:1.48;max-width:1050px}.sh{flex:0 0 auto;min-height:150px}.sh.compact{min-height:134px}.body{flex:1;min-height:0;display:flex;flex-direction:column}.foot{flex:0 0 auto;margin-top:auto;padding-top:16px;display:flex;justify-content:space-between;align-items:end;gap:30px;min-height:47px}.source{font-size:11.8px;line-height:1.45;color:#8090a5;max-width:1060px}.count{font-size:12px;color:#9AAABC;font-weight:730;letter-spacing:.08em}.grid{display:grid;gap:18px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}.metric{border:1px solid var(--line);border-radius:15px;background:#fff;padding:24px 26px;display:flex;flex-direction:column;justify-content:center;position:relative;min-height:146px}.metric::before{content:"";position:absolute;left:25px;top:0;height:3px;width:35px;background:#1464C3;border-radius:0 0 3px 3px}.metric small{font-size:14px;color:#6B7891;font-weight:540}.metric strong{font-size:37px;color:var(--navy);letter-spacing:-.06em;font-weight:800;margin-top:10px;line-height:1}.metric span{font-size:12px;color:#7B8CA4;margin-top:10px}.card{border:1px solid var(--line);border-radius:18px;background:white;padding:25px 29px;min-height:0}.soft{background:var(--surface);border-color:#EEF1F6}.card-title{font-size:17px;font-weight:740;color:#152849;letter-spacing:-.025em;margin-bottom:5px}.tiny{font-size:13px;color:#718098;line-height:1.48}.split{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:22px;flex:1;min-height:0}.split-even{grid-template-columns:1fr 1fr}.insight{background:#EDF5FF;border-left:3px solid #1E6FD0;border-radius:0 11px 11px 0;padding:16px 19px;color:#24466e;font-size:15px;line-height:1.52}.insight strong{color:var(--navy)}.section-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.legend{display:flex;align-items:center;gap:18px;font-size:13px;color:var(--muted)}.dot{display:inline-block;width:9px;height:9px;background:#1966D3;border-radius:50%;margin-right:7px}.dot.light{background:#76B7EB}.dot.dim{background:#B6C8E2}.btn-tabs{display:inline-flex;padding:4px;background:#F0F3F8;border-radius:10px;gap:4px}.tab{border:0;background:transparent;color:#6B7B90;font-size:13px;padding:9px 14px;border-radius:7px;font-weight:650}.tab.selected{background:white;color:#1C3C68;box-shadow:0 1px 4px #1d30401c}.chartarea{min-height:0;display:flex;flex-direction:column;justify-content:center;flex:1}.chartarea svg{display:block;width:100%;height:100%;overflow:visible}.bar-row{display:grid;grid-template-columns:115px 1fr 58px;align-items:center;gap:18px;margin:14px 0}.bar-label{font-size:14px;font-weight:630;color:#35465D}.bar-track{height:18px;background:#F1F5F9;border-radius:5px;overflow:hidden}.bar-fill{height:100%;background:#216AD0;border-radius:5px;transition:width .35s}.bar-fill.secondary{background:#88B9E4}.bar-value{text-align:right;font-weight:750;font-size:15px;color:var(--navy)}.pill{border-radius:999px;padding:7px 11px;font-size:11.5px;font-weight:720;letter-spacing:.01em;display:inline-flex;align-items:center;gap:6px;background:#F1F5F9;color:#5D6F87}.pill.ghost{background:#edf1fa;color:#395683}.rule{height:1px;width:100%;background:var(--line);margin:18px 0}.listy{display:flex;flex-direction:column;gap:15px;margin:15px 0}.listy .item{display:flex;gap:13px;align-items:start;font-size:15px;line-height:1.48;color:#425570}.listy .bullet{background:#E8F2FE;color:var(--blue);font-weight:750;font-size:12px;border-radius:8px;width:26px;height:26px;display:grid;place-items:center;flex:0 0 auto}.cols-fare{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;flex:1}.fare-step{background:#F7F9FC;border:1px solid #E9EDF4;border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px}.fare-step .num{font-size:11px;letter-spacing:.14em;font-weight:770;color:#6D87AB}.fare-step h4{font-size:18px;color:#142B53;margin:0}.fare-step p{font-size:13px;line-height:1.5;color:#718097;margin:0}.placeholder{color:#7A8CA7;background:#E9EEF5;border:1px dashed #CBD4E2;border-radius:9px;font-weight:700;font-size:12px;padding:11px;display:inline-flex;align-self:start}.table-clean{width:100%;border-collapse:collapse;font-size:14px}.table-clean th{background:#F7F9FC;color:#78889D;font-size:11px;text-transform:uppercase;letter-spacing:.08em;text-align:left;padding:16px 18px;border-bottom:1px solid #E5EAF2}.table-clean td{padding:20px 18px;border-bottom:1px solid #E9EDF3;color:#374b64}.table-clean tr:last-child td{border-bottom:0}.table-clean td strong{color:var(--navy);font-size:18px}.table-clean .subtle{color:#8C9CAF}.bignum{font-size:86px;letter-spacing:-.075em;line-height:1;color:#08265c;font-weight:790}.compare{height:24px;overflow:hidden;border-radius:6px;background:#E8EDF4}.compare>span{display:block;height:100%;border-radius:6px;background:#166bc7}.compare.alt>span{background:#8bbce9}.bigline{font-size:26px;font-weight:700;color:var(--navy);letter-spacing:-.028em;line-height:1.25}.promo{background:#0C2A60;border-radius:17px;padding:27px 30px;color:white}.promo strong{font-size:20px}.promo p{font-size:15px;line-height:1.48;color:#C6D7EE}.tag{font-size:11px;font-weight:770;letter-spacing:.07em;color:#5b7aa5;text-transform:uppercase}.bar-axes{color:#8290a7;font-size:11px}.journeyline{display:flex;align-items:center;gap:0;margin:32px 0}.journeyline .jl{flex:1;background:#F5F8FC;border:1px solid #DFE8F1;border-radius:12px;padding:21px 17px;text-align:center}.journeyline .jl strong{display:block;font-size:18px;color:#12315d}.journeyline .jl small{display:block;margin-top:7px;color:#7386a0;font-size:12px}.journeyline .arrow{padding:0 10px;color:#5896D9;font-size:26px}.footcol{display:flex;flex-direction:column;gap:10px}.mini-idea{display:grid;grid-template-columns:31px 1fr;gap:12px;border:1px solid #E6ECF4;border-radius:13px;padding:16px 19px;background:white;align-items:start}.mini-idea .badge-no{display:grid;place-items:center;width:28px;height:28px;background:#EAF3FF;border-radius:7px;color:#1B60B2;font-size:11px;font-weight:850}.mini-idea strong{font-size:15px;color:#102C58}.mini-idea p{font-size:12.5px;color:#647792;line-height:1.42;margin:5px 0 0}.navlink{color:#1E67C3;text-decoration:none;font-size:12px;font-weight:700}.navlink:hover{text-decoration:underline}.right-mock{background:#F5F9FD;border:1px solid #E3EBF4;border-radius:16px;padding:20px;display:flex;align-items:center;justify-content:center}.mock{width:100%;background:white;border:1px solid #DAE6F2;border-radius:13px;overflow:hidden;box-shadow:0 12px 35px #16396314}.mock-top{background:#05275E;color:#fff;padding:15px 19px;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:760}.mock-section{padding:19px 22px}.mock-tag{font-size:10px;letter-spacing:.06em;color:#788BA6;text-transform:uppercase;font-weight:800}.mock-route{font-size:24px;font-weight:760;color:#0B2D65;margin:8px 0}.mock-flex{display:flex;justify-content:space-between;align-items:center;gap:20px}.mock-price{font-weight:800;font-size:20px;color:#0C3979}.mock-btn{background:#135FCC;border-radius:8px;padding:12px 23px;color:white;font-size:13px;font-weight:740}.idea-path{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.path{border:1px solid #DFE6F0;border-radius:15px;padding:23px;display:flex;flex-direction:column;gap:12px}.path .path-i{border:1px solid #D9E8F7;background:#EAF4FF;width:39px;height:39px;border-radius:11px;display:grid;place-items:center;color:#0F5BA7;font-size:21px}.path strong{font-size:17px;color:#15315E}.path p{font-size:13px;line-height:1.5;color:#687B94;margin:0}.closing-col{height:100%;border:1px solid #E3EAF2;border-radius:16px;padding:33px 29px;display:flex;flex-direction:column;gap:17px}.closing-col .big{font-size:41px;color:#195DAA;font-weight:820;letter-spacing:-.05em}.closing-col strong{color:#11305C;font-size:19px}.closing-col p{margin:0;color:#60748C;font-size:14px;line-height:1.52}.closing-col .meta{margin-top:auto;font-size:11px;font-weight:750;letter-spacing:.09em;text-transform:uppercase;color:#8B9CB0}.controls{position:absolute;bottom:21px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:13px;z-index:12;white-space:nowrap}.ctl{border:1px solid #CCD7E5;border-radius:10px;background:white;color:#315078;padding:11px 14px;font-size:13px;font-weight:680;display:flex;align-items:center;gap:8px;box-shadow:0 2px 4px #14304d0b}.ctl:hover{background:#F7FAFF;border-color:#A6BDD9}.ctl:disabled{opacity:.35;cursor:not-allowed}.ctl.primary{background:#0A3979;color:white;border-color:#0A3979}.control-num{font-size:12px;font-weight:780;color:#5A6A83;min-width:58px;text-align:center}.keyboard-hint{position:absolute;right:32px;bottom:34px;color:#9BA7B7;font-size:11px}.cover-grid{height:100%;display:grid;grid-template-columns:55% 45%;position:relative;overflow:hidden}.cover-left{padding:67px 75px 68px 85px;display:flex;flex-direction:column;align-items:start;z-index:2}.cover-title{font-size:77px;line-height:1.07;letter-spacing:-.069em;font-weight:800;margin:94px 0 0;max-width:700px}.cover-title .accent{color:#7FCBFA}.cover-desc{font-size:21px;color:#CDDCF2;line-height:1.57;max-width:635px;margin:28px 0 0}.cover-bottom{margin-top:auto;color:#A1B8DA;font-size:13px;letter-spacing:.01em}.cover-right{background:radial-gradient(circle at 70% 23%,#1E61A8 0%,#0F3471 43%,#0B285B 75%);display:flex;align-items:center;justify-content:center;position:relative}.cover-right:after{content:"";position:absolute;width:520px;height:520px;border:1px solid #7fb9fa22;border-radius:50%;transform:translate(55px,15px);box-shadow:0 0 0 70px #8acaef0a,0 0 0 142px #8acaef07}.cover-ui{width:465px;z-index:1;display:flex;flex-direction:column;gap:15px;transform:rotate(-3deg)}.cover-ui-card{background:white;border-radius:14px;padding:19px 23px;color:#0c2e5e;box-shadow:0 12px 33px #04153438}.cover-ui-card:first-child{transform:translateX(-15px)}.cover-ui-card:last-child{transform:translateX(18px)}.cover-ui-card .tag{color:#7391B8}.cover-ui-card .line1{font-size:18px;font-weight:760;margin-top:6px}.cover-ui-card .line2{font-size:12px;color:#74849B;margin-top:6px}.cover-ui-card .meter{height:5px;background:#E2ECF8;border-radius:5px;margin-top:14px;overflow:hidden}.cover-ui-card .meter i{display:block;width:64%;height:100%;background:#1d71cc;border-radius:5px}.slide-top-accent{position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(to right,#051C49 68%,#20A8E6 68%)}.visual-year{border:1px solid #E7EDF5;border-radius:15px;padding:24px;background:#FBFCFE}.chart-grid{display:grid;grid-template-columns:160px 1fr 80px;column-gap:12px;row-gap:24px;align-items:center;margin-top:35px}.seg-bar{height:21px;background:#F1F4F9;border-radius:5px;overflow:hidden}.seg-bar span{display:block;height:100%;background:#155fbd;border-radius:5px}.seg-bar.sky span{background:#70ABDC}.seg-bar.navy span{background:#092f69}.seg-bar.pale span{background:#BDCFE5}.chart-label{font-size:14px;font-weight:630;color:#415674}.chart-value{font-size:14px;font-weight:780;color:#173661;text-align:right}.teaser{border:1px solid #E2EBF4;border-radius:13px;background:#F6FAFD;padding:18px 20px;display:flex;gap:14px;align-items:start}.teaser .ticon{width:34px;height:34px;border-radius:9px;background:#E8F2FC;color:#1265BC;display:grid;place-items:center;font-size:18px;flex:0 0 auto}.teaser strong{font-size:14px;color:#1C426E}.teaser p{font-size:12.5px;color:#627B97;margin:5px 0 0;line-height:1.4}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:680px){.rail{width:49px;flex-basis:49px;padding:14px 0}.rail-logo{font-size:8px;width:29px;height:29px;border-radius:9px}.rail-btn{height:24px;width:34px}.rail-btn .tip{left:36px}.rail-bottom{font-size:8px}.workspace{padding-left:5px;padding-right:5px}.keyboard-hint{display:none}.controls{bottom:14px}.ctl{padding:8px 9px;font-size:10px}.control-num{font-size:10px;min-width:42px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* 2026-11-21: landing edition - full browser, not a framed PDF-style deck. */
+html,body{width:100%;height:100%;overflow:hidden;background:#fff}
+.app{height:100dvh;min-height:0;width:100vw;display:block;position:relative;overflow:hidden}
+.workspace{position:absolute;inset:0;display:block;width:100%;height:100%;padding:0;overflow:hidden;background:#fff}
+.stage-wrap{position:absolute;inset:0;width:100%;height:100%;transform:none;flex:none}
+.deck{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:0;box-shadow:none;overflow:hidden}
+.slide{padding:clamp(38px,6.8vh,76px) max(110px,calc((100vw - 1460px)/2)) clamp(33px,5.7vh,60px) max(74px,calc((100vw - 1460px)/2));min-height:0;overflow:hidden}
+.slide:not(.cover) .sh,.slide:not(.cover) .body{width:100%;max-width:1500px;margin-left:auto;margin-right:auto}
+.slide-top-accent{height:4px;background:linear-gradient(to right,#0A2353 68%,#159BDB 68%)}
+.rail{position:fixed;right:0;top:0;bottom:0;width:68px;min-width:0;padding:0;z-index:90;display:flex;align-items:center;justify-content:center;pointer-events:none;background:transparent;color:var(--navy)}
+.rail-track{display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;pointer-events:auto}
+.rail-btn{width:44px;height:30px;display:flex;align-items:center;justify-content:center;color:#365478;position:relative;border:0;background:transparent}
+.rail-btn:before{width:7px;height:7px;background:#B8C6D8;border-radius:50%;box-shadow:none;transition:width .18s,height .18s,background .18s,box-shadow .18s}
+.rail-btn.active:before{width:12px;height:12px;background:#155FC6;box-shadow:0 0 0 5px #155fc61a}
+.rail-btn:hover:before{width:11px;height:11px;background:#155FC6}
+.rail-btn .tip{position:absolute;right:48px;left:auto;top:0;transform:translateX(6px);opacity:0;background:#102348;color:#fff;box-shadow:0 8px 25px #05142d1c;z-index:20}
+.rail-btn:hover .tip,.rail-btn:focus-visible .tip{transform:translateX(0)}
+.app.is-cover .rail-btn:before{background:#a8c5ed77}
+.app.is-cover .rail-btn.active:before{background:#fff;box-shadow:0 0 0 5px #ffffff29}
+.app.is-cover .rail-btn:hover:before{background:#fff}
+/* The cover intentionally has exactly three visible elements: logo, title and subtitle. */
+.slide.cover{padding:0;background:linear-gradient(112deg,#061941 0%,#0B2B62 61%,#11518D 100%);color:#fff;isolation:isolate}
+.cover-ambient{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.cover-ambient:before{content:"";position:absolute;right:-12%;top:-52%;width:76vw;height:76vw;min-width:700px;min-height:700px;border-radius:50%;background:radial-gradient(circle,#369de52d 0%,#307fc114 39%,transparent 69%)}
+.halo{position:absolute;display:block;pointer-events:none;border:1px solid #9ad0ff16;border-radius:50%}
+.halo-one{width:74vw;height:74vw;max-width:1200px;max-height:1200px;right:-19vw;top:-32vw}
+.halo-two{width:41vw;height:41vw;max-width:660px;max-height:660px;right:2vw;bottom:-19vw}
+.cover-content{position:relative;z-index:1;height:100%;width:100%;max-width:1680px;margin:auto;padding:clamp(64px,11vh,120px) clamp(80px,11vw,195px);display:flex;flex-direction:column;align-items:flex-start}
+.cover-logo-white{width:clamp(210px,20vw,298px);height:auto;display:block;object-fit:contain}
+.cover-type{margin-top:auto;margin-bottom:auto;transform:translateY(2vh)}
+.cover-type h1{font-size:clamp(70px,7.4vw,130px);line-height:1.02;letter-spacing:-.07em;font-weight:780;color:#fff;margin:0 0 clamp(22px,3vh,38px)}
+.cover-type p{font-size:clamp(23px,2.15vw,35px);font-weight:410;line-height:1.25;letter-spacing:-.025em;color:#d6e9ff;margin:0}
+/* The presentation's sources remain readable to assistive technology but no footers appear. */
+.slide .source-reference{position:absolute}
+@media(max-height:760px){.slide:not(.cover){padding-top:37px;padding-bottom:28px}.sh{min-height:130px}.sh.compact{min-height:113px}.title{font-size:36px}.subtitle{font-size:15px;margin-top:10px}.metric{min-height:123px;padding:17px 21px}.metric strong{font-size:32px}.card{padding:20px 23px}.cover-content{padding-top:50px;padding-bottom:50px}}
+@media(max-width:920px){.slide:not(.cover){padding-left:35px;padding-right:80px}.cover-content{padding-left:8vw;padding-right:13vw}.cover-type h1{font-size:clamp(50px,9vw,95px)}.cover-type p{font-size:clamp(19px,3vw,29px)}.rail{width:50px}}
+@media(max-width:650px){.slide:not(.cover){padding-left:25px;padding-right:52px;padding-top:25px}.rail{width:40px}.rail-btn{width:35px;height:28px}.cover-content{padding-left:9vw;padding-right:16vw}.cover-type h1{font-size:clamp(44px,11vw,72px);overflow-wrap:anywhere}.cover-logo-white{width:210px}.cover-type p{font-size:20px}}
+
+
+/* 2026-11-21: chapter 01 - standalone introductory journey. */
+.slide.intro-slide { background:#fff; }
+.intro-slide .sh { min-height:auto; flex:0 0 auto; }
+.intro-slide .title { font-size:clamp(39px,3.7vw,57px);line-height:1.1;max-width:1200px;letter-spacing:-.048em; }
+.intro-slide .subtitle { font-size:clamp(16px,1.38vw,20px);line-height:1.55;max-width:1050px;margin-top:21px; }
+.intro-slide .intro-body { display:flex;justify-content:center;align-items:center;min-height:0;flex:1;gap:clamp(36px,6.2vh,70px);padding-bottom:clamp(12px,5vh,45px); }
+.intro-journey { display:flex;align-items:center;justify-content:center;gap:18px;max-width:1110px;width:100%; }
+.intro-node { width:29%;max-width:320px;min-width:0;min-height:174px;border:1px solid #E1EAF4;border-radius:18px;box-shadow:0 8px 23px rgba(12,41,87,.035);padding:26px 26px 25px;background:linear-gradient(180deg,#fff 0%,#FCFDFF 100%);display:flex;flex-direction:column;justify-content:flex-start;gap:0; }
+.intro-node .node-icon { width:42px;height:42px;display:grid;place-items:center;border:1px solid #D5E7FD;background:#F0F7FF;border-radius:12px;color:#185EBC; }
+.intro-node .node-icon svg { width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round; }
+.intro-node h3 { font-size:22px;line-height:1.22;letter-spacing:-.035em;margin:19px 0 7px;color:#0B2858;font-weight:750; }
+.intro-node p { font-size:15.5px;line-height:1.45;color:#6A7C98;margin:0; }
+.intro-arrow { width:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:center;color:#7D9FCB; }
+.intro-arrow svg { width:44px;height:22px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round; }
+.intro-statement { text-align:center;max-width:920px;display:flex;flex-direction:column;gap:13px;align-items:center; }
+.intro-statement .intro-label { text-transform:uppercase;letter-spacing:.15em;font-size:12px;font-weight:770;color:#2A70BE; }
+.intro-statement p { font-size:clamp(23px,2.2vw,32px);line-height:1.32;letter-spacing:-.038em;font-weight:660;color:#123460;margin:0; }
+.intro-statement p em { font-style:normal;color:#1671C8; }
+@media(max-height:730px){.intro-slide .intro-body{gap:25px;padding-bottom:5px}.intro-node{min-height:154px;padding:19px 20px}.intro-node h3{margin-top:13px;font-size:19px}.intro-node p{font-size:14px}.intro-statement p{font-size:23px}}
+@media(max-width:900px){.intro-journey{gap:9px}.intro-arrow{width:22px;flex-basis:22px}.intro-arrow svg{width:22px}.intro-node{padding:18px;min-height:180px}.intro-node h3{font-size:18px}.intro-node p{font-size:13px}.intro-slide .intro-body{gap:23px}}
+
+
+/* 2026-11-21 · Pantalla 02. Visualización ejecutiva: tamaño fijo de componentes y uso semántico del color. */
+.business-slide{--meta-google:#2054BA;--meta-sky:#20A6C8;--meta-kayak:#7766C6;--meta-other:#AEBFD0}
+.business-slide .business-head{flex:0 0 auto;min-height:auto;margin-bottom:clamp(25px,4.1vh,44px)}
+.business-slide .business-head-period{color:#8798B0;font-size:11px;letter-spacing:.09em;font-weight:680;margin-left:20px}
+.business-slide .title{font-size:clamp(38px,3.25vw,53px);line-height:1.14;letter-spacing:-.048em;margin-top:16px;max-width:none}
+.business-slide .subtitle{font-size:clamp(15px,1.15vw,18px);margin-top:14px;max-width:none}
+.business-slide .business-body{display:flex;gap:clamp(19px,2.8vh,31px);min-height:0;justify-content:flex-start}
+.business-metrics{display:grid;grid-template-columns:1.34fr 1fr 1fr 1fr;gap:17px;flex:0 0 auto;min-height:clamp(149px,21vh,189px)}
+.business-hero,.business-kpi{border-radius:16px;min-width:0;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:clamp(21px,2vw,32px)}
+.business-hero{position:relative;background:linear-gradient(115deg,#0B2D65 10%,#1256A5 100%);color:#fff}
+.business-hero-inner{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start}
+.business-hero-decoration{position:absolute;right:0;bottom:0;width:70%;height:100%;stroke:#91D2FF4D;stroke-width:1.5;fill:none}
+.business-kpi{background:#fff;border:1px solid #E0E7F1}
+.business-kpi-label{font-size:11px;line-height:1.4;letter-spacing:.11em;font-weight:770;color:#647993}
+.business-hero .business-kpi-label{color:#BEDDFA}
+.business-hero strong{font-size:clamp(42px,4.1vw,63px);font-weight:800;line-height:1.03;letter-spacing:-.065em;margin-top:16px;white-space:nowrap}
+.business-hero strong span{font-size:.63em;font-weight:750;letter-spacing:-.035em}
+.business-hero-support{font-size:13px;color:#C6E2F9;margin-top:14px}
+.business-kpi strong{font-size:clamp(27px,2.6vw,41px);line-height:1.09;letter-spacing:-.045em;font-weight:800;color:#102E60;margin-top:15px;white-space:nowrap}
+.business-kpi strong span{font-size:.70em}
+.business-kpi p{font-size:13px;line-height:1.4;color:#77879E;margin:13px 0 0}
+.business-chart{border:1px solid #E1E7F0;border-radius:18px;padding:clamp(24px,2.5vw,34px) clamp(25px,2.8vw,44px);display:flex;flex-direction:column;min-height:0;flex:1;background:#fff}
+.business-chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex:0 0 auto}
+.business-chart-head h3{margin:0;font-size:clamp(18px,1.8vw,25px);line-height:1.2;letter-spacing:-.038em;color:#153561;font-weight:770}
+.business-chart-head p{margin:10px 0 0;font-size:14px;color:#8492A6}
+.business-chart-unit{font-size:10.5px;font-weight:760;letter-spacing:.1em;color:#94A2B4;white-space:nowrap;padding-top:7px}
+.business-chart-layout{display:grid;grid-template-columns:minmax(220px,.85fr) minmax(400px,1.55fr);align-items:center;gap:clamp(36px,5vw,82px);flex:1;min-height:0;padding-top:7px}
+.business-donut-wrap{height:100%;display:flex;align-items:center;justify-content:center;min-height:0}
+.business-donut{width:clamp(160px,min(22vw,28vh),255px);height:clamp(160px,min(22vw,28vh),255px);border-radius:50%;background:conic-gradient(from -90deg,var(--meta-google) 0% 40%,var(--meta-sky) 40% 70%,var(--meta-kayak) 70% 90%,var(--meta-other) 90% 100%);position:relative;display:grid;place-items:center;box-shadow:0 0 0 1px rgba(11,44,92,.04)}
+.business-donut::before{content:"";position:absolute;inset:23%;background:#fff;border-radius:50%}
+.business-donut-center{z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px}
+.business-donut-center>span{font-size:9px;letter-spacing:.11em;font-weight:740;color:#90A0B3}
+.business-donut-center strong{font-size:clamp(30px,3vw,45px);font-weight:800;letter-spacing:-.07em;color:#112E5F;line-height:1}
+.business-donut-center strong span{font-size:.55em;margin-left:2px}
+.business-donut-center small{font-size:10px;color:#8A98AB}
+.business-breakdown{min-width:0;align-self:center;display:flex;flex-direction:column;gap:clamp(13px,2vh,22px)}
+.business-legend-row{display:grid;grid-template-columns:12px minmax(130px,1fr) minmax(130px,1.1fr) 75px;gap:16px;align-items:center}
+.business-swatch{width:10px;height:10px;border-radius:3px}
+.business-swatch.is-google{background:var(--meta-google)}.business-swatch.is-sky{background:var(--meta-sky)}.business-swatch.is-kayak{background:var(--meta-kayak)}.business-swatch.is-other{background:var(--meta-other)}
+.business-legend-name{font-size:16px;font-weight:600;color:#31455F}
+.business-mini-track{width:100%;height:10px;overflow:hidden;border-radius:5px;background:#F0F3F8}
+.business-mini-track>span{display:block;height:100%;border-radius:5px;min-width:3px}
+.business-legend-row strong{text-align:right;font-size:16px;letter-spacing:-.02em;color:#18375F;font-weight:760;white-space:nowrap}
+.business-story{margin:clamp(7px,1.7vh,22px) 0 0;font-size:clamp(14px,1.18vw,17px);line-height:1.5;color:#5A6E87;max-width:650px}
+.business-story strong{color:#1554A1;font-weight:780}
+@media(max-height:780px){.business-slide .business-head{margin-bottom:21px}.business-slide .business-body{gap:18px}.business-metrics{min-height:133px;gap:13px}.business-hero,.business-kpi{padding:19px 21px}.business-hero strong{margin-top:11px;font-size:47px}.business-hero-support{margin-top:9px;font-size:12px}.business-kpi strong{margin-top:12px;font-size:31px}.business-kpi p{margin-top:9px;font-size:12px}.business-chart{padding:21px 28px}.business-chart-layout{gap:35px}.business-breakdown{gap:12px}.business-legend-name,.business-legend-row strong{font-size:14px}.business-story{margin-top:7px;font-size:14px}.business-donut{width:182px;height:182px}}
+@media(max-width:1150px){.business-slide .business-head-period{display:none}.business-metrics{gap:11px}.business-hero,.business-kpi{padding:18px}.business-kpi strong{font-size:28px}.business-hero strong{font-size:43px}.business-chart-layout{grid-template-columns:minmax(170px,.7fr) minmax(335px,1.3fr);gap:24px}.business-legend-row{gap:9px;grid-template-columns:10px minmax(110px,1fr) minmax(80px,1fr) 65px}.business-donut{width:175px;height:175px}}
+
+
+/* Visual storytelling v5: one message per screen, consistent category colors. */
+:root{--meta-google:#2054BA;--meta-sky:#20A6C8;--meta-kayak:#7766C6;--meta-other:#AEBFD0}
+.narrative-header{min-height:0!important;flex:0 0 auto}
+.narrative-header .title{font-size:clamp(39px,3.65vw,55px);line-height:1.13;max-width:1300px;margin-top:18px}
+.narrative-header .subtitle{font-size:clamp(16px,1.3vw,19px);line-height:1.5;margin-top:18px;max-width:1160px}
+.narrative-period{color:#91A0B3;letter-spacing:.06em;font-size:11px;font-weight:640;margin-left:17px}
+.volume-slide .volume-body,.origin-slide .origin-body,.channel-slide .channel-body{justify-content:center;min-height:0}
+/* Slide 02 - Business magnitude */
+.volume-slide .volume-body{padding-bottom:clamp(35px,6vh,80px)}
+.volume-composition{display:grid;grid-template-columns:1.5fr .75fr;width:min(1120px,100%);align-items:center;gap:clamp(70px,9vw,150px);margin:auto}
+.volume-main{min-width:0}
+.volume-kicker{font-size:14px;color:#56769C;font-weight:780;letter-spacing:.10em;display:flex;align-items:center;gap:14px}
+.volume-glyph{width:22px;height:4px;border-radius:99px;background:#1876D2;display:inline-block}
+.volume-amount{font-size:clamp(98px,10.5vw,172px);font-weight:820;line-height:1.02;color:#0B2D63;letter-spacing:-.09em;margin:21px 0 25px;white-space:nowrap}
+.volume-amount span{color:#1884D1;font-size:.51em;letter-spacing:-.055em;margin-left:9px}
+.volume-descriptor{font-size:clamp(15px,1.3vw,20px);color:#70839F;line-height:1.5}
+.volume-side{border-left:1px solid #D6E0EE;min-height:160px;padding-left:clamp(40px,5vw,82px);display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
+.volume-side-label{font-size:13px;font-weight:770;color:#7791AF;letter-spacing:.09em}
+.volume-side strong{font-size:clamp(42px,4vw,66px);line-height:1.1;letter-spacing:-.06em;font-weight:780;margin:16px 0 14px;color:#164476;white-space:nowrap}
+.volume-side-desc{font-size:16px;color:#73849B}
+/* Slide 03 - Origin mix; single distribution graphic, no secondary mini charts. */
+.origin-slide .origin-body{padding-bottom:clamp(35px,5vh,75px)}
+.origin-slide .subtitle strong{font-weight:730;color:#224B81}
+.origin-composition{width:min(1070px,100%);margin:auto;display:grid;grid-template-columns:1fr 1fr;gap:clamp(90px,9vw,160px);align-items:center}
+.origin-donut-wrap{display:flex;align-items:center;justify-content:center}
+.origin-donut{width:clamp(265px,min(28vw,44vh),390px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;position:relative;background:conic-gradient(from -90deg,var(--meta-google) 0% 40%,var(--meta-sky) 40% 70%,var(--meta-kayak) 70% 90%,var(--meta-other) 90% 100%)}
+.origin-donut:before{content:"";position:absolute;inset:20%;border-radius:50%;background:white}
+.origin-donut-inner{position:relative;display:flex;align-items:center;flex-direction:column;justify-content:center;gap:10px;text-align:center}
+.origin-donut-inner strong{font-size:clamp(63px,6.9vw,92px);letter-spacing:-.085em;line-height:1;color:#0B326B;font-weight:820}
+.origin-donut-inner strong span{font-size:.48em;margin-left:2px}
+.origin-donut-inner>span{font-size:clamp(12px,1vw,15px);color:#6884A1;line-height:1.4;font-weight:620}
+.origin-legend{display:flex;flex-direction:column;gap:0;max-width:510px;width:100%}
+.origin-legend-heading{font-size:12px;letter-spacing:.12em;color:#7E91A9;font-weight:750;margin:0 0 17px}
+.origin-legend-row{display:grid;grid-template-columns:13px 1fr auto;align-items:center;column-gap:18px;padding:20px 0;border-bottom:1px solid #E9EEF6;font-size:clamp(17px,1.5vw,22px);font-weight:570;color:#294564}
+.origin-legend-row:last-child{border-bottom:0}
+.origin-legend-row strong{font-size:clamp(18px,1.6vw,24px);color:#0D3266;font-weight:740;letter-spacing:-.025em}
+.origin-swatch{width:12px;height:12px;border-radius:3px}
+.origin-google{background:var(--meta-google)}.origin-sky{background:var(--meta-sky)}.origin-kayak{background:var(--meta-kayak)}.origin-other{background:var(--meta-other)}
+/* Slide 04 - Comparability: one known value and explicit missing baselines. */
+.channel-slide .channel-body{gap:clamp(22px,5.4vh,65px);padding-bottom:clamp(30px,5vh,65px)}
+.channel-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;width:min(1180px,100%);margin:auto auto 0}
+.channel-item{min-height:clamp(208px,32vh,290px);border:1px solid #E1E8F2;border-radius:19px;padding:clamp(28px,2.4vw,38px);display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;background:#fff}
+.channel-active{background:linear-gradient(138deg,#0D306B,#135BBA);border-color:transparent;color:#fff}
+.channel-name{letter-spacing:.11em;font-size:13px;font-weight:790;color:#7389A5}
+.channel-active .channel-name{color:#B8DCFC}
+.channel-item strong{font-size:clamp(66px,6vw,99px);line-height:1;font-weight:800;letter-spacing:-.07em;color:#0D3165;white-space:nowrap}
+.channel-active strong{color:#fff}
+.channel-item strong small{font-size:.48em;font-weight:690}
+.channel-item .channel-pending{font-size:clamp(27px,2.5vw,37px);font-weight:580;letter-spacing:-.035em;color:#97A7BA}
+.channel-detail{font-size:15px;color:#71859F}
+.channel-active .channel-detail{color:#D5E9FA}
+.channel-closing{margin:0 auto auto;max-width:1000px;text-align:center;color:#536C89;font-size:clamp(16px,1.37vw,20px);line-height:1.55}
+.channel-closing strong{color:#1B4C83;font-weight:700}
+/* Visual tweaks for the following rankings, same color means the same meta. */
+.slide[data-name="Ranking de metas"] .bigline{line-height:1.25}
+@media (max-height:760px){
+ .narrative-header .title{font-size:clamp(34px,3.4vw,46px)}
+ .narrative-header .subtitle{font-size:15px;margin-top:11px}
+ .volume-slide .volume-body,.origin-slide .origin-body,.channel-slide .channel-body{padding-bottom:15px}
+ .volume-amount{font-size:clamp(80px,9.6vw,130px);margin:16px 0}
+ .volume-side{min-height:120px}
+ .origin-donut{width:clamp(210px,min(25vw,38vh),310px)}
+ .origin-legend-row{padding:12px 0}
+ .channel-item{min-height:clamp(185px,31vh,250px);padding:23px}
+ .channel-grid{gap:16px}
+ .channel-body{gap:24px!important}
+}
+@media(max-width:1080px){
+ .volume-composition{gap:50px;grid-template-columns:1.45fr .75fr}
+ .volume-amount{font-size:clamp(65px,9vw,106px)}
+ .volume-side{padding-left:36px}
+ .volume-side strong{font-size:clamp(34px,4.3vw,50px)}
+ .origin-composition{gap:43px}
+ .origin-donut{width:clamp(190px,26vw,275px)}
+ .origin-legend-row{font-size:16px;padding:13px 0}
+ .origin-legend-row strong{font-size:18px}
+ .channel-item strong{font-size:clamp(45px,5vw,73px)}
+}
+@media(max-width:680px){
+ .narrative-period{display:none}
+ .volume-composition{grid-template-columns:1fr;gap:22px;text-align:left}
+ .volume-amount{font-size:clamp(61px,14vw,92px)}
+ .volume-side{min-height:0;padding:18px 0 0;border:0;border-top:1px solid #E6EDF5}
+ .volume-side strong{font-size:38px;margin:8px 0}
+ .origin-composition{grid-template-columns:1fr;gap:14px}
+ .origin-donut{width:clamp(148px,34vw,220px)}
+ .origin-donut-inner strong{font-size:47px}
+ .origin-legend-heading{display:none}
+ .origin-legend-row{padding:5px 0;font-size:14px}
+ .origin-legend-row strong{font-size:14px}
+ .channel-grid{grid-template-columns:1fr;gap:8px}
+ .channel-item{min-height:0;padding:13px 17px;display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;gap:7px}
+ .channel-item strong{font-size:26px;grid-row:1/3;grid-column:2}
+ .channel-item .channel-pending{font-size:18px}
+ .channel-detail{font-size:11px}
+ .channel-name{font-size:10px}
+ .channel-closing{font-size:13px}
+}
+
+
+/* v6 · Edición editorial: una jerarquía, datos claros y ninguna etiqueta ornamental. */
+.editorial-slide .slide-top-accent{display:none}
+.editorial-slide .editorial-header{flex:0 0 auto;min-height:0;margin:0;max-width:1200px}
+.editorial-slide .editorial-header .title{margin:0;font-size:clamp(38px,3.4vw,53px);line-height:1.17;letter-spacing:-.047em;max-width:1170px}
+.editorial-slide .editorial-lead{font-size:clamp(17px,1.35vw,20px);line-height:1.58;color:#526880;margin:23px 0 0;max-width:1100px}
+.editorial-slide .volume-body,.editorial-slide .origin-body,.editorial-slide .channel-body{padding-bottom:0;gap:0;justify-content:center}
+.editorial-slide .volume-composition{grid-template-columns:1.55fr .75fr;gap:clamp(60px,7vw,115px);width:min(1100px,100%);margin:auto auto 0}
+.editorial-slide .volume-amount{margin:0 0 17px;font-size:clamp(94px,9.8vw,153px);line-height:1.08;letter-spacing:-.078em}
+.editorial-slide .volume-amount span{font-size:.50em;margin-left:12px}
+.editorial-slide .volume-descriptor{font-size:clamp(16px,1.4vw,20px);margin:0;color:#5B718E;line-height:1.45}
+.editorial-slide .volume-side{min-height:128px;padding-left:clamp(35px,4vw,65px)}
+.editorial-slide .volume-side strong{margin:0 0 13px;font-size:clamp(43px,4vw,64px)}
+.editorial-slide .volume-side-desc{font-size:clamp(15px,1.15vw,18px);color:#60758F;margin:0;line-height:1.48}
+.editorial-slide .editorial-explain{width:min(1100px,100%);margin:clamp(60px,11vh,114px) auto auto;font-size:clamp(17px,1.35vw,20px);line-height:1.6;color:#506984;max-width:1100px}
+.editorial-slide .origin-composition{margin:auto;width:min(1050px,100%);gap:clamp(75px,9vw,140px)}
+.editorial-slide .origin-legend-row{padding:17px 0}
+.editorial-slide .origin-donut-inner>span{max-width:175px}
+.editorial-slide .editorial-source-hint{margin:0 auto auto;text-align:center;font-size:13px;color:#8192A7;line-height:1.4}
+.editorial-slide .channel-grid{width:min(1140px,100%);margin:auto auto 0;gap:18px}
+.editorial-slide .channel-item{min-height:clamp(192px,26vh,235px);padding:clamp(29px,2.6vw,40px);justify-content:center;gap:29px}
+.editorial-slide .channel-name{font-size:clamp(16px,1.3vw,19px);line-height:1.35;letter-spacing:0;text-transform:none;font-weight:650}
+.editorial-slide .channel-item strong{font-size:clamp(59px,5.2vw,84px)}
+.editorial-slide .channel-item .channel-pending{font-size:clamp(25px,2.5vw,35px);font-weight:540}
+.editorial-slide .channel-closing{margin:clamp(50px,9vh,96px) auto auto;text-align:left;max-width:1080px;font-size:clamp(16px,1.3vw,19px);line-height:1.58}
+@media(max-height:780px){
+ .editorial-slide .editorial-header .title{font-size:clamp(34px,3.1vw,46px)}
+ .editorial-slide .editorial-lead{margin-top:16px;font-size:16px}
+ .editorial-slide .volume-amount{font-size:clamp(75px,8.6vw,123px)}
+ .editorial-slide .volume-side strong{font-size:clamp(39px,3.9vw,53px)}
+ .editorial-slide .editorial-explain{margin-top:clamp(35px,7vh,59px);font-size:16px}
+ .editorial-slide .origin-donut{width:clamp(205px,min(24vw,37vh),290px)}
+ .editorial-slide .origin-legend-row{padding:11px 0}
+ .editorial-slide .channel-grid{gap:14px}
+ .editorial-slide .channel-item{min-height:clamp(162px,23vh,196px);gap:22px;padding:23px}
+ .editorial-slide .channel-closing{margin-top:clamp(30px,6vh,55px);font-size:16px}
+}
+@media(max-width:1050px){
+ .editorial-slide .volume-composition{gap:35px}
+ .editorial-slide .volume-amount{font-size:clamp(69px,8.5vw,103px)}
+ .editorial-slide .volume-side{padding-left:28px}
+ .editorial-slide .origin-composition{gap:36px}
+ .editorial-slide .channel-item strong{font-size:clamp(39px,5vw,62px)}
+}
+@media(max-width:700px){
+ .editorial-slide .editorial-header .title{font-size:clamp(26px,5.1vw,35px)}
+ .editorial-slide .editorial-lead{font-size:14px;line-height:1.42;margin-top:11px}
+ .editorial-slide .volume-composition{grid-template-columns:1fr;gap:20px}
+ .editorial-slide .volume-amount{font-size:clamp(58px,10vw,85px)}
+ .editorial-slide .volume-side{padding:17px 0 0;border-left:0;border-top:1px solid #E5EBF3;min-height:0}
+ .editorial-slide .volume-side strong{font-size:34px;margin:0 0 7px}
+ .editorial-slide .volume-side-desc{font-size:14px}
+ .editorial-slide .editorial-explain{font-size:14px;margin-top:28px}
+ .editorial-slide .origin-composition{grid-template-columns:1fr;gap:8px}
+ .editorial-slide .origin-donut{width:clamp(135px,31vw,185px)}
+ .editorial-slide .origin-legend-row{padding:5px 0}
+ .editorial-slide .editorial-source-hint{font-size:10px}
+ .editorial-slide .channel-grid{grid-template-columns:1fr;gap:9px}
+ .editorial-slide .channel-item{min-height:0;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:13px 18px;gap:12px}
+ .editorial-slide .channel-item strong{font-size:25px}
+ .editorial-slide .channel-item .channel-pending{font-size:18px}
+ .editorial-slide .channel-closing{font-size:13px;margin-top:23px}
+}
+
+ .public-demo-label{position:fixed;left:15px;top:9px;z-index:2000;background:rgba(255,255,255,.94);color:#45566b;border:1px solid #dfe5ee;padding:5px 9px;border-radius:8px;font-size:10px;font-weight:700;letter-spacing:.035em;box-shadow:0 3px 8px #00000011;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="public-demo-label" role="note">PROTOTIPO DE DISEÑO · DATOS FICTICIOS</div>
+<div class="app">
+<aside class="rail" aria-label="Navegación entre pantallas">
+  <nav class="rail-track" id="dots" aria-label="Navegación por puntos"></nav>
+</aside>
+<main class="workspace" id="workspace">
+  <div class="stage-wrap" id="stage"><div class="deck" id="deck">
+
+<section class="slide cover active" data-name="Portada" aria-label="Portada de Metabuscadores">
+  <div class="cover-ambient" aria-hidden="true"><span class="halo halo-one"></span><span class="halo halo-two"></span></div>
+  <div class="cover-content">
+    <img class="cover-logo-white" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZQAAABfCAYAAADPnTFjAAA6m0lEQVR42u19aXMcR5LlqwsFFG4CBO9DECVSbOrqbs329I7NzH7dP722tqOe7tZNiZIoHuJNEARQuFF37Yd8buEViMijKkGCZLhZGUmwkBkZGeHP/YUfhX6/jyBBggQJEmRUKYYpCBIkSJAgAVCCBAkSJEgAlCBBggQJ8nZJ+ZiOq6LArgegneM1+/y0cx4vjnDMOKJxBwkSJEhuUgiH8kGCBAkS5G32UHwyzk+JlnuBf5aUJd8F0KEl3wawe0zHXObfu2qsXX72w9IMEiRIAJRsIpROM8V3ZwAsApi1FHQZwBj/DSrmBoA9gskWgJWcxyz3GXbMY+rZWxzrAcfdJKCsp7hHBYECCxIkyDGR4055VQDUAMwDWAJwGsAJ/qzETwVAVYFjk8pZwGSNgPIcwOYxGXOVHwHTHY73gJ8dAC845npYpkGCBAkeSnaZAzANYIqfWSrmBSrlBf7/GMcuHkpFeSgtKukGFfMWrf0VAC8BbAPYoKLeG9HCr3Gck/xMcHwy5gXPmMf4EcpLPJSm8q7qAFYJiAI6m/xshKUbJEiQdx1Q4iiuBQAXAZwDcJ6W/Sn+OUeFPc7flw/U3wv8dwdRlJWcTbSorEVBPwbwG4A7AB4RbGyp8hqIAZwKx3ae41ziMyzxM0+wqWLw/KSkPhJ1Juc++vynSfCr8/MUwH2Ou8P/s8cT6K8gQYK8M4DiU3hLAK4A+BDA+wAuA7hAcDlNxaylB38OTV+Bi5Z9Asp9Kv6aen4bVJLOdOY5rvc5bj3WswSYmQxj9o2/g4gKW+O4l+gFAcDvGKTDApgECRLknQIULeNUwCcJIFcALCvlvIToQNulhOMUc8Hz8xrvI9SU0Go1Kus64iPCaohot1Mc3wUA79FDOcmfi4eSdcy+8Zfpnc1xvmTcc7zfPURU3nZYykGCBHlXAMVFx5wF8DmAjwF8AOASFfIcojOHcRxNJv9JXlvOOWappIUCa3jA5CyAqxzvVQUkU7xe7QjHLF7cGO95ieD7NYCvAqAECRLkXQIUDSZVAGcAfALgLwC+oHeyyP/TkpYmSpI+ryUH99MArsGccUgocBPAQ+t35zneDwH8keO9Rg9hwnOvQk7zpq81BnM+c55/AlGgwQpCNFiQIEHeEUARWUREE92gd/IZrf2llL/fgwkL3kN0LtLEYGJgDyZ0d4YeSJWKuWoB1HkL9JowZVMqBJxz9AaucdzX+bM4WUcUjXXAa/XU2DSw6ki2ijWWNsdchkmCFJlCdH6zCuAuovDiIiLKrhmWdZAgQd42QBlDFGGlleCHAP4dwL8SSFwH7to6Lzo8nS0q0heIDqs3CCz7VOBdXvMUImroPRhqyuXtCKi0+KnyWkJzSbDAMoHkRMJz7yOKyHpI70FAr6k8tQLHI9efsAClpLyzssfjkd+/xnkAogi2txFQqmretMcZAhGCBHlHAMUGkysA/gTgPxBRXXPq/7swYbV9D5hIst9TAE/4kdySLXose7zWDKJD8w0q2C6Bo+oZ63nl8UzS0p8mIH1AMDnt8JZgjbMO4AGAXxCdyTzjuA+UtyI01hyiMOk273VVXUdCoUtqTjRlJzLLMa7C5Nusv4XrNHhdQYK844AiMk9l+QW9k08tMBHw6cMkKRat/1ulxX+XCnsFJulvkwAgHkqf3kWdSnabgCJJh0Xl7Wiv4AwiOmuO1xEP5Sw9HBeYFHidbXoHDwgk9/nvNQJKi9+TXBNwLOJZ1DiWcwr0tGei6TINKpOI6MJziMKIxx3zH/JTggQJ8kYCStVhTV6mV/KfBJMznnG0LVpDqI1nAH4G8D2Am1TWUqZkH+bsQxdU3IZJZlzn9U9bCruEwUNv8UgWqfjlDMVHyQkw7RNE/gHgO45vnUCyr4BEAKHBa28T8ApqTAf0WqYd81BweG0SrbbIP11BAqMGCIxhuMCI/jvkWVRzmmvfPPYtjz9IkHcCUFxg8hmAv+IwzdVWVnhJUTxanhJMvuLnJi3/OBGLfEt9ThPM9tXmL1pjKFApz3s2dcEBJtv0DL4H8CXH+CBhbPLsbTWeKYLBBCIaa9oDYAWHspe8lBn4Kb1RJCiy7Os+SJAAKDnKAj2RTwkmNxxg0qTlXnVYwC1EZyS3EOVafIPoXOJxinvb19qEOcDfcgBGxwNm9ngKVODaC7rNsf03we5Bwthc1NMGvbAnBOA0pet7CohnEAUKzB4RoLxOmeWzneT6qfHZd/g+XyCiPoMECfKWAsokosiq/0Ew+RSD4bly306M0r1HBf0NP3cQHb6nkZ7jZw2Yulg6f0TX00q6Ztn69yMAf6Nn8gNBYRgRT2UbEZXnO++wKTABzgkC+IwFeDhCGuZVyByi86vriJJJJVepQ/D9EcC3iM6X1sNWDhLk7QSUk4gO4f/KzyWl1CQUVs4Nug6P4jHB5O9UGL9mtEJ9fL+Ayg5M/5SiUrp2EqWmubQXJWByE8A/kUxzpXkHXZiw5W7C910RX1JCpvKWrMspRMEGHwL4M9fRx8rLfUDvpY3o3KlD7zNIkCBvCaBUENFJkgR41QITUZo6kqtgWf3PENFc3xBMfnOAiSQpdj3WfMEak3ynBdPAqoPDFFdfKfMeBuk4AZMDRIfuPwD4LwA/OcBkXI0tbYRVh+NKAyguL0w37MpLqjARZIv0hCSxtA930IAc4DcQUY06rDuLzCAKTvgDIrr0QwxSppdhwqQlVPzhawCVOZgablPKQyzGeMtxhkLB8bM2jaB17oXNoLaCvG2A4lKUM9z4nwD4CNFBuH2QXfQo/30qn19p9X/Dv7vKiTRTbExNJ6Xd2AX1Z99DFz1DdF7yfxAdxD91XEcDXVowkbDitmes/QQv7Ci6pE3zPf4HvYMFjnOH49R0oXhMk1wbmzQGvuI8deEvvGknwILex7IySlxBCks0XCRcfPuIAcW15k8iKsfzMaK8Jx2WXuS89K01FWckFK3vdmFC0n/ivgiAEuSd8FBkg3+GqCzIlENh+yzoDQLIV4hCb+8g38NWaWo1jsHujvAo6iLcUVWPuan/FkNzZc35aGGwNMsw4BAHRqPQTsukm/7TAeoVpTS7OEy3fU3vQZIudz1KOq4KwEWuq4oH8C7yus8RnbulAYFR1pDLQxF69yOCbskDFGm8zqLDOFlDFJDSpnecBpCDBHktkgdFUuVGukSK4rqyKnsOUHEpzHVSXV95aC5gtPOBIkxtrym4I7oKDvDrW2N8gihM2AaT2oiWL4YAE/1dKe/SzWldSDjyCbjzhqoW+LrejW5DMOuZo4IHUKpcP1INuuIBnZOI6LhZuAMS8qIAKzHjnIUp2lkaYQyu75Uw2GSumrBugwR5Iz0UsfrGudAv0EK7Sqt23rKyikpJdzHIF++TSvoF0UF33UNrjWJpjsG05q1ZYyt5aIeSUto7tA4fwd1+dxRFrtsYl1MoiILyDEq0TjdIjeSVDyFzNTnic4mynScg76dUhuL1dFJY9W21ptJSVVmAXnustujuml3Eh54PK3Ju5fNAC3g7qiFUctrrlRR66zg841GPKa0Bnuv9R6W8xmnBimfyHq1Ke0OIteUqdrhKRf0Ah/NMqjkpyQmYysPwAIht9YsC2aJX8jP/3PVs+mGlxHlMitTSlEhJAVkd0cH3Bty9XLJSaDWYXjETMeDuOkOxabEar7MA93mTb3xypvaI8+IqIrqB6CD+AQ2S3RjAGcVo0mvRZUjswwQIHBXlVUdEH7ZzfsbjJO1jdp3j/IzHdh6yAIrLCpIuiJ8SVE47lIWtcEpqI0hrW+k8mIc733NQI5J9Pun4rj40dSnGbY7ve0SJjFs5g12RYzsRQ2v0rbFqC3mDynrFo1SzAsoEqaSzHFMJ0aG35O4cYDBooQfD4UsEXoO/NwtTFmY8A6DUEVGfU7zfe7zOFL8vz3yXQH8H7gP5PDdV07PWJEJP2iqUYIp6dqx31rc+BQeglNT77hJIDpQnZks4PwnyRlJevkNJiez6AIeLPrrOIrSFeZs01x24I7qGPaDWgCdthqcd1n8xhachyk3Guen4blrF5QKhGscnTbN8NFNHKSuRPVrnvyM639nOQalK6f8LBJU5DJ5PjMEU8hQDoYrBZEs5g1ngtU7AXWcsDlDuUIFu0vA4x3fYpkf2O9fPXT77Zg4UQda5EipM6Er5U1O8PQUOmh7rWFSaBhQxHjowdeuayDfoIojZk0fl5b2JVKQOtsk89lEpr1OIzkyWaUFqV72kNp3LslqjQviB1EUjpVWYRaSM/SkquGE8ng1SL/ctL2qYheJSCAuIopWWldJ0Ka6Cw3tapWK9hyjSaS+HBV/juzwD00emZFF0Lm/J/o5QZ4sxnpdvHrdhzg4apJXWODctRCVX5LmfIp9ule0UiqcZAyol7qeSY07kWYQak4oIRes7NsDosOF1AsvboLSOkxxlHbY38b2MNOYsgNK3lI50M5RIHq00WzDZ6AXPoF/SurxFZdjIeYPMcFyXaWlPJXzfFdZcp/KSBL1RN7L9/XkC3of08C5YgNJX3kDBASb3EAUz/MZxHgxhYbsU55yi4FzRUw1+hCIcd3ggus7YXIyHErfRpQdOBaZXTZsg/5zvJ+mZxzHY9VLmtIvBpmf6+xINOAaTRNvh/XR5nF4Kr0EsvU2Y9gbPuUf0maKrakSH8/ySv7vjeFdV5dXaZ4F9NfZGCsC0A0Nsuq4NkzPlM1BKMAmuBcs763kMmBmY88MuTCXx/QwKf5bzMI7BJF/tIco49kfwaCvKeNAGhMxz2zHmCscnzwm1/sRgOsgJ3HzzYK9J8YDzmJOhAKWlNtw8otDgy7RAawmK2ZZ9KsQHMOXom9amyGNiL9DyvxBj+evzAD0fB7QMn9A63hthAbo24Dzn7xqigIYrGAxoEIqj7KDq1hRd+COBOa8oLynbP4fB7G8Nctt8fw0CxSkPYEidsXleazyFYhPlVuM7q8L0nBG6qMF5kSCLXZgqCDZ9N8Pr1JQrL+0OthzejRghZ/i7fX5Xmqc99gCKjrxzgeMGweRLGgH693y17eT6+wSTLUsRS4+fCc6t9h5FabXU7/qSS2vqnU9i8BxHvKYO38G6R/FUYYJLZEwlmHOgXRyuVWcbpRIEskYq93mKNV3hGltCRG+fUM/Qs4CwwbGscV+/zOCJ2s8oQTRV9Y73YCqcNywWYplMxALn84DvRYJq1pTBMuy+tedhgmur79jDMieyPuLmJLXxPAzlNQ5TZ+kSDkdO2YDis/zXqJTWHb+fh9KeolLQlFeSFBSYPEd8BNEoLqSAyWeIzp+uWF6eBriKwzO5jag0zU16Kas50iAVpYhrDgVZ4AJ8wPc4r9aES0TBTHKBNzxer63gTvMj1x9T67WjFIR4kS88gCIKa4HPJmVh1pRxI793juv6BqLk3Hnea53P2+Bc76rxJ3kounzKU4LJV9Z3siYnVviZhslTmYepj9dRgLTNtZxUrWCBa/KUdZ2K8hCfKG/LVrQTMKVo9HvrUkk94kcbfO/BpBqIUbJPCrwIU3ImiYW4QGV9ASZ4Y0x5Ji2YoIktMg5ypvosJQVWUca05B0twvQu2ua1Hqu1Oc65uIIoreJ9PmdJGSmrfD/SNHBDgX87hS6e4H6Z5bXPwSQET3l0vBhVTQyWSfLNSWpdUh5CUU9ykt6PsfwLDvpD8+OrXGTbOXkjPurmpDoL8CXWuZTaHl/yQ/ijp4aVeS6wzwH8C0HlnEMJuaimVaWQpDzNas48qFA+8/AnbO4iOsN4zvk9m3C9mrLo6hkA5QOYkGFdr0wARbLkZYOuO7zU9xGVRrnINbHFTX+XCkaouyn1Xj7n32ep1J7wfk9x+CwoTeBIX9FO2zHef1bgn0EUzHGdzzdlUS4SSfmzUho+QDkNUzdtmmNt8/2N8/dvco4fOX5fgjmu8L2d4xrqwWT4P1N78wMA/0qDSrzBMue7wvf0KMZIEbr4itJFSzB9gSrKw2sri3yXz7DM33sA01o8rnRPST3j+/xcpG4p8ho/Ki9oknMgdQ3f43POw+SP7RBA1tSfEmRzj9f0yUneX4ylWQK6nH8ucB9pqrdn0bBdRS275uRZVhqsPISinubLu8yHmUkBKJrqesENuop0vT+GlSpfnkQZVRy8MDw0xa4a5wsPoLQT7u2ydmY5b38C8D8RtUW+rL7fV9al7Zms0zP5irTJzRFdZJ9ikc26EPO9bZhAhSaikPGka87yunX13n1zOEHlsKy8N2lCJmHJ8o6qHM9TD3h/wHm+zt9fRXRu1+M15AxI8qk+oWK9zP+r8508Vbx0lv2ivfQK8utZU1QemITtzylLXJSIeBX3EtbrKQLvF9wv+5znSd7nBRXQL553PK2MgM+oRM9yDD9x/f6kaMU/A/jfnOsJdcaxqbyUCQ+YnOO6+ITP/j4V6bjjXWhFqqt6C7V2D1G5py8JCEnr+DRBV57xPNfJQwXgTc7HnxC18VhW9G1VUYptZdQIrfuQxmIXpuurS07xXf2J8zFJfV6lTh5X3qWeh56lB/uKLj7ge7qv5iRXQIEHUM4qiyBL2ZFdWkmP6aH4YvvzEHEDZ62F6eO5tTRoMYgL2sh472YCzfVnLoarDpAqJNBc38C0Qh6V5up7uPQZxGfJb1LBPuQC3kugESf4/Ce54ZIMiYpSUJp7tgG2pui3qkf5nFUWM6gsmwqM5/m8UiX7Q/5dv7cpRbuVRgCAkmecWSkviRCTskcXOXafh3g/YZ+WYCpeXIvxrO95qOMKTFTfGTWXIjcIRJcJzgLydhdXAUI5y3GB9xJ/X/bQJzjcb0lX57CNyJ4FNlJ3cEetJd8cxT3jNeq2p3yfpwD8O6I6b3MxY7PHI+v0hfKcXPt6jqD6Beej5njWfoxx75sTcA7G6P0/sViFWD0zDKBMKa5uyUK/UgoqaSXBQ8kjHFes4XmHB5UGUFowDbk2MVry2DgV6XvcWJ8TVC56FIuWOsH3Hq3qW6QvnmXwCpOe0/boZhAfkSWUwQoX3CIBN27xTij68SXMAW0cCOmD+XmPgqvDRAeVPIpuEofP+RY5/0JDzVHZXcTh5Fwouq085J7pK5puLyfKCwqg4s4HZxX1EQd2Y0gutTPlUfISWDCmDDl7DB8QQM4rAJxzrJMGDvcrEpHD7c+oSD910MWA+9zP5UUW+N7lgFye8ZGDmpTzzDHPmgIB+RMaMac4vrmEsdnjucQ9ck15hS4mQt79NA4HRaXRCYUYz/oyDasPORdFmMCpdp4eiri2i9bGk/BAfQDvUtxSffZJzmcTduTIacUjTnsAqBjDgQu/WefCSmNRlzyezGnSEZ8jKnV+jZsqKYx2i57It6QK7sHkIzRyVEqaj5feHuMx35XWuy85P+KWt+E+95F3coabZZXXSHr3dqhn1fHO5f/jzjJ6OBxBVeOml4TMWQLebAylNWyLAJ313hrC202aox7ia8l1kK7WXD/F97oJ89CHP1DhEoD/xf00A/e5W0+No2uNR7zIT5Rnci6neVym7pLgkbYDUIoe6sg2VD7lO57xGCdJUuDvfUQd0EMUHbjrYEGERTkfs/eGlZP0gJ7xmR8jRRRpOcUi81EiUzFKOo5KWqdC2siZ/7dpDjmgG6ZKsRzebSNdbkfbg9wXCCZfxLjnbaXUtWfyM6KulX8nXfD0iOZL7j0LE244FqNQNhWISKTIPo2FsRgPRbLmF1PQpMIvy7V3HYCyq8bgK5woh4573CBaOSwoi3tWredeDLh1kFyw0qUgtCex4KArhy1Br3l4n+zBNJWLA6Z2CrA7gD+8WVcCaHgU1DzHXPLoHg2+Teu5FmHOuD7y7KNSCh2kPemuejfXaEjt8f3c9qynuGesEZyKGd5f3/H9GVJxooPWcLjO4T51wm2O/7LDk9fRYuLNTHneXcWxZ8/Ts9yk3k5stV1OoVhtSmQW2ZPUNKpuKdojbxGKZAmmuOEwVp+E0tUtoEhzTlHj/U/yZdzgJrjqscoqMLkOEnooCYvf0TtxWQeVEShCW+wAhqqDwtIJZ7pUfpPvcstDTclYpV7ZDNIdTOukPAHsigXgYn33YoDA9lDk/KGmLNI491974C1rT6ShGYsKUK8g4v6nMJiHUuIYC0opipW8wY28nWDR2/NTUs+e5FloT86+TsXyCPspPDH7Ol3Od9J86TpobcUMjMPUDLzh8Ex0p1MJJX9Jw0fuPa/0V8UyHkrKi1rmn6cwmE/Ssz5xc6WV/ipMYEcZJopyWjEbdhWMKRqjezCh5i7jfBVRtGKRa2QKJgpSco/2YBLNJxX9vKR0ecHSKV2Y87kzMazFIX2YlvKyKZGJFBx+zwNQ21TWRwEosnGlIOGEZ4MneRu7XATr1oSVrMXjUuZnufA/JohcpuW/EHPvDoHkZ4LILUQHYxJenXc5fxcILipAGfe8T8mQb1sLW+LpfUEaktsyHcPDu9ZTQfHzdkkTu2ZW0fOu7f/TWc7llKAgnlLDYZmmUZJCsfU4B59aACKFJCXirAwTmn2TCqVprYOe9fz2/NhzkzTOouc6+u+FmOsUrLGUYs4N4vZeV3ldAignYGoGXnGsMT2HdZikX0lCXeTvX4UJKYZjHRb43cs0Bu/ChFrL2AqIL7Oj389TRFUsHvB9Spt0OUcSb136C2mWZ4HfOw0TtdWwdGldPaNEmWkDT849WjAVDCowUWrXuS5rjmcRj1oy71NFJ2YBlCRKpJBi0cpC2cvJ5XcpxgUi8FwKXtE1ZglJ9R0c+9r7VonmNxAdPn7Bxb+Y8DKkwOMt0ltf8u91HI1UPGOfURbcuOe59zBY1UB+XufGOwMT1WW/X519nzZ0tmgpRv3zOCBxXUP/2xetJVZxD6YI5hqig8kVPmcj5tq+NVZRhtgZ3qOLweKpXe5HoWnXEVW4lpyo1Zjnc80P1M8LGefbZXylfdYC3MnMPkpKzit3uK4kBHxdrbNTVPDLcB+Gi4e3SRD4BsA/6Ok3Oeeyn6bhPleF8oYkLFn6DO1znB1rTosxhupD7uMfOKY63+si6aw93kOfp9rXmFN7xk4KFkNOvBNhOYRZ2YKpDG4bpJ/x9ysKYKuOtSAJqxNpsSItoFQxWDm26jgzSVpsPcU/HmS08tIqxnHlocx5qBtXZ0bbTd33cKRdD4id5CK8ChPJdRX+Q7ldKiqpFvAI0cHbD7RG6x56Kw/PpBhDSc3GeBCSAKXzSGROhMZcV4vfBpQTMB0Wa3i9osFEvKtVbsY9mJI3kgvwmFbvirU50yhZe63UYvaHvtY05/MEkqO0jpv0PV64JP1JpYw6TGmWfQXoj7knOjRyzsGkKcA6/xDZoTfwFcFEqOJ9RTlJ3TNJ5BzD4fBZ8SYvExReqLH1Uui6nqKifgDwT5hK4GU+zxrXWlcZWnruCmq9TKl1U7cARQJ0pMXEVkpD9HvlfUzB5BrpMQig1GDK+gwFKL4KtCcUoNSQvb2qPsxqHNFCnuD4TiuLME0HRD2RUi68m4JmGuPiu4EowehjROHBSx5LSu6xwsV2C9EB4FOl1NaPmN7yGQziocx41oUsYOGEhfaTGk/ycx+IylwtKS+okfK9HKWsk2a8SQUiSq6ogPRAAU/bA9Cj5k/5KLuyg0LK436vEky0N7JKZf8NAUACCyQHS2jxNT77KZ5p2HSqPV8vqCi/5J8632kdUVWJcQXObRwuySRna0sEMfn/dRwO/OjHeLgv6B3d5Ee8r6LaQ2swh+mXPeu+Qh0mSl/r5gb3njzjQUa9+oS65yI/ZxxedU3du5xmzZaHUDhzKSgLl+Xv4t/z3oBSKTfuDCVOcQkdl6b3hESTXSfF9W8w2cr2ptfK6Tmis5J/APiam2oNR1tGO8v7nfZQhQcwpSHWlNWWJQl0Xt1j4ggNiywi/W4kmm7FY2QVh3xHaaIffZE2EopfxtG0Fz4q6cUAivRB+n84XNPMltNU6q4+QbbB8ZKg8T0OJye2uT7vK6Op5rDMZS9IvS67ZFNSWHVHeUTPYYrL2gyIUFIXkRw5VVKegg0ow8ocn1GCH7ox982U0JsFUDQlMgyg7OcMKIihbqS2TcnhRsYBikTxtGMoiwle+yw50I9hyjDMOUBPqtpuUlk9oIX2fYICk0qtr6KngnigEh1X8QCKJDTqOmzinTwn0CSFWU9wI9dwdOdEWazpFt/PC/hrXbVHvEdXrYeCxzjyUZG6rPybLh2uj82YuXbpHZ+RI7LLNfmE6zDOeJCE3IuOtdrnPX2dRvsp3rWm9eMCjza5X+SsYyLGcJbClFXE58RJPS/R0+Nq3egGcAKaUjh33HPfqlp/QwNKwbOwJxSfl+biBcdL98Wx521pz1qglyaLX8fS+8IjxStZpmfyMUxZDx/FtUUL+I6iuB5QCccpsFfVnEc27RKfrRIzJuFo7b4cuqpAmnLjUi/MV1I9TYBHHlJQ7n0VR9esqmMphyyejA4lftObaemM+mrKtTmRwkJeV+sybv1JYIkctHccc13BIP075gGUQoIxXUyhJyVHajcGUEowNblknbqe8QRM9JhQhGL8l5WXo/89CdOvyLdX5V2lOuIoZ1gIlYxoVbC8k71XACia93Nt1kKCddFJASjnMZitez7mmi8IJt8j4umlO+XrtMz7Do9BR3j5RJLNWo5rFBQIdlOsOclM30C65k94BWtmjt7ZUVBeeu5a1voqYDDKa5p/1mG6UTbwdrT/LWKw7lcSLTOpAMXXKEoopO0UYCvdY4V+78Qo8QmYQo723okrAlpWunIixXikHM/JBNqrHHNfqXkn5VKW+bNZ9RxC700k6AM72KGEDMEnaQFFrKQS0mWjakDpKxewdcQbYwym3La98PoJgKKTlTox1NApRIdo73vAREpBSwOxX0lt/Upw2XeMWbvLRy0tB0hOIX0SaEVZbiU1LzX4O8TpOZbaZmdgolQajo32qq3mitp4Hc8+GQZQ5L1ukmp5SiDtW16S5KGIBblHCucOTC5S+zXNUZ4eYVFZyOMepSbrRHKXhBWx97Acgkvlhq5ao23PuxBd1EgwfsoJSjzpGUsxhrcen9R468To46L6btPySk6QJdF5b9I6YDrFvraTl+2SWVnCzlNTXkXlcpVjXHOfEtGtQ7sprOZhpKZ4xuoQ9+ipl9v1AJ/wqyfgL8i3giiy4xaiw8cH/Nm6h/9svcYNPgWTvV5JsVamEHHLHcWxihVzlot4LEF567peEjq68Zo9Nnn3HcemTVrf8FCrNtWyQaPiHwSJvmWsuTLldwlEG/Bz50kGWjGrUjjiudbz3UiwyqUjpUQ4FTzenxiBPTXfPuqxpcC5e4TPGNd8LYvhqKkzu7bZBUTU++eIIk2XYcLyy8hedmrkNZKF8hpTlFdxhIV0VNTNGAabMA1LTUjpiL4HUGZgyofY5SUewyQoSljk647gSgKUBUWzJAG29II4xbnW1s8sgWIyxXWS6noVXrGS0yVMfC0VRvEIpBTGQ1Kfo3ZszOKh9DDYFvg4gEpSQUttxMqeLiV4BIUhdEbSO+sMqbP6GeZczpTS6GI9Zwvci/8CU8J+yfH9NHPTx2CSrYvdyRVQdOha6iQXD11WyHFh2puyMsLG15aTbwLHYXqsjFP5SELcGqID95swCYpxfHwPr/eAVcqML/LPsRjF2Sf4XOT3GlwPmq6bUAARRy9KEECWul5vuvQVPVN/hV5qXGXc10UxZjXwOjGMgRxYy1pM0kvlDIbnKICSFuTEC5tMqet0fogUnv0TDqcr6Dnc5mcHps1EX11H6opNqTEduYeio7wmPJabL3rKPtDPQpdlkaRFksc9yhhsL7oFU5n0DkzdnqQIrmGfr5AjEEnTqyUFBEWPZS6AcgnR+YccIJcxWDF1IgWgpKnrVcCbeUaQpGDKyLfMeJL12Hf8v+t8oZizsZeHCABLVemOY11VMBiGXlF7xT6T1GdkM9b3XfcWWswV2dVLeNf6fcdF5mm9msYgkO9LC/brcKcr6OeQVIWnBJa+MiiXCEyXEN9TJ3dAKcPUdKmkdCH1y6/k4EEkKeZhD9Fcm74QY7VI2ZQ+geNHmKrA93F0EVx5W7G67pkdb28rpCKSayAhJVUkHsocstX1etNFivNNeoyFYd5vkhUsQFFMMGjSViR+lSI1vjZhSrAXHHtWrGydzd3y6IsCDmee+/Z5e0gPRTMdSeH/wvxMxOgkncck58NnCQKXHDSXlhVE53ZSBWJL7clZ/r7QZ6deJaD4+mHHdT/UgKKTao7K8kxbOTbNM/qAT3hwOT9YgYnguo/DJcbzrME1ivjqns3D1D0bPwLPruAAlxJMXa8FvP66Xq+S9vKdI/aHXK9pqJWasth9Ij3FO8doviThVAOKT8TjSFOcVjxkn4eiz1K7GQFFtxKQumVJOitJB/cUsAmgLMJQ1fbziUezRubkO0TnuS/UPEqx0h6B5CCvl1bOOFk9x6JOo3yylgsfBRSy1O6Ko/VcQLmOqGzKCufjJUwY6HaO9BZw9ElsUvdsKcZDGfVdFayNVlTPJm1SfXW9ejmO47gAio+ubA85t2mMM7HGqyn3z3ERCQfe4t5qwk+lTinaKw3TIg0Cxzxg0sDhvj/2OkzTF6abAgSTIrF0hKxESUrSZcnh8UjPqUc0dn+kzhKjocW5KhHwcs1xSgso2oXLsoH0QpWDs6MqITGs264jHKS+z7hnc20hqiJagilid1RdFPMEE1/dM11uZeIIlYPLGDmOdb2OUoqK4siD8kprQUvSppQSsSnZSZhiquOveY5sI0oqE+94KC89f9Jn5DIO1/ISWUQUibgEd3uLIkz7Cqm31cxg2Ehio5zVzMaA/DJML5IkPSDVmKViss/rlGAfKZP0nMDywPHOxXhO258oV0CR2HxJBiolTHDfQYeJBZEXZ25vwmE5Tz3OmvJQXM92oFDdtyGGzaiOk3Pc9FUu9ifIlrvhK6cjlZkX4Y/uaiqLbU+tAfEG9TnLuHrP42o+fKVUfHW9jhOXP6poJTMDcxDaViBTtoyhPg4nBusP1N/T5FOcQFR37gbXzj5MoMUpmMPdE8cAdHVpkX2YbpVtx77Va/YUosoVO3yOOtdrn7pihs//EUHH16eoqZiHFctgLCWszzLM2eQlRG2Fdzj+Ft+p9Jq/gSg6a8HxvvXhf0NRf/vKGByzaDw9BsnZaXmYkwnOl9TymsrrBaYFlK7iBA/UAIqWEijGKAWJ7JnkZy+HxQeF1EkuZpo6PFCAUvbMQ1KtoGHBseC59mlExSc/oxX2EMB/YfRkQOkdc9p6b3qjCo+9hoiDlWJ2bUVfSskaacIm7UWF4xVwLnmeW1z4p9Y8vw2lRrQimuTmfZ8/a3BeJDO+41mz0h5gDYNNp3QEVAvxuTILVGBNetirvLZuU32d/xaFNmruzSgUqZYNGEq5pRSpAHBJ7ZO/cM1dQFQ+/gXX6hyNMulV9AFBp+x4zh2uxXu07reVEk8qNivFac8STA443qcEhApMLtcn/M4SDkePFZSHtsn3LmWKWmpNFTzMwxzMGeWMY4ynaWBcJfDNvGpAsUP4fGcMeiO4akZNwJRD3hvRIu0ppQcMd7Do8qT0GF+VtDyLc54WlZTHnycvKmVdRokok57qcfW7pG/1fUTtaB/zni2YAAuhQ4V2uICoJ4wcIk5Y1p29/gSEppQ1qK31Nz18WII9ZqjU9qnM9hUFVlLGUMFam/IOfuf6ritLehuGAy96qFxwjq8qr/QZ//+sstrPKIu9q+iV1zFfsGivdY75GUzvkIpldMxRQc/DBH1Ie9wFUkwfENDjIpq2aLTdI2W0pe5XTjn+BWU4THH/rPMakt1+De5Kv/r51+kt1RWwydlOD+5s+JLygpZ5nw3qi0mYMi2f8d1fwmD0ZlKJqtwARVfpTFMjxkcJuSqN9nNQwlKf58CyZJKoOVeCZE1RMfsJ48z78HxcWfmXacn8lX+Oc6Nf52aRUMCkcxx73LNcdBMekJa/i7V2m0D2UHkoRaUIe8pD2eD8i6U0i8EmVEXLVZdcmFkLUIS+1B99nb71f3GGR89jefc8ayCrYRM3Tvm3VBooUXlLpz2hBXVLYP270jFSkmhhWdNNuPOHGjBFFcd5T0lmO8vvnSXQnHFQ3B0MRjumSZC0y4743lfW+X6B6GD5DOfsPA4HJUhI8AWYyh5nOK+zMP3ZTyTouQ16JnYKgAaUNONfUEaVVNaWhmHLNC4q1r5weUrPLdpKOsq24W+6VuTeu0LdMcvrVAggNwgoH8Cc4XSVMV5xvLuhAaXnUd67BJW9GC8gCd2kHtQsXblGRqpIWg+3PYq9CHPeYwNKIcM9ppSls5/gSQwDJlWOp+GhuP7Az3V+PuSc9blQlgkwRVIYSYDStCg9ieyqWO9Mn49Jj+6HBJSfucCl53oBh89QalwfEud+jpu6qK5fUIpdWkvLQWldbRZNewmdWbQWf9dSVnHKvqM8qqIHuIYFk641xr76/45SduKJtT0AIiCtI4U2+fNVB9ctLSGajjUph9hlte8kyukc/2/OYa3L73YwWOW3i/iglz4ORzi53lcX8eHTXQ+gfKf2jRhd+j1IgzIJS/+QIKILTSZ1ml3nGn9IEN+xdFdSlJedKiE9meb5joT6nFNg0nKA4z5MYdmH1v7W1ZW7Dkq+o4z2S3z2q3wWAZrTXAM1ywDRa7KIwWoFvWEBxbdYdPZomou7XpyU5zhLxF7JuIGbMeceV6iYag7Ay1IcTxSj5GjEFeYbVnzPIeUUvgDwR7qmly1gLHGhnuair2T0mqQEv3TBszOPtafWUvTa4xTva5NrY4rjblnXrFigKhTZZQLjI5hoFu3Sjzmuo4uV+ipgF5VCrTiot4pSQsNQazobuoLD5c7t6tzTCeBUdCiINYL0vMOzb6rzlTpMSfgq3Em61RiKs2VRxkXHnMdl0+squ2XH73bUPMWVQ+95FP0dBYxnLEApKuNCQmunMly/y3tIxYunDjq5gORM+Y71vqUK91LMWAqOPbxKMPkJURDFgcXEyJnmuqUfKpa3NuHwPl26qKGo/5K6ThEZ8weHyUNJW+TRxenOkl+XQ6pth7KO80LsM4AFfs7DHHSdRvr8GJ9IWZIFLsz9I6S6ZMGdVPzmx+S1Lzm+LzTTAT/tjPcSz+EskqN6SrRsVjKc10hXvJ0Ui3BR/c5tRDHz68q6HVcerS0zyur01XEq8RpxinxKAUFWUJHsdwk4KaU0rNIaYCV6EKvKw3Ap298IzJ+oZ00bCnoA04FTvMYZz5zX4O8tLopowjPfE3yvEpZfiqGdXLLC31nkvjhBTx0Zn9cF2s/ogX+LqHfR8xHpz7Qtm13AKuWcbnI/2IDS5HjvIzrnOYXBNhpp56FJY/lAgbArCncGGeo3ZslD0WWi+ykmqutQ6lK7fxum7eq+BSZVRU/04e4TUlX873Va9eKhiDvZUs9XQLoWwLYndYaLq6F4TIkqK3k2QMVauAXEt/I9C+BTmH4Gy7zvvGds+1xQDwjMWfJg5FxDckCmUrx3aWHczLBQ6xxXGsNjkQB3EuaAsqfWp69qQRrvQnsocXsgDZgUEn7/KIM4ijE0i6aDQO82y1geUTGt8xnFQKt5AC5uH2kvBZ53Nkq1jDWO9VuulX0C6fQI15Rk5f+LqLXAfQKsy4vpJ1BeXWuuskqb+/oWTItwO9etQXC9DdOVsZTCE7HlLsGqRb18Du6yQJlalmQ5lD+A6QvfSeAPfRtwjh6Kjh565qCC4pTXPCfvGi2yPyI6YLrgeLlJZye+bGOhha7AJFZtK2ogzpLKch50BtEB2V+oCK5gMD7entM65+xXLigfoMQVoxNrXOqSLSVsti0cLs1g5wDZ/xYA3vBQKyULkHs43PehCdMPxOWl6LavvmZJ0lOkHkP1bMKc2/QSPHSXAhHAXacyLqWgsrJSXi95D9eZ2wYVj7yHae4LG+QLDqC5Q8X1K8dfpWLp8buzDuu55Rm7hLRKqOs5hye0yWvsY7i+SE0q01ucq11e7xznfhLuAAWXZ9JWNNe3BJPvYjzxNIfTEuYtGelVx5y7Iktlbh/wffxI4HzmuY9EoulW510cbvjX9ngttwB8DZPweE7pdLtz6zr3WCvN+0oLKHIQtI50fcNtQNEKY4mL6ypRcoUbppEAJqepgKU65vtUwNccYJLWQvABzjw9KVFqK4jOEEYVOeyfo0V+iR7Wnzgfpz1zKGP4jQv/1hDeiX4Xu/S8fqFCGoc5KJaieavkcFcc70T3N3d5EGIw/AKTjd9UCkk8B7nvQ66tjuKi6/z5FJWqZPdq5fRcrSHXXGzD9Kipq40nbWW3qEwlkibOSHBZ/XswUXBNvlddY8tl1fYSAKVosQKb3PhPMHhIrMfwTAFKke/0jKKPe9a7k1pPv1CB3eH8TcLke0jpE4lGesC53vQAa4Nz/JgW/wEVU4djlPOeR5zvvSEARQyA+3wnW1xnUgV7VinxqnpWPe9NZfCsKFC9k0DrphmbJKFKn3gpFy+VuGVv9SyQlLV8j3N3C8nnlXKuJNfYoU5cVCxPWxlKoutfcl9/w3dV5L22eU2pXjHJdXAf7jqFqQGlHbNoH1N5LyM59l3H09tJhUtU2J9xUfyMKM4eMWBynd7IHxD15ZBQ07mc6AS9qSVeu8KF8RAmc3ZYGefmvKLA8BLnUygueDbrY1oUXyHqtXLP84KTpMuF91zx0lJPqGstvDoVyEMcPkPSFJ5rvTQ4X1/z/c7C5DLpkGPZ9OtctHvqmqtcF3WY8hBVtYH2qRRXYEpzuzbdLX5/FoNJmGUqvad8znqCodTyWIp3eM27GAxyKGK4QpC6DYRQji+p0Lc8+7XN5xAA+pXraonKQXrdyHf3SJXdpZHyjM83w/ttE8B+4boscwy/4nDossyNGD1ljvMXKtEeTE0syXz/PeZZ0hi3L/gMa9wbUj5ImsVJrSsBWGFYGopuX+WcPeXfVzPso7goNQk9vg8TKVbhGE9xfD3F+NSVwSo09hqSzyyF+j7gd5/BhCPrAI4WTCSgGHq3+S5fch+u8HMXplCsGIyyTl6m2RNpPZQdPuQjDvrA41qm5Q1rVKJ/UMqqR+Xlsuiv0Ir/N7rzZzHY3MlHu2W13LvWc13mc//OPzEkqMzzRV/lWckNelbnuPCLFvgWLTD5CcDfEHWCvD8kmEBZdQUuQl0aRW8UUf6bHtqqnUIRrCI6WHyKwf4UHet8pKR44V3loawrWq8UQ4kJx+zyUOpU+BscQxeDoZFd/n6dn6xBFjtUApsKmPNMxLTfxU7Md3dhsuB/I/0hpTUmlRLb5XVWCRov1HoSOnubzyVJvkUFbC89VNSu8h6fYzDirZvxWdKAilCNL6ikZ2DOBqVumVBgLfXcsqZXOM5N5CtitD0ilSb5H+doQM7yO0LnrvI79rtII7uK9nvJe54jeEnxSGkDILT9muNewj49xGC75TZ/r46UQTlZorzEannpsOTE8svS3EqAQqz3JSoPneMggHKRSvgGBsPk7Gu3YHIZpIfHlHUmETcml1zi+QY4xoeKz+44gKCi7jnOTSntcZf5zFf4TBMeCq5n0Qd/5+JMk3OCBCtbxl7yWFrChafp55C02B9zw9jJcX0LJMQSb1jjbMUYKTLOFvxBD7tcU+sYDC11WfhNZK/BdqDON0oWZTWscWPXchJDp4V0BSS3lRW+TiqoBpNrsKeUkO2Vbat5K2KwH73QWgcej7SozqyKHoMz67MkibyzdZg6fDMYLDpa4FqRWnQ7it5xrZm0UaZxeq5NsHhMg6ZERb7K8XWUJ7iuAG5Y2eZ72eF61NWI2+q5dxVANB2/X1feu7wveVeNPABFh8aKq/mSA7MXfj/leYrIJExyzRIt902YwzrdHlNKKSylsFzu0P0r0kK7AJPEpwsVuoIIXIB4kt7RSUShyb9xoWwqZaazxadh6uhIRvoMn2FRvey4shYN0lr/DeCf9FCeYvTKxsLpHqj31nK8a+S42eXaLk/GzshtW2DQVO+qHXOduOftqnnLu+2yppCOm4jHtW7NW1spfp9y0t9PO+f7eL39f8Rr2YUJMKhY711Kwe8lrNthq+9qAO5zPCv0jsXDqyljSJ/n5LEWV3ifVUUnawBvwZ9T1/bQkJmknGKC7MWmD+fnlfIfpr2vFIo8BVPzv2tdc8zxgnVmrJYHpFnucixrfGmXlaUGx5mJjLPkoZ6W+JHM7we89oGyjiWGf45nPlLFdw7mQHkshdW6TVrrWwBf8tzkQc6KHkPy16Ms9mHu2c5hjK+zsdnrlt0hjZD2kPN3HOZ6H6MnIg/7HKJD7FD0lmJPhu3OmcVb2X5dkz9MbxKhYoRvG7OsUF03yXVo7yr6V8loFdjUwiYt+n9SAf/O+6/ClLCecgBKVwFHwfp5F4cTlKSWkJSOkcNGyeyWsE3xqGaRrsCe5G6scV6lMc5PDjCp4N1WkkHSswpBkucqS7sJXV5GjNqSpUuSyvi0EsbzRhtB5RQT6AKU24gOxiuIzgOqljLuwJR9cOWm5NWBr4/oIOomohjy72AOJgukvnY5PmkiBMsNLlvj0p6Jy+Na4PXkDEVXEJB+DnJ2khYkN0nV3UQUwvgz3ePnweIOEjyyYzNXAihdRVtNKKBoK5YlqZ3GW/nukgCl5XGp7tH6lt7qrhIIvqzawhAv0dV8pkXAuImoP8jXiM436srllX4I0vDmFAxNp+vU2KAX115VPJTZIZ7DFQknUTnfIjp8/yciyitYnUGCHC8pKr0xhsGgGvm7nN2U4O8B1HpbJ2gYymsfEeUleQRSU2nJASrA4T4PtoJ15akIF1l0KHuJZX9MT0m8k9twR0o8R5SLsMRx3aB3VYrxIHTnPF3WuewAoLSiz2ha9ECkhMptjvGmA0wAf5mXIEGCvBqR/Sv15Vx18CZgKm1Pwl+41ddM750CFLGSJcLrAKYHhiSe2cl5EmGggcFOePSVRih6XMJnMJmeN6mQV+BPTJIudWWYMhxfIEouLHpArmeN0XZ5R6XsniGitm4STB7xZ2ue7zfCfg4S5LWLeB2unk5QHsoY/PWv3rZupCN7KIDpiyJl3sXdu2p5KjL5WcrH+xoeSbb+LUTU0JcYLKkRJ2tU3rswoZDSPc1u61nKOF7fMyTRdH+DoenW3laLJUiQt0T6MCHHG2Q+bC9FSgJJbpJrT+cduv7GAoovG/pXNZnbtPzPwJwxZK26KZRXV708SQp6TAV8k/e1wURnZGuvChzbXX5Hakh9iOhcZQYm0xk5eCCSZSr1kCShSKoN/IaIpvsFbppOlxgJEiTI6xfJ03hM/SN1rqYRUeLSKXaXRuMduLPwW2/zJJVH/H2pc7WD6FxjBVGC4nVE0V9LQ163B3NOcocK+BGiTP3nVMxrKV5W2zHeewQraRz1EaIKyKcJghM5zKvOWn0CE2b9ACZzexX+7NgAJEGCHC9pwWTXvyQ7MknjT7wXMWZ3YapEv1NSzuEamzBlqbdgais1EEV/LcHdW8EGkAZMdvWOQvnvYYpHrmL0pKV1Kvx1vvRNmITNBXor0zBF9Wy31+XB6PE3lFf1nFbMHURnJfeQrQhdkCBBjpeHIl5KkBwBxRXGug5T00sqgd5BRClJgp8+qJIIKin/sQdTz2mXivd3XuO+x5qXxKSsvKT0bO7AlEo/CxOdMYeIH51U97DPdSTgQDLldUXPTYLKCwLjI97Pdd5TVaAUoriCBAnyxkqh3+/nfc05RAf1J2jt6/pVNQwegktRvn0FKPswlNGWsvaPQqowNbekoKNEq8nPpZQzMFh3qqkAUDwrARYpwCfBC1vIv6ppkCBBgrz1gGKLLis9hcESLWLR22DyusNkpZjjHAbLkusyCxKEsI/DVW+bwdsIEiRIAJThJE0mdw2D5Uh6loeS9j54hcq6pryWosND2c04Fk2ftcLyCxLkjRS7j5CW/ru8v1+Fh/K2LaRXCWhBggQJEgAlSJAgQYK8W1I+outKvZpCRvfP7qnyqiKf9HiHua+u2aNLzITIrSBBggQPJUiQIEGCBMkixTAFQYIECRIkAEqQIEGCBAmAEiRIkCBB3i75/1NtV/pAPPg7AAAAAElFTkSuQmCC" alt="Air Europa">
+    <div class="cover-type">
+      <h1>Metabuscadores</h1>
+      <p>Research UX y oportunidades de mejora</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide intro-slide" data-name="Contexto de entrada"><div class="slide-top-accent"></div>
+ <header class="sh">
+  <div class="eyebrow">01 · CONTEXTO</div>
+  <h2 class="title">La compra no empieza en Air Europa.</h2>
+  <p class="subtitle">El cliente llega desde un metabuscador con una selección y unas expectativas sobre el vuelo y su precio.</p>
+ </header>
+ <div class="body intro-body">
+  <div class="intro-journey" role="list" aria-label="Recorrido del usuario desde el metabuscador a Air Europa">
+   <div class="intro-node" role="listitem"><div class="node-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.7" cy="10.7" r="6.8"/><path d="m16 16 5.2 5.2"/></svg></div><h3>Metabuscador</h3><p>Compara y selecciona</p></div>
+   <div class="intro-arrow" aria-hidden="true"><svg viewBox="0 0 44 22"><path d="M1 11h41m-7-6 7 6-7 6"/></svg></div>
+   <div class="intro-node" role="listitem"><div class="node-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h15m-5-4 5 4-5 4M20 17H5m5-4-5 4 5 4"/></svg></div><h3>MetaConnect</h3><p>Conecta y redirige</p></div>
+   <div class="intro-arrow" aria-hidden="true"><svg viewBox="0 0 44 22"><path d="M1 11h41m-7-6 7 6-7 6"/></svg></div>
+   <div class="intro-node" role="listitem"><div class="node-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m21 3-8 18-2.8-7.2L3 11l18-8Z"/><path d="m10.2 13.8 4.9-4.9"/></svg></div><h3>Air Europa</h3><p>Continúa el booking</p></div>
+  </div>
+  <div class="intro-statement">
+    <p>¿Le damos <em>continuidad</em> a esa experiencia?</p>
+  </div>
+ </div>
+ <span class="sr-only source-reference">Prototipo público con datos ficticios, no utilizar para decisiones de negocio.</span>
+</section>
+
+<section class="slide volume-slide editorial-slide" data-name="Magnitud del negocio">
+  <div class="slide-top-accent"></div>
+  <header class="sh editorial-header">
+    <h2 class="title">¿Qué importancia puede tener el canal de metabuscadores?</h2>
+  </header>
+  <div class="body volume-body">
+    <div class="volume-composition" aria-label="Ingresos y PNR atribuidos a metabuscadores">
+      <div class="volume-main">
+        <div class="volume-amount" aria-label="75,00 millones de euros">75,00<span>M€</span></div>
+        <p class="volume-descriptor">Ingresos atribuidos a metabuscadores en 2026</p>
+      </div>
+      <div class="volume-side">
+        <strong>150.000</strong>
+        <p class="volume-side-desc">PNR (localizadores de reserva) en el mismo periodo</p>
+      </div>
+    </div>
+    <p class="editorial-explain">En esta maqueta, los importes y las reservas son ficticios. La versión de trabajo incorporará los resultados validados para dimensionar el canal.</p>
+  </div>
+  <span class="sr-only source-reference">Prototipo público con datos ficticios, no utilizar para decisiones de negocio.</span>
+</section>
+
+<section class="slide origin-slide editorial-slide" data-name="Procedencia del tráfico">
+  <div class="slide-top-accent"></div>
+  <header class="sh editorial-header">
+    <h2 class="title">¿De qué plataformas procede el tráfico de metabuscadores?</h2>
+    <p class="editorial-lead">Este gráfico de ejemplo representa cómo podríamos comparar la procedencia del tráfico. La distribución es ficticia y se sustituirá por las cifras validadas.</p>
+  </header>
+  <div class="body origin-body">
+    <div class="origin-composition">
+      <div class="origin-donut-wrap">
+        <div class="origin-donut" role="img" aria-label="Distribución de sesiones: Google Flights 40,0 %, Skyscanner 30,0 %, KAYAK 20,0 % y Otros 10,0 %">
+          <div class="origin-donut-inner"><strong>70<span>%</span></strong><span>Google Flights y Skyscanner</span></div>
+        </div>
+      </div>
+      <div class="origin-legend" aria-label="Cuota de sesiones por metabuscador">
+        <div class="origin-legend-row"><span class="origin-swatch origin-google"></span><span>Google Flights</span><strong>40,0 %</strong></div>
+        <div class="origin-legend-row"><span class="origin-swatch origin-sky"></span><span>Skyscanner</span><strong>30,0 %</strong></div>
+        <div class="origin-legend-row"><span class="origin-swatch origin-kayak"></span><span>KAYAK</span><strong>20,0 %</strong></div>
+        <div class="origin-legend-row"><span class="origin-swatch origin-other"></span><span>Otros</span><strong>10,0 %</strong></div>
+      </div>
+    </div>
+  </div>
+  <span class="sr-only source-reference">Prototipo público con datos ficticios, no utilizar para decisiones de negocio.</span>
+</section>
+
+<section class="slide channel-slide editorial-slide" data-name="Orgánico vs metas">
+  <div class="slide-top-accent"></div>
+  <header class="sh editorial-header">
+    <h2 class="title">¿Qué canal convierte mejor: metabuscadores, orgánico o directo?</h2>
+    <p class="editorial-lead">La comparación necesita tasas de los tres canales calculadas para el mismo periodo y con un denominador equivalente. La cifra que ves es ficticia.</p>
+  </header>
+  <div class="body channel-body">
+    <div class="channel-grid" aria-label="Conversión por canal, datos disponibles y pendientes">
+      <div class="channel-item channel-active"><span class="channel-name">Metabuscadores</span><strong>8,0 <small>%</small></strong></div>
+      <div class="channel-item channel-wait"><span class="channel-name">Orgánico</span><strong class="channel-pending">Pendiente</strong></div>
+      <div class="channel-item channel-wait"><span class="channel-name">Directo</span><strong class="channel-pending">Pendiente</strong></div>
+    </div>
+    <p class="channel-closing">Al comparar el abandono tendremos que considerar también dónde comienza cada usuario: no es equivalente entrar en Availability que llegar directamente a Shopping Cart. Separaremos además los datos por dispositivo y tipo de ruta.</p>
+  </div>
+  <span class="sr-only source-reference">Prototipo público con datos ficticios, no utilizar para decisiones de negocio.</span>
+</section>
+
+<section class="slide" data-name="Ranking de metas"><div class="slide-top-accent"></div>
+<header class="sh compact"><div class="eyebrow">05 · RENDIMIENTO POR META</div><h2 class="title">No todos los metabuscadores aportan el mismo valor.</h2><p class="subtitle">Rendimiento agregado preliminar. Alterna la lectura entre eficiencia y aportación al negocio.</p></header>
+<div class="body"><div class="split" style="grid-template-columns:1.7fr 1fr">
+ <div class="card" style="display:flex;flex-direction:column"><div class="section-top"><div class="card-title" id="meta-chart-label">Conversión por metabuscador</div><div class="btn-tabs" role="group" aria-label="Métrica del gráfico"><button class="tab selected" data-meta-metric="cvr">CVR</button><button class="tab" data-meta-metric="revenue">Ingresos</button><button class="tab" data-meta-metric="traffic">Sesiones</button></div></div><div id="meta-chart" class="chartarea" aria-live="polite"></div></div>
+ <div class="card soft" style="display:flex;flex-direction:column;gap:18px"><span class="tag">Dos rankings distintos</span><div><div class="tiny">Mayor conversión en esta simulación</div><div class="bigline" style="margin-top:9px">Skyscanner <span style="color:#20A6C8">10,0 %</span></div></div><div class="rule" style="margin:0"></div><div><div class="tiny">Mayor peso en ingresos simulados</div><div class="bigline" style="margin-top:9px">Google Flights <span style="color:#317DBB">45,0 %</span></div></div><div class="rule" style="margin:0"></div><div class="tiny" style="font-size:15px">La CVR no determina por sí sola cuánto aporta un canal. Para interpretarla se necesitan sesiones, reservas, ingresos, dispositivo y tipo de ruta.</div><div style="margin-top:auto"><span class="pill ghost">Datos provisionales</span></div></div>
+ </div></div><span class="sr-only source-reference">Prototipo público con datos ficticios, no utilizar para decisiones de negocio.</span>
+</section>
+
+<section class="slide" data-name="Mobile y Desktop"><div class="slide-top-accent"></div>
+<header class="sh compact"><div class="eyebrow">06 · DISPOSITIVOS</div><h2 class="title">La brecha Mobile / Desktop exige una lectura propia.</h2><p class="subtitle">No mezclar dispositivos. La diferencia aparece en el canal agregado y también por metabuscador.</p></header>
+<div class="body" style="gap:17px"><div class="grid g2"><div class="metric" style="min-height:125px"><small>CVR Desktop · Total metas</small><strong>10,0 %</strong></div><div class="metric" style="min-height:125px"><small>CVR Mobile · Total metas</small><strong>5,0 %</strong></div></div>
+<div class="card" style="flex:1;display:flex;flex-direction:column"><div class="section-top"><div class="card-title">CVR por dispositivo y origen</div><div class="legend"><span><i class="dot"></i>Desktop</span><span><i class="dot light"></i>Mobile</span></div></div><div class="chartarea" id="device-chart"></div></div>
+</div><span class="sr-only source-reference">Prototipo público con datos ficticios, no utilizar para decisiones de negocio.</span>
+</section>
+
+<section class="slide" data-name="Dónde perdemos usuarios"><div class="slide-top-accent"></div>
+<header class="sh"><div class="eyebrow">07 · FRICCIÓN EN EL BOOKING</div><h2 class="title">Tenemos una brecha localizada antes de Shopping Cart.</h2><p class="subtitle">El gráfico es un ejemplo visual, no una evidencia de abandono.</p></header>
+<div class="body"><div class="split" style="grid-template-columns:1.5fr 1fr">
+<div class="card" style="display:flex;flex-direction:column"><div class="card-title">Progresión Availability → Shopping Cart</div><div class="tiny">Funnel secuencial · Usuarios procedentes de metas</div><div style="margin-top:58px;display:flex;flex-direction:column;gap:44px"><div><div class="section-top" style="margin-bottom:12px"><b style="font-size:17px">Desktop</b><strong style="font-size:24px;color:#0d3473">65,00 %</strong></div><div class="compare"><span style="width:68.07%"></span></div><div class="tiny" style="margin-top:9px">6.500 de 10.000 sesiones (ejemplo)</div></div><div><div class="section-top" style="margin-bottom:12px"><b style="font-size:17px">Mobile</b><strong style="font-size:24px;color:#0d3473">55,00 %</strong></div><div class="compare alt"><span style="width:58.5%"></span></div><div class="tiny" style="margin-top:9px">5.500 de 10.000 sesiones (ejemplo)</div></div></div></div>
+<div class="card soft" style="display:flex;flex-direction:column;justify-content:center"><span class="tag">Diferencia observada</span><div class="bignum" style="margin:21px 0">10,00 <span style="font-size:23px;letter-spacing:0">pp</span></div><div class="bigline" style="font-size:22px">Menor progresión de Mobile.</div><div class="rule"></div><div class="tiny" style="font-size:15px">Investigar selección de vuelos, comparación de tarifas, cambios de fecha y otras interacciones en Availability. Sin atribuir la caída a una única causa.</div></div>
+</div></div><span class="sr-only source-reference">Prototipo público con datos ficticios, no utilizar para decisiones de negocio.</span>
+</section>
+
+<section class="slide" data-name="Tarifas y upgrades"><div class="slide-top-accent"></div>
+<header class="sh"><div class="eyebrow">08 · FARE FAMILIES</div><h2 class="title">Las tarifas concentran decisiones. ¿Cuál acaba comprando el usuario?</h2><p class="subtitle">Necesitamos conectar la selección inicial, la interacción con tarifas y la reserva final.</p></header>
+<div class="body" style="gap:23px"><div class="grid" style="grid-template-columns:330px 1fr;gap:22px;flex:1">
+<div class="card soft" style="display:flex;flex-direction:column;justify-content:center"><span class="tag">Interacción ilustrativa · No es dato real</span><div class="bignum" style="font-size:82px;margin:22px 0">45,0<span style="font-size:29px"> %</span></div><div style="font-size:15px;line-height:1.55;color:#526985">De las sesiones analizadas en Availability interactuaron con el selector o la comparativa de Fare Families.</div><div class="tiny" style="margin-top:17px">4.500 de 10.000 sesiones · Ejemplo</div></div>
+<div class="card" style="display:flex;flex-direction:column"><div class="section-top"><div class="card-title">El recorrido comercial que falta conectar</div><span class="pill">Datos de negocio pendientes</span></div><div class="cols-fare"><div class="fare-step"><span class="num">01 · ENTRADA</span><h4>Tarifa recuperada</h4><p>Qué Family llega seleccionada desde el metabuscador.</p><span class="placeholder" style="margin-top:auto">Mix pendiente</span></div><div class="fare-step"><span class="num">02 · DECISIÓN</span><h4>Cambio / upgrade</h4><p>Si se ofrece, si elige otra opción y su valor incremental.</p><span class="placeholder" style="margin-top:auto">Tasa pendiente</span></div><div class="fare-step"><span class="num">03 · COMPRA</span><h4>Tarifa final</h4><p>Con cuál termina reservando, por ruta y por canal.</p><span class="placeholder" style="margin-top:auto">Mix pendiente</span></div></div></div></div>
+<div class="insight"><strong>Pregunta para CRO:</strong> ¿en qué segmentos existe volumen y margen suficientes para testar una mejora de tarifa sin perjudicar la conversión global?</div>
+</div><span class="sr-only source-reference">Prototipo público con datos ficticios, no utilizar para decisiones de negocio.</span>
+</section>
+
+<section class="slide" data-name="Extras"><div class="slide-top-accent"></div>
+<header class="sh"><div class="eyebrow">09 · EXTRAS</div><h2 class="title">Antes de optimizar Extras, hay que conseguir que lleguen.</h2><p class="subtitle">Dos preguntas distintas: cuántos usuarios ven la oferta y qué porcentaje contrata cuando la ve.</p></header>
+<div class="body"><div class="grid g2" style="gap:22px;flex:1">
+<div class="card" style="display:flex;flex-direction:column;justify-content:center"><span class="tag">Ejemplo visual · Datos ficticios</span><div class="grid g2" style="margin:29px 0"><div><div class="tiny">Metas: sesiones que ven Extras</div><div class="bignum" style="font-size:64px;margin-top:13px">15-20<span style="font-size:27px"> %</span></div></div><div><div class="tiny">Directo: sesiones que ven Extras</div><div class="bignum" style="font-size:64px;margin-top:13px">&gt;60<span style="font-size:27px"> %</span></div></div></div><div class="insight"><strong>Advertencia metodológica:</strong> antes de interpretar la brecha, validar denominadores, puntos de entrada y fuentes comparables.</div></div>
+<div class="card soft" style="display:flex;flex-direction:column"><span class="tag">La lectura que necesitamos</span><div style="display:flex;flex-direction:column;gap:23px;margin-top:29px"><div class="teaser"><span class="ticon">01</span><div><strong>Alcance del bloque</strong><p>% de sesiones que llegan a ver Extras, por meta y dispositivo.</p></div></div><div class="teaser"><span class="ticon">02</span><div><strong>Contratación sobre usuarios expuestos</strong><p>Quién añade equipaje, asientos u otros servicios después de verlos.</p></div></div><div class="teaser"><span class="ticon">03</span><div><strong>Potencial de experimentación</strong><p>Priorizar servicios con ratio y volumen suficiente para CRO.</p></div></div></div><div style="margin-top:auto"><span class="placeholder">Contratación y volumen pendientes</span></div></div>
+</div></div><span class="sr-only source-reference">Prototipo público con datos ficticios, no utilizar para decisiones de negocio.</span>
+</section>
+
+<section class="slide" data-name="Precio por ruta"><div class="slide-top-accent"></div>
+<header class="sh compact"><div class="eyebrow">10 · PRECIO Y VALOR</div><h2 class="title">El ticket medio cambia por meta. ¿Cuánto influye la ruta?</h2><p class="subtitle">No podemos interpretar sensibilidad al precio con un promedio sin contexto.</p></header>
+<div class="body"><div class="split" style="grid-template-columns:1.55fr 1fr">
+<div class="card" style="display:flex;flex-direction:column"><div class="section-top"><div class="card-title">Ticket medio por metabuscador</div><span class="pill">€ / reserva</span></div><div class="chartarea" id="ticket-chart"></div></div>
+<div class="card soft" style="display:flex;flex-direction:column;gap:22px"><div><span class="tag">Datos ficticios</span><div class="listy" style="gap:21px;margin-top:23px"><div class="item"><span class="bullet">1</span><span>Rutas corta, media y larga, definidas de forma homogénea.</span></div><div class="item"><span class="bullet">2</span><span>Ticket de metas, orgánico y directo con y sin Extras.</span></div><div class="item"><span class="bullet">3</span><span>Relación entre tarifa final, cambios de precio y conversión.</span></div></div></div><div class="insight" style="margin-top:auto">Un ticket mayor puede reflejar una ruta más cara, no necesariamente mayor disposición a pagar un upgrade.</div></div>
+</div></div><span class="sr-only source-reference">Prototipo público con datos ficticios, no utilizar para decisiones de negocio.</span>
+</section>
+
+<section class="slide" data-name="De insights a diseño"><div class="slide-top-accent"></div>
+<header class="sh compact"><div class="eyebrow">11 · DISEÑO</div><h2 class="title">Del benchmark a cinco líneas de mejora UX.</h2><p class="subtitle">Las propuestas existen en Figma. Aquí contamos el problema que resuelven, no todas sus variantes.</p></header>
+<div class="body"><div class="split" style="grid-template-columns:1.14fr 1fr;gap:26px">
+<div style="display:flex;flex-direction:column;gap:12px;min-height:0">
+ <div class="mini-idea"><span class="badge-no">01</span><div><strong>Transición</strong><p>Reconocer el paso del metabuscador a Air Europa.</p></div></div>
+ <div class="mini-idea"><span class="badge-no">02</span><div><strong>Continuidad y precio</strong><p>Confirmar contexto, vuelos seleccionados e importe.</p></div></div>
+ <div class="mini-idea"><span class="badge-no">03</span><div><strong>Confirmación de tarifa</strong><p>Explicar Fare Families, inclusiones y selección.</p></div></div>
+ <div class="mini-idea"><span class="badge-no">04</span><div><strong>Recuperación de precio</strong><p>Comunicar cambios y preservar la búsqueda.</p></div></div>
+ <div class="mini-idea"><span class="badge-no">05</span><div><strong>Acceso directo a Pasajeros</strong><p>Evaluar un camino más corto si la oferta está validada.</p></div></div>
+</div>
+<div class="right-mock"><div style="width:100%;display:flex;flex-direction:column;gap:18px"><span class="tag">Visual conceptual · Sustituir por pantallas reales del Figma</span><div class="mock"><div class="mock-top"><span>AIR EUROPA</span><span>Tu reserva</span></div><div class="mock-section"><span class="mock-tag">Vuelo seleccionado</span><div class="mock-route">MAD → JFK</div><div class="tiny">Tu selección, tarifa y precio en un mismo contexto.</div><div class="rule"></div><div class="mock-flex"><div><div class="mock-tag">Precio total validado</div><div class="mock-price">499,00 €</div></div><span class="mock-btn">Continuar</span></div></div></div><div class="teaser"><span class="ticon">↗</span><div><strong>Abre las propuestas en Figma</strong><p><span class="navlink">Diseños internos no incluidos en esta demo</span></p></div></div></div></div>
+</div></div><span class="sr-only source-reference">Prototipo público con datos ficticios, no utilizar para decisiones de negocio.</span>
+</section>
+
+<section class="slide" data-name="Personalización futura"><div class="slide-top-accent"></div>
+<header class="sh compact"><div class="eyebrow">12 · VISIÓN EVOLUTIVA</div><h2 class="title">No ofrecer más. Ofrecer lo relevante, cuando tenga sentido.</h2><p class="subtitle">La procedencia es una señal. La decisión que el usuario tomó antes de aterrizar sería mucho más valiosa.</p></header>
+<div class="body" style="gap:19px"><div class="idea-path" style="flex:1">
+<div class="path"><div class="path-i">✓</div><strong>Ya eligió una tarifa superior</strong><p>Confirmar la selección y sus beneficios. Evitar repetir inmediatamente un upgrade equivalente.</p><span class="pill" style="align-self:start;margin-top:auto">Hipótesis UX</span></div>
+<div class="path"><div class="path-i">↗</div><strong>No seleccionó una mejora</strong><p>Explorar una alternativa relevante. No asumir que no comprar equivale a rechazar una oferta vista.</p><span class="pill" style="align-self:start;margin-top:auto">Hipótesis UX</span></div>
+<div class="path"><div class="path-i">?</div><strong>No conocemos su recorrido</strong><p>Mantener una experiencia neutra y clara, basada en la oferta y los beneficios realmente recuperados.</p><span class="pill" style="align-self:start;margin-top:auto">Escenario actual</span></div>
+</div>
+<div class="grid g2" style="gap:18px"><div class="teaser" style="padding:17px 19px"><span class="ticon">A</span><div><strong>Amadeus · Upgrade en Shopping Cart</strong><p>Panel de Fare Families o mejora simplificada con recálculo. Viabilidad y contratación pendientes de confirmar.</p></div></div><div class="teaser" style="padding:17px 19px"><span class="ticon">M</span><div><strong>MetaConnect · Información previa</strong><p>El deeplink actual no expone las decisiones previas. Comprobar qué transmitirá una posible evolución.</p></div></div></div>
+</div><span class="sr-only source-reference">Prototipo público con datos ficticios, no utilizar para decisiones de negocio.</span>
+</section>
+
+<section class="slide" data-name="Conclusiones y próximos pasos"><div class="slide-top-accent"></div>
+<header class="sh compact"><div class="eyebrow">13 · CIERRE</div><h2 class="title">De los datos a decisiones de producto y CRO.</h2><p class="subtitle">La salida del research no es un listado de hallazgos: es una priorización trazable y ejecutable.</p></header>
+<div class="body" style="gap:20px"><div class="grid g3" style="flex:1">
+<div class="closing-col"><div class="big">01</div><strong>Validar la oportunidad</strong><p>Contrastar las métricas de metas con orgánico y directo, completar el funnel, tarifas, Extras y ticket por ruta.</p><p>Documentar fuente, periodo, segmentos, tamaño de muestra y limitaciones.</p><span class="meta">Julián · DATA · UX</span></div>
+<div class="closing-col"><div class="big">02</div><strong>Priorizar qué testar</strong><p>Relacionar la evidencia con las cinco áreas UX diseñadas y definir hipótesis, métricas y segmentos.</p><p>Estimar tráfico, duración y alcance de cada experimento.</p><span class="meta">UX · CRO · Enrique</span></div>
+<div class="closing-col"><div class="big">03</div><strong>Preparar la evolución</strong><p>Estudiar con Amadeus el upgrade dentro de Shopping Cart y las posibilidades futuras de contexto y personalización.</p><p>No dar por viables capacidades aún no confirmadas.</p><span class="meta">Amadeus · IT · Negocio</span></div>
+</div><div class="insight" style="font-size:17px;padding:18px 22px"><strong>Idea de cierre:</strong> optimizar la continuidad de la compra actual y preparar decisiones comerciales más relevantes, basadas en comportamiento demostrado y capacidades reales.</div></div><span class="sr-only source-reference">Prototipo público con datos ficticios, no utilizar para decisiones de negocio.</span>
+</section>
+
+</div></div>
+
+</main>
+</div>
+<script>
+(() => {
+ const slides=[...document.querySelectorAll('.slide')];
+ const dots=document.querySelector('#dots');
+ const workspace=document.querySelector('#workspace');
+ const app=document.querySelector('.app');
+ let index=0,lastWheel=0;
+ const names=slides.map(x=>x.dataset.name);
+ names.forEach((name,i)=>{
+  const button=document.createElement('button');
+  button.type='button'; button.className='rail-btn';
+  button.setAttribute('aria-label',i===0?'Ir a la portada':`Ir a la pantalla ${i}: ${name}`);
+  button.innerHTML=`<span class="tip">${i===0?'Portada':String(i).padStart(2,'0')+' · '+name}</span>`;
+  button.addEventListener('click',()=>go(i)); dots.appendChild(button);
+ });
+ function go(next,writeHash=true){
+  index=Math.max(0,Math.min(slides.length-1,next));
+  slides.forEach((slide,i)=>{
+   const active=i===index;slide.classList.toggle('active',active);
+   slide.setAttribute('aria-hidden',String(!active));
+  });
+  [...dots.children].forEach((button,i)=>{
+   button.classList.toggle('active',i===index);
+   if(i===index)button.setAttribute('aria-current','step');
+   else button.removeAttribute('aria-current');
+  });
+  app.classList.toggle('is-cover',index===0);
+  if(writeHash)history.replaceState(null,'',index===0?'#portada':`#${index}`);
+ }
+ function targetFromHash(){const raw=location.hash.slice(1);if(raw==='portada'||raw==='')return 0;const v=parseInt(raw,10);return Number.isFinite(v)?v:0;}
+ document.addEventListener('keydown',event=>{
+  if(event.target.closest('input,select,textarea'))return;
+  if(['ArrowDown','ArrowRight','PageDown'].includes(event.key)){event.preventDefault();go(index+1)}
+  else if(['ArrowUp','ArrowLeft','PageUp'].includes(event.key)){event.preventDefault();go(index-1)}
+  else if(event.key==='Home'){event.preventDefault();go(0)}
+  else if(event.key==='End'){event.preventDefault();go(slides.length-1)}
+ });
+ workspace.addEventListener('wheel',event=>{
+  if(Math.abs(event.deltaY)<28)return;
+  const now=performance.now();if(now-lastWheel<650)return;
+  lastWheel=now;go(index+(event.deltaY>0?1:-1));
+ },{passive:true});
+ let touchStart=null;
+ workspace.addEventListener('touchstart',event=>{if(event.touches.length===1)touchStart={x:event.touches[0].clientX,y:event.touches[0].clientY}},{passive:true});
+ workspace.addEventListener('touchend',event=>{
+  if(!touchStart||!event.changedTouches.length)return;
+  const dx=event.changedTouches[0].clientX-touchStart.x;
+  const dy=event.changedTouches[0].clientY-touchStart.y;
+  if(Math.abs(dy)>70&&Math.abs(dy)>Math.abs(dx))go(index+(dy<0?1:-1));
+  touchStart=null;
+ },{passive:true});
+ go(targetFromHash(),false);
+ window.addEventListener('hashchange',()=>go(targetFromHash(),false));
+ // Datos observados en Datos ficticios de demostración, acumulado al Periodo ilustrativo.
+ const metaColors={'Skyscanner':'#20A6C8','Google Flights':'#2054BA','KAYAK':'#7766C6','Otros':'#AEBFD0'};
+ const meta=[{name:'Skyscanner',cvr:10,revenue:35,traffic:30},{name:'Google Flights',cvr:8,revenue:45,traffic:40},{name:'KAYAK',cvr:6,revenue:12,traffic:20},{name:'Otros',cvr:5,revenue:8,traffic:10}];
+ const metricInfo={cvr:{title:'Conversión por metabuscador',unit:'%',max:15,descending:true},revenue:{title:'Participación sobre ingresos del canal',unit:'%',max:60},traffic:{title:'Participación sobre sesiones',unit:'%',max:55}};
+ function renderMeta(m){const cfg=metricInfo[m];document.querySelector('#meta-chart-label').textContent=cfg.title;const sorted=[...meta].sort((a,b)=>b[m]-a[m]);document.querySelector('#meta-chart').innerHTML=`<div style="padding:22px 0">${sorted.map((d,i)=>`<div class="bar-row" style="grid-template-columns:132px 1fr 71px;margin:21px 0"><span class="bar-label">${d.name}</span><div class="bar-track" style="height:22px"><div class="bar-fill ${i>0?'secondary':''}" style="width:${100*d[m]/cfg.max}%;background:${metaColors[d.name]}"></div></div><span class="bar-value">${d[m].toLocaleString('es-ES',{minimumFractionDigits:1,maximumFractionDigits:1})}${cfg.unit}</span></div>`).join('')}</div>`;document.querySelectorAll('[data-meta-metric]').forEach(b=>{const sel=b.dataset.metaMetric===m;b.classList.toggle('selected',sel);b.setAttribute('aria-pressed',String(sel))})}
+ document.querySelectorAll('[data-meta-metric]').forEach(b=>b.addEventListener('click',()=>renderMeta(b.dataset.metaMetric)));renderMeta('cvr');
+ const device=[['Skyscanner',11,7],['Google Flights',9,5],['KAYAK',7,4]];
+ document.querySelector('#device-chart').innerHTML=`<div style="display:grid;grid-template-columns:150px 1fr;gap:23px 18px;padding:0 10px">${device.map(d=>`<span class="bar-label" style="display:flex;align-items:center">${d[0]}</span><div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:12px"><div class="bar-track" style="flex:1;height:17px"><div class="bar-fill" style="width:${d[1]/16*100}%"></div></div><span class="bar-value" style="width:54px;font-size:13px">${d[1].toFixed(1)} %</span></div><div style="display:flex;align-items:center;gap:12px"><div class="bar-track" style="flex:1;height:17px"><div class="bar-fill secondary" style="width:${d[2]/16*100}%"></div></div><span class="bar-value" style="width:54px;font-size:13px">${d[2].toFixed(1)} %</span></div></div>`).join('')}</div>`;
+ const ticket=[['KAYAK',500],['Google Flights',420],['Skyscanner',360]];
+ document.querySelector('#ticket-chart').innerHTML=`<div style="padding:28px 0">${ticket.map((d,i)=>`<div class="bar-row" style="grid-template-columns:137px 1fr 88px;margin:28px 0"><span class="bar-label">${d[0]}</span><div class="bar-track" style="height:28px"><div class="bar-fill" style="width:${d[1]/700*100}%;background:${metaColors[d[0]]}"></div></div><span class="bar-value">${d[1].toLocaleString('es-ES',{minimumFractionDigits:1,maximumFractionDigits:1})} €</span></div>`).join('')}</div>`;
+})();
+</script>
+</body>
+</html>
