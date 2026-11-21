@@ -20,7 +20,13 @@ def get_html():
         if val is None:
             break
         parts.append(val)
-    return "".join(parts).encode("utf-8")
+    html = "".join(parts)
+    # Use a separate override layer for the audited Untitled UI-based design system.
+    theme = os.environ.get("METAS_THEME_CSS", "")
+    if theme:
+        html = html.replace("</style>", "\\n" + theme + "\\n</style>", 1)
+    html = html.replace('class="brand-logo" src="data:image/png;base64,', 'class="brand-logo" src="/brand/air-europa.svg" data-old-logo="data:image/png;base64,', 1)
+    return html.encode("utf-8")
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "AirEuropaPreview"
@@ -73,6 +79,13 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         path = urlsplit(self.path).path
+        if path == "/brand/air-europa.svg":
+            svg = os.environ.get("METAS_BRAND_SVG", "")
+            if not svg.startswith("<svg"):
+                self._send_body(503, b"Logo not configured", "text/plain")
+                return
+            self._send_body(200, svg.encode("utf-8"), "image/svg+xml")
+            return
         if path in ("/", "/index.html"):
             data = get_html()
             if not data:
