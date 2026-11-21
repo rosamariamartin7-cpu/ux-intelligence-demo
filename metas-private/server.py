@@ -85,7 +85,7 @@ class Handler(BaseHTTPRequestHandler):
             if name not in ("transicion", "continuidad", "tarifa", "precio", "pasajeros"):
                 self._send_body(404, b"Not found", "text/plain")
                 return
-            raw = os.environ.get("METAS_IMG_" + name.upper(), "")
+            raw = "".join(os.environ.get("METAS_IMG_" + name.upper() + "_%02d" % i, "") for i in range(100))
             if not raw:
                 self._send_body(404, b"Not found", "text/plain")
                 return
