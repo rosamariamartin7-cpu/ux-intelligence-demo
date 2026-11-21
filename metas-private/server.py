@@ -6,6 +6,7 @@ and screenshots are loaded from Render's private environment variables.
 import base64
 import hmac
 import os
+import re
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
@@ -24,8 +25,8 @@ def get_html():
     # Use a separate override layer for the audited Untitled UI-based design system.
     theme = os.environ.get("METAS_THEME_CSS", "")
     if theme:
-        html = html.replace("</style>", "\\n" + theme + "\\n</style>", 1)
-    html = html.replace('class="brand-logo" src="data:image/png;base64,', 'class="brand-logo" src="/brand/air-europa.svg" data-old-logo="data:image/png;base64,', 1)
+        html = html.replace("</style>", theme + "</style>", 1)
+    html = re.sub(r'(<img class="brand-logo" src=")data:image/png;base64,[^"]+', r'\\1/brand/air-europa.svg', html, count=1)
     return html.encode("utf-8")
 
 class Handler(BaseHTTPRequestHandler):
