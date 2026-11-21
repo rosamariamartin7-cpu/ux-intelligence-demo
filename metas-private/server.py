@@ -26,7 +26,7 @@ def get_html():
     theme = os.environ.get("METAS_THEME_CSS", "")
     if theme:
         html = html.replace("</style>", theme + "</style>", 1)
-    html = re.sub(r'(<img class="brand-logo" src=")data:image/png;base64,[^"]+', r'\\1/brand/air-europa.svg', html, count=1)
+    html = re.sub(r'(<img class="brand-logo" src=")data:image/png;base64,[^"]+', lambda m: m.group(1) + '/brand/air-europa.svg', html, count=1)
     return html.encode("utf-8")
 
 class Handler(BaseHTTPRequestHandler):
