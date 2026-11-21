@@ -82,10 +82,10 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path.startswith("/media/") and path.endswith(".png"):
             name = path.removeprefix("/media/").removesuffix(".png")
-            if name not in ("transicion", "continuidad", "tarifa", "precio", "pasajeros"):
+            if name not in ("transicion", "continuidad", "tarifa", "precio", "pasajeros", "actual-transicion", "actual-continuidad", "actual-tarifa", "actual-precio", "actual-pasajeros", "banner-desktop", "banner-mobile"):
                 self._send_body(404, b"Not found", "text/plain")
                 return
-            raw = "".join(os.environ.get("METAS_IMG_" + name.upper() + "_%02d" % i, "") for i in range(100))
+            raw = "".join(os.environ.get("METAS_IMG_" + name.upper().replace("-", "_") + "_%02d" % i, "") for i in range(100))
             if not raw:
                 self._send_body(404, b"Not found", "text/plain")
                 return
