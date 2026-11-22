@@ -60,6 +60,12 @@ RANKING_LAYOUT_CSS = r"""
   flex-wrap: nowrap !important;
   gap: 12px !important;
 }
+/* Same divider used by the Procedencia chart heading. */
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .chart-panel > .panel-top {
+  padding-bottom: 15px !important;
+  border-bottom: 1px solid #eaecf0 !important;
+  flex: 0 0 auto !important;
+}
 .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .segmented {
   flex-wrap: nowrap !important;
   flex: 0 0 auto !important;
@@ -528,6 +534,44 @@ RANKING_FIT_JS = r"""
 })();
 """
 
+
+PROCEDENCIA_HEADING_FIX_JS = r"""
+(function () {
+  "use strict";
+  const lead = "Google Flights y Skyscanner reúnen el 82,9 %";
+  const tail = "de las sesiones";
+  const init = function () {
+    const scene = document.querySelector('.scene[data-slug="procedencia"]');
+    if (!scene) return;
+    const ensureLineBreak = function () {
+      const heading = scene.querySelector('.section-head h2');
+      if (!heading) return;
+      const span = heading.firstElementChild;
+      const correct = heading.childNodes.length === 2 &&
+        heading.firstChild.nodeType === 3 &&
+        heading.firstChild.textContent === lead &&
+        span && span.classList.contains('source-title-line') &&
+        span.textContent === tail;
+      if (correct) return;
+      const newSpan = document.createElement("span");
+      newSpan.className = "source-title-line";
+      newSpan.textContent = tail;
+      newSpan.style.setProperty("display", "block", "important");
+      heading.replaceChildren(document.createTextNode(lead), newSpan);
+    };
+    const observer = new MutationObserver(ensureLineBreak);
+    observer.observe(scene, {childList: true, characterData: true, subtree: true});
+    ensureLineBreak();
+    window.addEventListener("hashchange", ensureLineBreak);
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, {once: true});
+  } else {
+    init();
+  }
+})();
+"""
+
 def get_html():
     parts = []
     for i in range(100):
@@ -562,6 +606,8 @@ def get_html():
     html = html.replace("</style>", PROCEDENCIA_DASHBOARD_CSS + "\n" + CORPORATE_SELECTED_TABS_CSS + "\n</style>", 1)
     if "rank-chart" in html:
         html = html.replace("</body>", "<script>\n" + RANKING_FIT_JS + "\n</script></body>", 1)
+    if re.search(r'<section\\b[^>]*data-slug=["\\\']procedencia["\\\']', html, re.I):
+        html = html.replace("</body>", "<script>\n" + PROCEDENCIA_HEADING_FIX_JS + "\n</script></body>", 1)
     return html.encode("utf-8")
 
 
