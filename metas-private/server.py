@@ -165,6 +165,274 @@ RANKING_LAYOUT_CSS = r"""
 """
 
 
+
+PROCEDENCIA_DASHBOARD_CSS = r"""
+/* Procedencia: two aligned cards in the existing Air Europa / Untitled UI visual language. */
+.scene[data-slug="procedencia"] .two-col.source-layout {
+  --source-card-height: 350px;
+  box-sizing: border-box;
+  display: grid !important;
+  grid-template-columns: minmax(0, .98fr) minmax(0, 1.54fr) !important;
+  gap: 20px !important;
+  align-items: stretch !important;
+  width: 100%;
+  max-width: 100%;
+}
+.scene[data-slug="procedencia"] .two-col.source-layout > :first-child,
+.scene[data-slug="procedencia"] .two-col.source-layout > .chart-card {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: var(--source-card-height) !important;
+  height: var(--source-card-height) !important;
+  margin: 0 !important;
+  background: #ffffff !important;
+  border: 1px solid #eaecf0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.03) !important;
+}
+.scene[data-slug="procedencia"] .two-col.source-layout > :first-child {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  padding: 26px 28px !important;
+  overflow: hidden;
+}
+.scene[data-slug="procedencia"] .hero-count {
+  max-width: 100%;
+  margin: 0 0 6px !important;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: #101f46 !important;
+}
+.scene[data-slug="procedencia"] .hero-label {
+  max-width: 100%;
+  margin: 0 0 12px !important;
+  color: #344054;
+}
+.scene[data-slug="procedencia"] .body-lead {
+  max-width: 100%;
+  margin: 0 !important;
+  color: #475467;
+  line-height: 1.52 !important;
+  text-wrap: pretty;
+}
+.scene[data-slug="procedencia"] .two-col.source-layout > .chart-card {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 20px 26px 22px !important;
+  gap: 0 !important;
+  overflow: hidden;
+}
+.scene[data-slug="procedencia"] .source-chart-heading {
+  padding: 0 0 13px;
+  border-bottom: 1px solid #eaecf0;
+  flex: 0 0 auto;
+}
+.scene[data-slug="procedencia"] .source-chart-heading h3 {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+  letter-spacing: -.02em;
+  color: #101828;
+  margin: 0 0 5px !important;
+}
+.scene[data-slug="procedencia"] .source-chart-heading p {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #667085;
+  margin: 0 !important;
+}
+.scene[data-slug="procedencia"] .source-chart-column-headings {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 13px;
+  padding-bottom: 1px;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.3;
+  color: #667085;
+  letter-spacing: .005em;
+}
+.scene[data-slug="procedencia"] .source-chart-column-headings span:last-child {
+  text-align: right;
+}
+.scene[data-slug="procedencia"] .chart-card > .chart {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-evenly !important;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  gap: 8px;
+}
+.scene[data-slug="procedencia"] .chart-row {
+  display: grid !important;
+  grid-template-columns: minmax(120px, .9fr) minmax(100px, 1.55fr) minmax(66px, .55fr) !important;
+  align-items: center !important;
+  gap: 14px !important;
+  width: 100%;
+  margin: 0 !important;
+  min-width: 0;
+}
+.scene[data-slug="procedencia"] .chart-name {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600 !important;
+}
+.scene[data-slug="procedencia"] .chart-name:before {
+  content: "";
+  display: inline-block;
+  flex: 0 0 8px;
+  width: 8px;
+  height: 8px;
+  background: var(--meta-chart-color, #1b58b9);
+  border-radius: 50%;
+}
+.scene[data-slug="procedencia"] .chart-track {
+  background: #edf2fa !important;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 5px;
+}
+.scene[data-slug="procedencia"] .chart-fill {
+  background: var(--meta-chart-color, #1b58b9) !important;
+  border-radius: 5px;
+}
+.scene[data-slug="procedencia"] .chart-row:nth-child(1) { --meta-chart-color: #1453ae; }
+.scene[data-slug="procedencia"] .chart-row:nth-child(2) { --meta-chart-color: #5499d8; }
+.scene[data-slug="procedencia"] .chart-row:nth-child(3) { --meta-chart-color: #293e72; }
+.scene[data-slug="procedencia"] .chart-row:nth-child(4) { --meta-chart-color: #94b9df; }
+.scene[data-slug="procedencia"] .chart-value {
+  min-width: 0;
+  text-align: right !important;
+  white-space: nowrap !important;
+  font-variant-numeric: tabular-nums;
+  color: #101f46 !important;
+  font-weight: 700 !important;
+}
+.scene[data-slug="procedencia"] .section-head h2 .source-title-line {
+  white-space: nowrap;
+}
+@media (max-width: 950px) {
+  .scene[data-slug="procedencia"] .two-col.source-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+    --source-card-height: auto;
+    gap: 16px !important;
+  }
+  .scene[data-slug="procedencia"] .two-col.source-layout > :first-child,
+  .scene[data-slug="procedencia"] .two-col.source-layout > .chart-card {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  .scene[data-slug="procedencia"] .two-col.source-layout > :first-child {
+    padding: 24px !important;
+  }
+  .scene[data-slug="procedencia"] .two-col.source-layout > .chart-card {
+    min-height: 310px !important;
+    padding: 20px 22px 22px !important;
+  }
+}
+@media (max-width: 540px) {
+  .scene[data-slug="procedencia"] .chart-row {
+    grid-template-columns: minmax(82px, .85fr) minmax(64px, 1.1fr) minmax(54px, .52fr) !important;
+    gap: 9px !important;
+  }
+  .scene[data-slug="procedencia"] .chart-name {
+    gap: 5px;
+    font-size: 12px;
+  }
+  .scene[data-slug="procedencia"] .chart-name:before {
+    flex-basis: 6px;
+    width: 6px;
+    height: 6px;
+  }
+  .scene[data-slug="procedencia"] .chart-value {
+    font-size: 12px !important;
+  }
+  .scene[data-slug="procedencia"] .source-chart-heading h3 {
+    font-size: 16px !important;
+  }
+  .scene[data-slug="procedencia"] .section-head h2 .source-title-line {
+    white-space: normal;
+  }
+}
+"""
+
+CORPORATE_SELECTED_TABS_CSS = r"""
+/* Clear corporate-blue selected state, shared by interactive dashboard tabs. */
+.segmented .seg-btn.selected,
+.segmented .seg-btn[aria-selected="true"],
+.segmented .seg-btn[aria-pressed="true"],
+.tabs button.active,
+.tabs button[aria-selected="true"],
+.tab-list [role="tab"][aria-selected="true"],
+.tab-bar button.active,
+.tab-buttons button.active {
+  background: #1659bd !important;
+  color: #ffffff !important;
+  border-color: #1659bd !important;
+  box-shadow: 0 1px 3px rgba(13,55,128,.19) !important;
+  font-weight: 700 !important;
+}
+.segmented .seg-btn.selected:hover,
+.tabs button.active:hover,
+.tab-bar button.active:hover {
+  background: #0e459e !important;
+  border-color: #0e459e !important;
+}
+.segmented .seg-btn:focus-visible,
+.tabs button:focus-visible,
+.tab-list [role="tab"]:focus-visible,
+.tab-bar button:focus-visible,
+.tab-buttons button:focus-visible {
+  outline: 3px solid #94bdf4 !important;
+  outline-offset: 2px;
+}
+"""
+
+
+def patch_procedencia_html(html):
+    """Apply structural enrichment to the Procedencia slide only."""
+    marker = re.search(r'<section\b[^>]*\bdata-slug\s*=\s*["\']procedencia["\'][^>]*>', html, flags=re.I)
+    if not marker:
+        return html
+    after = re.search(r'<section\b[^>]*\bclass\s*=\s*["\'][^"\']*\bscene\b', html[marker.end():], flags=re.I)
+    end = marker.end() + after.start() if after else len(html)
+    slide = html[marker.start():end]
+    title_pattern = re.compile(r'(Google Flights y Skyscanner reúnen el 82,9\s*%)(\s+)de las sesiones', flags=re.I)
+    slide = title_pattern.sub(
+        r'\1<br><span class="source-title-line">de las sesiones</span>', slide, count=1
+    )
+    if 'source-chart-heading' not in slide:
+        chart_intro = (
+            '<div class="source-chart-heading">'
+            '<h3>Sesiones por metabuscador</h3>'
+            '<p>Participación de cada plataforma en el total de sesiones del canal</p>'
+            '</div>'
+            '<div class="source-chart-column-headings">'
+            '<span>Metabuscador</span><span>Cuota de sesiones</span>'
+            '</div>'
+        )
+        slide = re.sub(
+            r'(<div\b[^>]*\bclass=["\'][^"\']*\bchart-card\b[^"\']*["\'][^>]*>)',
+            lambda m: m.group(1) + chart_intro,
+            slide,
+            count=1,
+            flags=re.I
+        )
+    return html[:marker.start()] + slide + html[end:]
+
+
 def get_html():
     parts = []
     for i in range(100):
@@ -195,6 +463,8 @@ def get_html():
             pass
     if "rank-chart" in html:
         html = html.replace("</style>", RANKING_LAYOUT_CSS + "\n</style>", 1)
+    html = patch_procedencia_html(html)
+    html = html.replace("</style>", PROCEDENCIA_DASHBOARD_CSS + "\n" + CORPORATE_SELECTED_TABS_CSS + "\n</style>", 1)
     return html.encode("utf-8")
 
 
@@ -283,47 +553,8 @@ class Handler(BaseHTTPRequestHandler):
         self._send_body(404, b"Not found", "text/plain; charset=utf-8")
 
 
-def _audit_procedencia_structure():
-    """One-time structure-only check: no slide text or numbers are emitted."""
-    from html.parser import HTMLParser
-    class Audit(HTMLParser):
-        def __init__(self):
-            super().__init__(convert_charrefs=True)
-            self.level = 0
-            self.inside = False
-            self.root_level = None
-            self.nodes = []
-            self.sections = []
-        def handle_starttag(self, tag, attrs):
-            a = dict(attrs)
-            if tag == "section" and "scene" in a.get("class", "").split():
-                slug = a.get("data-slug","")
-                self.sections.append(slug)
-                if slug == "procedencia":
-                    self.inside = True
-                    self.root_level = self.level
-            if self.inside and len(self.nodes) < 145 and self.level - self.root_level <= 9:
-                self.nodes.append((self.level-self.root_level, tag, a.get("class",""), a.get("id",""), a.get("data-slug","")))
-            if tag not in ("area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"):
-                self.level += 1
-        def handle_endtag(self, tag):
-            if tag not in ("area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"):
-                self.level = max(0,self.level - 1)
-            if self.inside and self.level == self.root_level:
-                self.inside = False
-    try:
-        a=Audit()
-        a.feed(get_html().decode("utf-8"))
-        print("PROC_AUDIT_SLUGS " + ",".join(a.sections), flush=True)
-        print("PROC_AUDIT_NODES " + str(len(a.nodes)), flush=True)
-        for depth,tag,cls,nid,slug in a.nodes:
-            print("PROC_AUDIT " + str(depth) + " "+tag+" class="+cls[:120]+" id="+nid[:80]+" slug="+slug[:40],flush=True)
-    except Exception:
-        print("PROC_AUDIT_UNAVAILABLE",flush=True)
-
 if __name__ == "__main__":
     if not USER or not PASSWORD:
         raise RuntimeError("Authentication credentials are required")
 
-    _audit_procedencia_structure()
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
