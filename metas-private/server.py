@@ -116,39 +116,22 @@ if __name__ == "__main__":
     if not USER or not PASSWORD:
         raise RuntimeError("Authentication credentials are required")
 
-    # METAS_DOM_AUDIT: print only structural tag names/ids/classes; never text or data.
+    # TEMPORARY EDITORIAL QA: headings and analytical paragraphs only (not figures).
     try:
-        from html.parser import HTMLParser
+        import re
+        from html import unescape
         markup = get_html().decode("utf-8")
-        offset = markup.find('data-metric=')
-        if offset < 0:
-            offset = markup.find('data-rank=')
-        if offset < 0:
-            offset = markup.find('>Conversión<')
-        if offset > 0:
-            start = markup.rfind('<section', 0, offset)
-            stop = markup.find('</section>', offset) + len('</section>')
-            section = markup[start:stop] if start >= 0 and stop > start else markup[max(0,offset-1000):offset+5000]
-            class Tree(HTMLParser):
-                def __init__(self):
-                    super().__init__()
-                    self.nodes = []
-                def handle_starttag(self, tag, attrs):
-                    attrs = dict(attrs)
-                    classes = (attrs.get('class') or '')[:100]
-                    node_id = (attrs.get('id') or '')[:80]
-                    role = (attrs.get('role') or '')[:80]
-                    data = ','.join(k for k in attrs if k.startswith('data-'))
-                    if tag in ('div', 'section', 'button', 'aside', 'header', 'main', 'svg', 'rect', 'path', 'span') and (classes or node_id or data or role):
-                        self.nodes.append(tag + ' class=' + classes + ' id=' + node_id + ' role=' + role + ' data=' + data)
-            tree = Tree()
-            tree.feed(section)
-            print('METAS_DOM_AUDIT section_count=' + str(markup.count('<section')) + ' nodes=' + str(len(tree.nodes)), flush=True)
-            for node in tree.nodes[:115]:
-                print('METAS_DOM_AUDIT ' + node, flush=True)
-        else:
-            print('METAS_DOM_AUDIT chart controls not found in HTML', flush=True)
+        sections = re.findall(r'<section class="scene [^"]*" data-slug="([^"]+)"[^>]*>(.*?)</section>', markup, re.S)
+        def clean(x):
+            x = re.sub(r"<[^>]*>", " ", x)
+            x = unescape(re.sub(r"\\s+", " ", x)).strip()
+            return re.sub(r"(?<![A-Za-z])\\d+[.,]?\\d*\\s*[%€M]*", "[n]", x)
+        print("METAS_COPY_AUDIT scene_count=" + str(len(sections)), flush=True)
+        for slug, body in sections:
+            ts = re.findall(r'<h[1-4][^>]*>(.*?)</h[1-4]>', body, re.S)
+            ps = re.findall(r'<p[^>]*>(.*?)</p>', body, re.S)
+            blocks = re.findall(r'<div class="(?:reading|ranking-reading|big-note|takeaway|point|insight|editorial)[^"]*"[^>]*>(.*?)</div>',body,re.S)
+            print("METAS_COPY_AUDIT " + slug + " | H: " + " | ".join(clean(x)[:110] for x in ts[:2]) + " | P: " + " | ".join(clean(x)[:175] for x in ps[:3]) + " | BLOCK: " + " | ".join(clean(x)[:110] for x in blocks[:2]), flush=True)
     except Exception as e:
-        print('METAS_DOM_AUDIT non-sensitive inspection error: ' + type(e).__name__, flush=True)
-
+        print("METAS_COPY_AUDIT ERROR " + type(e).__name__, flush=True)
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
