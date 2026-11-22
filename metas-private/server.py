@@ -606,7 +606,7 @@ def get_html():
     html = html.replace("</style>", PROCEDENCIA_DASHBOARD_CSS + "\n" + CORPORATE_SELECTED_TABS_CSS + "\n</style>", 1)
     if "rank-chart" in html:
         html = html.replace("</body>", "<script>\n" + RANKING_FIT_JS + "\n</script></body>", 1)
-    if re.search(r'<section\\b[^>]*data-slug=["\\\']procedencia["\\\']', html, re.I):
+    if 'data-slug="procedencia"' in html or "data-slug='procedencia'" in html:
         html = html.replace("</body>", "<script>\n" + PROCEDENCIA_HEADING_FIX_JS + "\n</script></body>", 1)
     return html.encode("utf-8")
 
