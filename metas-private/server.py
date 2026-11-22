@@ -553,8 +553,29 @@ class Handler(BaseHTTPRequestHandler):
         self._send_body(404, b"Not found", "text/plain; charset=utf-8")
 
 
+
+def _audit_presentation_internals():
+    """Temporary diagnostic restricted to structural HTML and requested slide headings."""
+    try:
+        h=get_html().decode("utf-8")
+        r=re.search(r'<section\b[^>]*data-slug=["\']procedencia["\'][^>]*>',h,re.I)
+        if not r:
+            print("VERIFY_PROC missing-section",flush=True)
+            return
+        next_scene=re.search(r'<section\b[^>]*class=["\'][^"\']*scene',h[r.end():],re.I)
+        segment=h[r.start():r.end()+(next_scene.start() if next_scene else len(h)-r.end())]
+        head=re.search(r'<h2\b[^>]*>(.*?)</h2>',segment,re.I|re.S)
+        print("VERIFY_PROC heading_html="+repr(head.group(1)[:380] if head else "MISSING"),flush=True)
+        print("VERIFY_PROC two_col="+str("source-layout" in segment)+", title_span="+str('source-title-line' in segment)+", heading="+str('source-chart-heading' in segment)+", chart_colors="+str("--meta-chart-color" in h)+",styles="+str(len(re.findall(r'<style\b',h,re.I)))+", length="+str(len(h)),flush=True)
+        for selector in ("chart-card","chart-name","chart-row","source-layout","seg-btn","selected","active","rank-chart"):
+            print("VERIFY_PROC token "+selector+" "+str(len(re.findall(re.escape(selector),h))),flush=True)
+        print("VERIFY_PROC color_style="+str(h.find("CORPORATE_SELECTED_TABS_CSS"))+", corporate_rule="+str(h.find(".segmented .seg-btn.selected"))+", css_end="+str(h.rfind("</style>")),flush=True)
+    except Exception as ex:
+        print("VERIFY_PROC failed "+type(ex).__name__,flush=True)
+
 if __name__ == "__main__":
     if not USER or not PASSWORD:
         raise RuntimeError("Authentication credentials are required")
 
+    _audit_presentation_internals()
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
