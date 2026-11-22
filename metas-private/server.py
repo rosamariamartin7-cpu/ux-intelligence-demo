@@ -242,6 +242,32 @@ RANKING_LAYOUT_CSS = r"""
   .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value {font-size:42px !important;}
   .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-winner {font-size:22px !important;}
 }
+
+/* Shared KPI scale in the two neighboring slides. */
+.scene[data-slug="procedencia"] .hero-count,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-compact .ranking-main-value,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-tight .ranking-main-value {
+  font-size: clamp(72px, 7vw, 86px) !important;
+  line-height: 1.08 !important;
+  font-weight: 800 !important;
+  letter-spacing: -.055em !important;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value {
+  max-width: 100%;
+  margin-bottom: 12px !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) #rank-explanation ~ * {
+  display: none !important;
+}
+@media (max-width: 540px) {
+  .scene[data-slug="procedencia"] .hero-count,
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value {
+    font-size: 58px !important;
+  }
+}
 """
 
 
