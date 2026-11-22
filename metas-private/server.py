@@ -300,7 +300,9 @@ RANKING_LAYOUT_CSS = r"""
 .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact .ranking-winner {
   margin-bottom: 10px !important;
 }
-.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact p {
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact p,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact #rank-explanation,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact #rank-implication {
   font-size: 13.5px !important;
   line-height: 1.36 !important;
 }
@@ -311,7 +313,9 @@ RANKING_LAYOUT_CSS = r"""
   font-size: 21px !important;
   margin-bottom: 8px !important;
 }
-.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-tight p {
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-tight p,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-tight #rank-explanation,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-tight #rank-implication {
   font-size: 12.5px !important;
   line-height: 1.32 !important;
 }
