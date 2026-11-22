@@ -1094,4 +1094,14 @@ if __name__ == "__main__":
     color_ok = all("background:" + c + " !important" in proc_chunk for c in ("#2563eb", "#0d9488", "#f97316", "#94a3b8"))
     tabs_ok = '.segmented .seg-btn.selected' in rendered and 'background-color: #1659bd' in rendered
     print("METAS_LAYOUT_VERIFY title_split=" + str(title_ok) + " chart_labels=" + str(cards_ok) + " distinct_bars=" + str(color_ok) + " tabs_blue=" + str(tabs_ok), flush=True)
+
+    context = re.search(r'<section\b[^>]*data-slug=["\']contexto["\'][^>]*>',rendered,re.I)
+    context_slide = rendered[context.start():] if context else ""
+    next_context = re.search(r'<section\b[^>]*class=["\'][^"\']*\bscene\b',context_slide[12:],re.I)
+    context_slide = context_slide[:next_context.start()+12] if next_context else context_slide
+    context_ready = (context_slide.count('class="contexto-step-top"') == 3 and
+                     context_slide.count('class="flow-step-title"') == 3 and
+                     '.scene[data-slug="contexto"] .center-block > .flow' in rendered)
+    print("CONTEXT_CARDS_VERIFY three_steps_and_styles=" + str(context_ready),flush=True)
+
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
