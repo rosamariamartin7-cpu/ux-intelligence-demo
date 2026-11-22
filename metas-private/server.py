@@ -115,4 +115,40 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     if not USER or not PASSWORD:
         raise RuntimeError("Authentication credentials are required")
+
+    # METAS_DOM_AUDIT: print only structural tag names/ids/classes; never text or data.
+    try:
+        from html.parser import HTMLParser
+        markup = get_html().decode("utf-8")
+        offset = markup.find('data-metric=')
+        if offset < 0:
+            offset = markup.find('data-rank=')
+        if offset < 0:
+            offset = markup.find('>Conversión<')
+        if offset > 0:
+            start = markup.rfind('<section', 0, offset)
+            stop = markup.find('</section>', offset) + len('</section>')
+            section = markup[start:stop] if start >= 0 and stop > start else markup[max(0,offset-1000):offset+5000]
+            class Tree(HTMLParser):
+                def __init__(self):
+                    super().__init__()
+                    self.nodes = []
+                def handle_starttag(self, tag, attrs):
+                    attrs = dict(attrs)
+                    classes = (attrs.get('class') or '')[:100]
+                    node_id = (attrs.get('id') or '')[:80]
+                    role = (attrs.get('role') or '')[:80]
+                    data = ','.join(k for k in attrs if k.startswith('data-'))
+                    if tag in ('div', 'section', 'button', 'aside', 'header', 'main', 'svg', 'rect', 'path', 'span') and (classes or node_id or data or role):
+                        self.nodes.append(tag + ' class=' + classes + ' id=' + node_id + ' role=' + role + ' data=' + data)
+            tree = Tree()
+            tree.feed(section)
+            print('METAS_DOM_AUDIT section_count=' + str(markup.count('<section')) + ' nodes=' + str(len(tree.nodes)), flush=True)
+            for node in tree.nodes[:115]:
+                print('METAS_DOM_AUDIT ' + node, flush=True)
+        else:
+            print('METAS_DOM_AUDIT chart controls not found in HTML', flush=True)
+    except Exception as e:
+        print('METAS_DOM_AUDIT non-sensitive inspection error: ' + type(e).__name__, flush=True)
+
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
