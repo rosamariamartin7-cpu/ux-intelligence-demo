@@ -27,6 +27,12 @@ def get_html():
     if theme:
         html = html.replace("</style>", theme + "</style>", 1)
     html = re.sub(r'(<img class="brand-logo" src=")data:image/png;base64,[^"]+', lambda m: m.group(1) + '/brand/air-europa.svg', html, count=1)
+    patch_css = os.environ.get("METAS_PRESENTATION_PATCH_CSS", "")
+    patch_js = os.environ.get("METAS_PRESENTATION_PATCH_JS", "")
+    if patch_css:
+        html = html.replace("</style>", patch_css + "\n</style>", 1)
+    if patch_js:
+        html = html.replace("</body>", "<script>\n" + patch_js + "\n</script></body>", 1)
     return html.encode("utf-8")
 
 class Handler(BaseHTTPRequestHandler):
@@ -116,22 +122,4 @@ if __name__ == "__main__":
     if not USER or not PASSWORD:
         raise RuntimeError("Authentication credentials are required")
 
-    # TEMPORARY EDITORIAL QA: headings and analytical paragraphs only (not figures).
-    try:
-        import re
-        from html import unescape
-        markup = get_html().decode("utf-8")
-        sections = re.findall(r'<section class="scene [^"]*" data-slug="([^"]+)"[^>]*>(.*?)</section>', markup, re.S)
-        def clean(x):
-            x = re.sub(r"<[^>]*>", " ", x)
-            x = unescape(re.sub(r"\\s+", " ", x)).strip()
-            return re.sub(r"(?<![A-Za-z])\\d+[.,]?\\d*\\s*[%€M]*", "[n]", x)
-        print("METAS_COPY_AUDIT scene_count=" + str(len(sections)), flush=True)
-        for slug, body in sections:
-            ts = re.findall(r'<h[1-4][^>]*>(.*?)</h[1-4]>', body, re.S)
-            ps = re.findall(r'<p[^>]*>(.*?)</p>', body, re.S)
-            blocks = re.findall(r'<div class="(?:reading|ranking-reading|big-note|takeaway|point|insight|editorial)[^"]*"[^>]*>(.*?)</div>',body,re.S)
-            print("METAS_COPY_AUDIT " + slug + " | H: " + " | ".join(clean(x)[:110] for x in ts[:2]) + " | P: " + " | ".join(clean(x)[:175] for x in ps[:3]) + " | BLOCK: " + " | ".join(clean(x)[:110] for x in blocks[:2]), flush=True)
-    except Exception as e:
-        print("METAS_COPY_AUDIT ERROR " + type(e).__name__, flush=True)
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
