@@ -16,150 +16,93 @@ PASSWORD = os.environ.get("METAS_AUTH_PASS", "")
 PORT = int(os.environ.get("PORT", "10000"))
 
 RANKING_LAYOUT_CSS = r"""
-/* Rendimiento: stable two-column dashboard and Untitled UI-style metric card. */
+/* Rendimiento: preserve chart's intrinsic content without the former forced height/clipping. */
 .interactive-grid:has(#rank-chart) {
-  --rank-card-height: 392px;
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 306px) !important;
+  grid-template-columns: minmax(0,1fr) minmax(280px,306px) !important;
   align-items: stretch !important;
-  gap: 20px !important;
   grid-auto-flow: row !important;
+  gap: 20px !important;
   width: 100%;
   max-width: 100%;
 }
 .interactive-grid:has(#rank-chart) > .chart-panel {
-  box-sizing: border-box;
   min-width: 0 !important;
   width: 100% !important;
-  max-width: 100%;
-  height: var(--rank-card-height) !important;
-  min-height: var(--rank-card-height) !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 375px !important;
   margin: 0 !important;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  overflow: visible !important;
 }
-.interactive-grid:has(#rank-chart) > .chart-panel .panel-top {
+.interactive-grid:has(#rank-chart) .panel-top {
   min-width: 0;
-  width: 100%;
   max-width: 100%;
-  flex-wrap: nowrap !important;
 }
-.interactive-grid:has(#rank-chart) > .chart-panel .panel-top :is(h2, h3, h4, .panel-title) {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.interactive-grid:has(#rank-chart) > .chart-panel .segmented {
+.interactive-grid:has(#rank-chart) .segmented {
   flex-wrap: nowrap !important;
-  flex-shrink: 0;
   min-width: 0;
 }
-.interactive-grid:has(#rank-chart) > .chart-panel .seg-btn {
+.interactive-grid:has(#rank-chart) .seg-btn {
   white-space: nowrap !important;
-  flex-shrink: 0;
 }
 .interactive-grid:has(#rank-chart) #rank-chart {
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  min-height: 0;
-  flex: 1 1 0;
-  overflow: hidden;
-}
-.interactive-grid:has(#rank-chart) #rank-chart svg {
-  max-width: 100%;
 }
 .interactive-grid:has(#rank-chart) > .ranking-reading {
   box-sizing: border-box !important;
-  width: 306px !important;
-  max-width: 306px !important;
-  min-width: 306px !important;
-  height: var(--rank-card-height) !important;
-  min-height: var(--rank-card-height) !important;
-  max-height: var(--rank-card-height) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 375px !important;
   margin: 0 !important;
   padding: 24px !important;
-  background: #fff !important;
-  border: 1px solid #eaecf0 !important;
-  border-radius: 14px !important;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .03);
   display: flex !important;
   flex-direction: column !important;
+  gap: 12px !important;
   align-items: stretch !important;
-  gap: 10px;
-  overflow: hidden;
-  color: #101828;
+  overflow: visible !important;
+  color: #101828 !important;
+  background: #ffffff !important;
+  border: 1px solid #eaecf0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 3px rgba(16,24,40,.06);
 }
 .interactive-grid:has(#rank-chart) > .ranking-reading > * {
-  box-sizing: border-box;
   min-width: 0;
   max-width: 100%;
 }
 .interactive-grid:has(#rank-chart) .ranking-main-value {
   font-variant-numeric: tabular-nums;
-  font-size: clamp(25px, 2.5vw, 35px) !important;
-  line-height: 1.13 !important;
-  letter-spacing: -.035em;
-  white-space: nowrap !important;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+  font-size: clamp(26px,2.8vw,34px) !important;
+  line-height: 1.15 !important;
+  letter-spacing: -.03em;
 }
 .interactive-grid:has(#rank-chart) .ranking-winner {
   max-width: 100%;
-  white-space: nowrap !important;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.interactive-grid:has(#rank-chart) .ranking-winner *,
-.interactive-grid:has(#rank-chart) .ranking-reading .source-note {
-  max-width: 100%;
+  text-wrap: pretty;
 }
 .interactive-grid:has(#rank-chart) .ranking-reading .source-note {
   margin-top: auto;
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 1.45;
   color: #667085;
-  overflow: hidden;
 }
-.interactive-grid:has(#rank-chart) .ranking-reading .reading-divider {
-  width: 100%;
-  flex: 0 0 auto;
-}
-@media (max-width: 920px) {
+@media (max-width: 950px) {
   .interactive-grid:has(#rank-chart) {
-    --rank-card-height: 372px;
-    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0,1fr) !important;
     gap: 16px !important;
   }
+  .interactive-grid:has(#rank-chart) > .chart-panel {
+    min-height: 330px !important;
+  }
   .interactive-grid:has(#rank-chart) > .ranking-reading {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    height: 288px !important;
-    min-height: 288px !important;
-    max-height: 288px !important;
+    min-height: 0 !important;
     padding: 20px !important;
-  }
-  .interactive-grid:has(#rank-chart) .ranking-main-value {
-    font-size: clamp(25px, 5vw, 34px) !important;
-  }
-}
-@media (max-width: 520px) {
-  .interactive-grid:has(#rank-chart) {
-    --rank-card-height: 330px;
-  }
-  .interactive-grid:has(#rank-chart) > .chart-panel .panel-top {
-    gap: 8px;
-  }
-  .interactive-grid:has(#rank-chart) > .ranking-reading {
-    height: 278px !important;
-    min-height: 278px !important;
-    max-height: 278px !important;
-    padding: 18px !important;
   }
 }
 """
@@ -306,12 +249,14 @@ PROCEDENCIA_DASHBOARD_CSS = r"""
 }
 .scene[data-slug="procedencia"] .chart-fill {
   background: var(--meta-chart-color, #1b58b9) !important;
+  background-image: none !important;
+  opacity: 1 !important;
   border-radius: 5px;
 }
 .scene[data-slug="procedencia"] .chart-row:nth-child(1) { --meta-chart-color: #1453ae; }
 .scene[data-slug="procedencia"] .chart-row:nth-child(2) { --meta-chart-color: #5499d8; }
 .scene[data-slug="procedencia"] .chart-row:nth-child(3) { --meta-chart-color: #293e72; }
-.scene[data-slug="procedencia"] .chart-row:nth-child(4) { --meta-chart-color: #94b9df; }
+.scene[data-slug="procedencia"] .chart-row:nth-child(4) { --meta-chart-color: #6e95bd; }
 .scene[data-slug="procedencia"] .chart-value {
   min-width: 0;
   text-align: right !important;
@@ -369,33 +314,39 @@ PROCEDENCIA_DASHBOARD_CSS = r"""
 """
 
 CORPORATE_SELECTED_TABS_CSS = r"""
-/* Clear corporate-blue selected state, shared by interactive dashboard tabs. */
+/* Selected metrics and segmented tabs use the Air Europa corporate blue. */
 .segmented .seg-btn.selected,
+.segmented .seg-btn.active,
+.segmented .seg-btn.is-active,
 .segmented .seg-btn[aria-selected="true"],
 .segmented .seg-btn[aria-pressed="true"],
+.segmented button[data-state="active"],
+.tabs button.selected,
 .tabs button.active,
 .tabs button[aria-selected="true"],
 .tab-list [role="tab"][aria-selected="true"],
 .tab-bar button.active,
 .tab-buttons button.active {
   background: #1659bd !important;
-  color: #ffffff !important;
+  background-color: #1659bd !important;
+  background-image: none !important;
+  color: #fff !important;
   border-color: #1659bd !important;
-  box-shadow: 0 1px 3px rgba(13,55,128,.19) !important;
+  box-shadow: inset 0 0 0 1px #1659bd, 0 2px 5px rgba(18,66,145,.16) !important;
   font-weight: 700 !important;
 }
 .segmented .seg-btn.selected:hover,
+.segmented .seg-btn.active:hover,
 .tabs button.active:hover,
 .tab-bar button.active:hover {
-  background: #0e459e !important;
-  border-color: #0e459e !important;
+  background: #0f469f !important;
+  background-color: #0f469f !important;
 }
 .segmented .seg-btn:focus-visible,
 .tabs button:focus-visible,
 .tab-list [role="tab"]:focus-visible,
-.tab-bar button:focus-visible,
-.tab-buttons button:focus-visible {
-  outline: 3px solid #94bdf4 !important;
+.tab-bar button:focus-visible {
+  outline: 3px solid #9cc4fa !important;
   outline-offset: 2px;
 }
 """
@@ -409,9 +360,16 @@ def patch_procedencia_html(html):
     after = re.search(r'<section\b[^>]*\bclass\s*=\s*["\'][^"\']*\bscene\b', html[marker.end():], flags=re.I)
     end = marker.end() + after.start() if after else len(html)
     slide = html[marker.start():end]
-    title_pattern = re.compile(r'(Google Flights y Skyscanner reúnen el 82,9\s*%)(\s+)de las sesiones', flags=re.I)
-    slide = title_pattern.sub(
-        r'\1<br><span class="source-title-line">de las sesiones</span>', slide, count=1
+    # The final editorial fixes may change this heading before the slide is rendered.
+    # Target the heading element itself, not an outdated literal string.
+    intended_title = (
+        'Google Flights y Skyscanner reúnen el 82,9 %'
+        '<br><span class="source-title-line">de las sesiones</span>'
+    )
+    slide = re.sub(
+        r'(<h2\b[^>]*>)(.*?)(</h2>)',
+        lambda m: m.group(1) + intended_title + m.group(3),
+        slide, count=1, flags=re.I | re.S
     )
     if 'source-chart-heading' not in slide:
         chart_intro = (
@@ -554,28 +512,8 @@ class Handler(BaseHTTPRequestHandler):
 
 
 
-def _audit_presentation_internals():
-    """Temporary diagnostic restricted to structural HTML and requested slide headings."""
-    try:
-        h=get_html().decode("utf-8")
-        r=re.search(r'<section\b[^>]*data-slug=["\']procedencia["\'][^>]*>',h,re.I)
-        if not r:
-            print("VERIFY_PROC missing-section",flush=True)
-            return
-        next_scene=re.search(r'<section\b[^>]*class=["\'][^"\']*scene',h[r.end():],re.I)
-        segment=h[r.start():r.end()+(next_scene.start() if next_scene else len(h)-r.end())]
-        head=re.search(r'<h2\b[^>]*>(.*?)</h2>',segment,re.I|re.S)
-        print("VERIFY_PROC heading_html="+repr(head.group(1)[:380] if head else "MISSING"),flush=True)
-        print("VERIFY_PROC two_col="+str("source-layout" in segment)+", title_span="+str('source-title-line' in segment)+", heading="+str('source-chart-heading' in segment)+", chart_colors="+str("--meta-chart-color" in h)+",styles="+str(len(re.findall(r'<style\b',h,re.I)))+", length="+str(len(h)),flush=True)
-        for selector in ("chart-card","chart-name","chart-row","source-layout","seg-btn","selected","active","rank-chart"):
-            print("VERIFY_PROC token "+selector+" "+str(len(re.findall(re.escape(selector),h))),flush=True)
-        print("VERIFY_PROC color_style="+str(h.find("CORPORATE_SELECTED_TABS_CSS"))+", corporate_rule="+str(h.find(".segmented .seg-btn.selected"))+", css_end="+str(h.rfind("</style>")),flush=True)
-    except Exception as ex:
-        print("VERIFY_PROC failed "+type(ex).__name__,flush=True)
-
 if __name__ == "__main__":
     if not USER or not PASSWORD:
         raise RuntimeError("Authentication credentials are required")
 
-    _audit_presentation_internals()
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
