@@ -15,6 +15,156 @@ USER = os.environ.get("METAS_AUTH_USER", "")
 PASSWORD = os.environ.get("METAS_AUTH_PASS", "")
 PORT = int(os.environ.get("PORT", "10000"))
 
+RANKING_LAYOUT_CSS = r"""
+/* Rendimiento: stable two-column dashboard and Untitled UI-style metric card. */
+.interactive-grid:has(#rank-chart) {
+  --rank-card-height: 392px;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 306px) !important;
+  align-items: stretch !important;
+  gap: 20px !important;
+  grid-auto-flow: row !important;
+  width: 100%;
+  max-width: 100%;
+}
+.interactive-grid:has(#rank-chart) > .chart-panel {
+  box-sizing: border-box;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100%;
+  height: var(--rank-card-height) !important;
+  min-height: var(--rank-card-height) !important;
+  margin: 0 !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.interactive-grid:has(#rank-chart) > .chart-panel .panel-top {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  flex-wrap: nowrap !important;
+}
+.interactive-grid:has(#rank-chart) > .chart-panel .panel-top :is(h2, h3, h4, .panel-title) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.interactive-grid:has(#rank-chart) > .chart-panel .segmented {
+  flex-wrap: nowrap !important;
+  flex-shrink: 0;
+  min-width: 0;
+}
+.interactive-grid:has(#rank-chart) > .chart-panel .seg-btn {
+  white-space: nowrap !important;
+  flex-shrink: 0;
+}
+.interactive-grid:has(#rank-chart) #rank-chart {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+}
+.interactive-grid:has(#rank-chart) #rank-chart svg {
+  max-width: 100%;
+}
+.interactive-grid:has(#rank-chart) > .ranking-reading {
+  box-sizing: border-box !important;
+  width: 306px !important;
+  max-width: 306px !important;
+  min-width: 306px !important;
+  height: var(--rank-card-height) !important;
+  min-height: var(--rank-card-height) !important;
+  max-height: var(--rank-card-height) !important;
+  margin: 0 !important;
+  padding: 24px !important;
+  background: #fff !important;
+  border: 1px solid #eaecf0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .03);
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 10px;
+  overflow: hidden;
+  color: #101828;
+}
+.interactive-grid:has(#rank-chart) > .ranking-reading > * {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+.interactive-grid:has(#rank-chart) .ranking-main-value {
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(25px, 2.5vw, 35px) !important;
+  line-height: 1.13 !important;
+  letter-spacing: -.035em;
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.interactive-grid:has(#rank-chart) .ranking-winner {
+  max-width: 100%;
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.interactive-grid:has(#rank-chart) .ranking-winner *,
+.interactive-grid:has(#rank-chart) .ranking-reading .source-note {
+  max-width: 100%;
+}
+.interactive-grid:has(#rank-chart) .ranking-reading .source-note {
+  margin-top: auto;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #667085;
+  overflow: hidden;
+}
+.interactive-grid:has(#rank-chart) .ranking-reading .reading-divider {
+  width: 100%;
+  flex: 0 0 auto;
+}
+@media (max-width: 920px) {
+  .interactive-grid:has(#rank-chart) {
+    --rank-card-height: 372px;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 16px !important;
+  }
+  .interactive-grid:has(#rank-chart) > .ranking-reading {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 288px !important;
+    min-height: 288px !important;
+    max-height: 288px !important;
+    padding: 20px !important;
+  }
+  .interactive-grid:has(#rank-chart) .ranking-main-value {
+    font-size: clamp(25px, 5vw, 34px) !important;
+  }
+}
+@media (max-width: 520px) {
+  .interactive-grid:has(#rank-chart) {
+    --rank-card-height: 330px;
+  }
+  .interactive-grid:has(#rank-chart) > .chart-panel .panel-top {
+    gap: 8px;
+  }
+  .interactive-grid:has(#rank-chart) > .ranking-reading {
+    height: 278px !important;
+    min-height: 278px !important;
+    max-height: 278px !important;
+    padding: 18px !important;
+  }
+}
+"""
+
+
 def get_html():
     parts = []
     for i in range(100):
@@ -43,37 +193,11 @@ def get_html():
                     html = html.replace(old, new)
         except (TypeError, ValueError):
             pass
+    if "rank-chart" in html:
+        html = html.replace("</style>", RANKING_LAYOUT_CSS + "\n</style>", 1)
     return html.encode("utf-8")
 
 
-
-def _debug_layout_structure():
-    """Print structural selectors only, never embedded content or user data."""
-    try:
-        source = get_html().decode("utf-8")
-        import re as _r
-        keys = ("rendimiento", "Ingresos", "ingresos", "chart", "grafico", "gráfico")
-        for key in keys:
-            positions = [m.start() for m in _r.finditer(_r.escape(key), source, _r.I)]
-            print("METAS_DOM_KEY " + key + " count=" + str(len(positions)), flush=True)
-            for pos in (positions[:1]+positions[-2:]):
-                window = source[max(0, pos-700):min(len(source), pos+1000)]
-                out = []
-                for t in _r.finditer(r'<([a-z][\w-]*)([^<>]{0,450})>', window, _r.I):
-                    attrs = t.group(2)
-                    ids = _r.search(r'\bid=["\\\']([^"\\\']+)["\\\']', attrs)
-                    classes = _r.search(r'\bclass=["\\\']([^"\\\']+)["\\\']', attrs)
-                    if ids or classes:
-                        out.append(t.group(1).lower()+"#"+(ids.group(1) if ids else "")+"."+(classes.group(1) if classes else ""))
-                print("METAS_DOM_WINDOW "+key+" at="+str(pos)+" :: "+" | ".join(out[:18])[:1300],flush=True)
-        ids = _r.findall(r'\bid=["\\\']([^"\\\']+)["\\\']', source)
-        c = _r.findall(r'\bclass=["\\\']([^"\\\']+)["\\\']', source)
-        print("METAS_DOM_IDS "+", ".join(x for x in ids if _r.search(r'rend|chart|metric|funnel|ingres|business|kpi|graph|capt|result|trend',x,_r.I))[:1500],flush=True)
-        print("METAS_DOM_CLASSES "+", ".join(dict.fromkeys(x for x in c if _r.search(r'rend|chart|metric|business|kpi|graph|capt|result|trend|side|panel',x,_r.I)))[:4000],flush=True)
-    except Exception:
-        print("METAS_LAYOUT: introspection unavailable", flush=True)
-
-_debug_layout_structure()
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "AirEuropaPreview"
