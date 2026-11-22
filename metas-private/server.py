@@ -16,93 +16,182 @@ PASSWORD = os.environ.get("METAS_AUTH_PASS", "")
 PORT = int(os.environ.get("PORT", "10000"))
 
 RANKING_LAYOUT_CSS = r"""
-/* Rendimiento: preserve chart's intrinsic content without the former forced height/clipping. */
-.interactive-grid:has(#rank-chart) {
+/* Rendimiento dashboard: fixed height and dimensions across all three selected metrics. */
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) {
+  box-sizing: border-box !important;
   display: grid !important;
-  grid-template-columns: minmax(0,1fr) minmax(280px,306px) !important;
+  grid-template-columns: minmax(0,1fr) 306px !important;
   align-items: stretch !important;
   grid-auto-flow: row !important;
-  gap: 20px !important;
-  width: 100%;
-  max-width: 100%;
-}
-.interactive-grid:has(#rank-chart) > .chart-panel {
-  min-width: 0 !important;
+  gap: 18px !important;
   width: 100% !important;
+  height: 460px !important;
+  min-height: 460px !important;
+  max-height: 460px !important;
+  margin: 0 auto !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .chart-panel,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading {
+  box-sizing: border-box !important;
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  min-width: 0 !important;
   max-width: 100% !important;
-  height: auto !important;
-  min-height: 375px !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
   margin: 0 !important;
-  overflow: visible !important;
+  border: 1px solid #eaecf0 !important;
+  border-radius: 14px !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(16,24,40,.05) !important;
 }
-.interactive-grid:has(#rank-chart) .panel-top {
-  min-width: 0;
-  max-width: 100%;
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .chart-panel {
+  overflow: hidden !important;
+  padding: 22px 26px !important;
 }
-.interactive-grid:has(#rank-chart) .segmented {
-  flex-wrap: nowrap !important;
-  min-width: 0;
-}
-.interactive-grid:has(#rank-chart) .seg-btn {
-  white-space: nowrap !important;
-}
-.interactive-grid:has(#rank-chart) #rank-chart {
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .panel-top {
   box-sizing: border-box;
   width: 100%;
-  max-width: 100%;
   min-width: 0;
+  max-width: 100%;
+  flex-wrap: nowrap !important;
+  gap: 12px !important;
 }
-.interactive-grid:has(#rank-chart) > .ranking-reading {
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .segmented {
+  flex-wrap: nowrap !important;
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .seg-btn {
+  white-space: nowrap !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) #rank-chart {
   box-sizing: border-box !important;
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
-  height: auto !important;
-  min-height: 375px !important;
-  margin: 0 !important;
-  padding: 24px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 12px !important;
-  align-items: stretch !important;
-  overflow: visible !important;
-  color: #101828 !important;
-  background: #ffffff !important;
-  border: 1px solid #eaecf0 !important;
-  border-radius: 14px !important;
-  box-shadow: 0 1px 3px rgba(16,24,40,.06);
+  min-height: 0;
+  flex: 1 1 0 !important;
 }
-.interactive-grid:has(#rank-chart) > .ranking-reading > * {
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading {
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  padding: 20px 22px !important;
+  overflow: hidden !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading > * {
+  box-sizing: border-box;
   min-width: 0;
   max-width: 100%;
+  flex-shrink: 0;
 }
-.interactive-grid:has(#rank-chart) .ranking-main-value {
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value {
+  margin: 0 0 12px !important;
+  font-size: 32px !important;
+  line-height: 1.12 !important;
+  letter-spacing: -.035em;
   font-variant-numeric: tabular-nums;
-  font-size: clamp(26px,2.8vw,34px) !important;
-  line-height: 1.15 !important;
-  letter-spacing: -.03em;
+  white-space: nowrap !important;
 }
-.interactive-grid:has(#rank-chart) .ranking-winner {
-  max-width: 100%;
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-winner {
+  margin: 0 0 12px !important;
+  font-size: clamp(18px,1.65vw,23px) !important;
+  line-height: 1.2 !important;
   text-wrap: pretty;
+  overflow-wrap: break-word;
 }
-.interactive-grid:has(#rank-chart) .ranking-reading .source-note {
-  margin-top: auto;
-  font-size: 12px;
-  line-height: 1.45;
-  color: #667085;
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading p {
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  margin: 6px 0 !important;
+  color: #475467 !important;
+  overflow-wrap: break-word;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .reading-divider {
+  box-sizing: border-box;
+  width: 100%;
+  height: 1px !important;
+  min-height: 1px !important;
+  max-height: 1px !important;
+  margin: 14px 0 !important;
+  flex: 0 0 1px !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading p:last-child {
+  margin-bottom: 0 !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact {
+  padding: 16px 18px !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact .ranking-main-value {
+  font-size: 29px !important;
+  margin-bottom: 8px !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact .ranking-winner {
+  font-size: 19px !important;
+  margin-bottom: 8px !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact p {
+  font-size: 12px !important;
+  line-height: 1.32 !important;
+  margin: 4px 0 !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact .reading-divider {
+  margin: 8px 0 !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-tight {
+  padding: 14px 16px !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-tight .ranking-main-value {
+  font-size: 27px !important;
+  margin-bottom: 6px !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-tight .ranking-winner {
+  font-size: 18px !important;
+  margin-bottom: 6px !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-tight p {
+  font-size: 11.5px !important;
+  line-height: 1.29 !important;
+  margin: 3px 0 !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-tight .reading-divider {
+  margin: 6px 0 !important;
 }
 @media (max-width: 950px) {
-  .interactive-grid:has(#rank-chart) {
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) {
     grid-template-columns: minmax(0,1fr) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     gap: 16px !important;
   }
-  .interactive-grid:has(#rank-chart) > .chart-panel {
-    min-height: 330px !important;
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .chart-panel {
+    height: 350px !important;
+    min-height: 350px !important;
+    max-height: 350px !important;
+    padding: 18px !important;
   }
-  .interactive-grid:has(#rank-chart) > .ranking-reading {
-    min-height: 0 !important;
-    padding: 20px !important;
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading {
+    height: 390px !important;
+    min-height: 390px !important;
+    max-height: 390px !important;
+  }
+}
+@media (max-width: 540px) {
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .chart-panel {
+    height: 330px !important;
+    min-height: 330px !important;
+    max-height: 330px !important;
+    padding: 14px !important;
+  }
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading {
+    height: 420px !important;
+    min-height: 420px !important;
+    max-height: 420px !important;
   }
 }
 """
@@ -253,10 +342,10 @@ PROCEDENCIA_DASHBOARD_CSS = r"""
   opacity: 1 !important;
   border-radius: 5px;
 }
-.scene[data-slug="procedencia"] .chart-row:nth-child(1) { --meta-chart-color: #1453ae; }
-.scene[data-slug="procedencia"] .chart-row:nth-child(2) { --meta-chart-color: #5499d8; }
-.scene[data-slug="procedencia"] .chart-row:nth-child(3) { --meta-chart-color: #293e72; }
-.scene[data-slug="procedencia"] .chart-row:nth-child(4) { --meta-chart-color: #6e95bd; }
+.scene[data-slug="procedencia"] .chart-row:nth-child(1) { --meta-chart-color: #2563eb; }
+.scene[data-slug="procedencia"] .chart-row:nth-child(2) { --meta-chart-color: #0d9488; }
+.scene[data-slug="procedencia"] .chart-row:nth-child(3) { --meta-chart-color: #f97316; }
+.scene[data-slug="procedencia"] .chart-row:nth-child(4) { --meta-chart-color: #94a3b8; }
 .scene[data-slug="procedencia"] .chart-value {
   min-width: 0;
   text-align: right !important;
@@ -266,7 +355,8 @@ PROCEDENCIA_DASHBOARD_CSS = r"""
   font-weight: 700 !important;
 }
 .scene[data-slug="procedencia"] .section-head h2 .source-title-line {
-  white-space: nowrap;
+  display: block !important;
+  white-space: nowrap !important;
 }
 @media (max-width: 950px) {
   .scene[data-slug="procedencia"] .two-col.source-layout {
@@ -364,7 +454,7 @@ def patch_procedencia_html(html):
     # Target the heading element itself, not an outdated literal string.
     intended_title = (
         'Google Flights y Skyscanner reúnen el 82,9 %'
-        '<br><span class="source-title-line">de las sesiones</span>'
+        '<span class="source-title-line">de las sesiones</span>'
     )
     slide = re.sub(
         r'(<h2\b[^>]*>)(.*?)(</h2>)',
@@ -390,6 +480,44 @@ def patch_procedencia_html(html):
         )
     return html[:marker.start()] + slide + html[end:]
 
+
+
+RANKING_FIT_JS = r"""
+(function () {
+  const setup = function () {
+    const scene = document.querySelector('.scene[data-slug="rendimiento"]');
+    const card = scene && scene.querySelector('.ranking-reading');
+    if (!scene || !card) return;
+    let scheduled = false;
+    const fit = function () {
+      scheduled = false;
+      card.classList.remove('metrics-compact', 'metrics-tight');
+      if (card.scrollHeight > card.clientHeight + 2) {
+        card.classList.add('metrics-compact');
+      }
+      if (card.scrollHeight > card.clientHeight + 2) {
+        card.classList.add('metrics-tight');
+      }
+    };
+    const scheduleFit = function () {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(fit);
+    };
+    const observer = new MutationObserver(scheduleFit);
+    observer.observe(card, { childList: true, characterData: true, subtree: true });
+    scene.querySelectorAll('.seg-btn').forEach(function (btn) {
+      btn.addEventListener('click', scheduleFit);
+    });
+    scheduleFit();
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setup, { once: true });
+  } else {
+    setup();
+  }
+})();
+"""
 
 def get_html():
     parts = []
@@ -423,6 +551,8 @@ def get_html():
         html = html.replace("</style>", RANKING_LAYOUT_CSS + "\n</style>", 1)
     html = patch_procedencia_html(html)
     html = html.replace("</style>", PROCEDENCIA_DASHBOARD_CSS + "\n" + CORPORATE_SELECTED_TABS_CSS + "\n</style>", 1)
+    if "rank-chart" in html:
+        html = html.replace("</body>", "<script>\n" + RANKING_FIT_JS + "\n</script></body>", 1)
     return html.encode("utf-8")
 
 
@@ -513,50 +643,6 @@ class Handler(BaseHTTPRequestHandler):
 
 
 
-def _audit_layout_once():
-    """Temporary layout audit: structure and CSS only, never customer figures or body copy."""
-    try:
-        from html.parser import HTMLParser
-        h=get_html().decode("utf-8")
-        class Audit(HTMLParser):
-            voids={"area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"}
-            def __init__(self):
-                super().__init__(convert_charrefs=True)
-                self.stack=[]
-                self.count=0
-            def handle_starttag(self,tag,attrs):
-                a=dict(attrs)
-                cls=a.get("class","")
-                slug=a.get("data-slug","")
-                active_section=next((q[2] for q in reversed(self.stack) if q[2] in ("rendimiento","procedencia")),"")
-                if slug in ("rendimiento","procedencia"): active_section=slug
-                important=any(q[1].find("ranking-reading")>=0 for q in self.stack)
-                if active_section and (important or any(k in cls for k in ("interactive-grid","ranking-reading","chart-panel","source-layout","chart-card","ranking-main-value","source-note","chart-row","chart-fill","hero-count","section-head","seg-btn","panel-top"))):
-                    if self.count<100:
-                        print("LAYOUT_NODE sec="+active_section+" depth="+str(len(self.stack))+" tag="+tag+" class="+cls[:110]+" id="+a.get("id","")[:40]+" style="+a.get("style","")[:120],flush=True)
-                        self.count+=1
-                if tag not in self.voids:
-                    self.stack.append((tag,cls,active_section))
-            def handle_endtag(self,tag):
-                if tag in self.voids:return
-                for i in range(len(self.stack)-1,-1,-1):
-                    if self.stack[i][0]==tag:
-                        del self.stack[i:]
-                        break
-        Audit().feed(h)
-        style=re.search(r'<style[^>]*>(.*?)</style>',h,re.I|re.S)
-        css=style.group(1) if style else ""
-        for sel,body in re.findall(r'([^{}]+)\{([^{}]*)\}',css):
-            if any(k in sel for k in ('.ranking-reading','.interactive-grid','.source-layout','.chart-card','.chart-fill','.source-title-line','.section-head h2')):
-                props=[]
-                for prop in body.split(";"):
-                    if any(k in prop for k in ("height","overflow","display","position","padding","margin","width","background","color","font-size","line-height","grid-template","align-items","justify-content","flex","white-space")):
-                        props.append(prop.strip()[:140])
-                if props:
-                    print("LAYOUT_RULE "+re.sub(r'\s+',' ',sel[-200:]).strip()+" => "+ " | ".join(props)[:420],flush=True)
-    except Exception as ex:
-        print("LAYOUT_ERROR "+type(ex).__name__,flush=True)
-
 if __name__ == "__main__":
     if not USER or not PASSWORD:
         raise RuntimeError("Authentication credentials are required")
@@ -567,9 +653,8 @@ if __name__ == "__main__":
     if proc_start < 0:
         proc_start = rendered.find("data-slug='procedencia'")
     proc_chunk = rendered[proc_start:proc_start + 17000] if proc_start >= 0 else ""
-    title_ok = '82,9 %<br><span class="source-title-line">de las sesiones</span>' in proc_chunk
+    title_ok = '82,9 %<span class="source-title-line">de las sesiones</span>' in proc_chunk
     cards_ok = 'source-chart-heading' in proc_chunk and 'source-chart-column-headings' in proc_chunk
     tabs_ok = '.segmented .seg-btn.selected' in rendered and 'background-color: #1659bd' in rendered
     print("METAS_LAYOUT_VERIFY title_split=" + str(title_ok) + " chart_labels=" + str(cards_ok) + " tabs_blue=" + str(tabs_ok), flush=True)
-    _audit_layout_once()
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
