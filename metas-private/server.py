@@ -512,6 +512,51 @@ class Handler(BaseHTTPRequestHandler):
 
 
 
+
+def _audit_layout_once():
+    """Temporary layout audit: structure and CSS only, never customer figures or body copy."""
+    try:
+        from html.parser import HTMLParser
+        h=get_html().decode("utf-8")
+        class Audit(HTMLParser):
+            voids={"area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"}
+            def __init__(self):
+                super().__init__(convert_charrefs=True)
+                self.stack=[]
+                self.count=0
+            def handle_starttag(self,tag,attrs):
+                a=dict(attrs)
+                cls=a.get("class","")
+                slug=a.get("data-slug","")
+                active_section=next((q[2] for q in reversed(self.stack) if q[2] in ("rendimiento","procedencia")),"")
+                if slug in ("rendimiento","procedencia"): active_section=slug
+                important=any(q[1].find("ranking-reading")>=0 for q in self.stack)
+                if active_section and (important or any(k in cls for k in ("interactive-grid","ranking-reading","chart-panel","source-layout","chart-card","ranking-main-value","source-note","chart-row","chart-fill","hero-count","section-head","seg-btn","panel-top"))):
+                    if self.count<100:
+                        print("LAYOUT_NODE sec="+active_section+" depth="+str(len(self.stack))+" tag="+tag+" class="+cls[:110]+" id="+a.get("id","")[:40]+" style="+a.get("style","")[:120],flush=True)
+                        self.count+=1
+                if tag not in self.voids:
+                    self.stack.append((tag,cls,active_section))
+            def handle_endtag(self,tag):
+                if tag in self.voids:return
+                for i in range(len(self.stack)-1,-1,-1):
+                    if self.stack[i][0]==tag:
+                        del self.stack[i:]
+                        break
+        Audit().feed(h)
+        style=re.search(r'<style[^>]*>(.*?)</style>',h,re.I|re.S)
+        css=style.group(1) if style else ""
+        for sel,body in re.findall(r'([^{}]+)\{([^{}]*)\}',css):
+            if any(k in sel for k in ('.ranking-reading','.interactive-grid','.source-layout','.chart-card','.chart-fill','.source-title-line','.section-head h2')):
+                props=[]
+                for prop in body.split(";"):
+                    if any(k in prop for k in ("height","overflow","display","position","padding","margin","width","background","color","font-size","line-height","grid-template","align-items","justify-content","flex","white-space")):
+                        props.append(prop.strip()[:140])
+                if props:
+                    print("LAYOUT_RULE "+re.sub(r'\s+',' ',sel[-200:]).strip()+" => "+ " | ".join(props)[:420],flush=True)
+    except Exception as ex:
+        print("LAYOUT_ERROR "+type(ex).__name__,flush=True)
+
 if __name__ == "__main__":
     if not USER or not PASSWORD:
         raise RuntimeError("Authentication credentials are required")
@@ -526,4 +571,5 @@ if __name__ == "__main__":
     cards_ok = 'source-chart-heading' in proc_chunk and 'source-chart-column-headings' in proc_chunk
     tabs_ok = '.segmented .seg-btn.selected' in rendered and 'background-color: #1659bd' in rendered
     print("METAS_LAYOUT_VERIFY title_split=" + str(title_ok) + " chart_labels=" + str(cards_ok) + " tabs_blue=" + str(tabs_ok), flush=True)
+    _audit_layout_once()
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
