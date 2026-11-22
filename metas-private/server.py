@@ -718,6 +718,82 @@ PROCEDENCIA_HEADING_FIX_JS = r"""
 })();
 """
 
+
+CONTEXTO_REFINED_CSS = r"""
+/* Contexto: restrained three-column cards based on an inspected Untitled UI metric item.
+   Visual adaptation only, not a new design-system component. */
+.scene[data-slug="contexto"] .center-block > .flow {
+  box-sizing: border-box;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  column-gap: 16px !important;
+  row-gap: 16px !important;
+  width: 100%;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}
+.scene[data-slug="contexto"] .center-block > .flow > .flow-step {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  min-height: 224px;
+  padding: 27px 29px !important;
+  margin: 0 !important;
+  border: 1px solid #eaecf0 !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .055) !important;
+  color: #101828 !important;
+}
+.scene[data-slug="contexto"] .center-block > .flow > .flow-step + .flow-step {
+  border-left: 1px solid #eaecf0 !important;
+}
+.scene[data-slug="contexto"] .flow-step-title {
+  font-size: clamp(21px, 1.7vw, 25px) !important;
+  line-height: 1.24 !important;
+  font-weight: 680 !important;
+  letter-spacing: -.025em !important;
+  color: #101f46 !important;
+  margin: 0 !important;
+}
+.scene[data-slug="contexto"] .flow-step p {
+  font-size: clamp(15px, 1.08vw, 16px) !important;
+  line-height: 1.52 !important;
+  color: #475467 !important;
+  margin: 12px 0 0 !important;
+  overflow-wrap: break-word;
+}
+.scene[data-slug="contexto"] .center-block > .takeaway {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin: 26px 0 0 !important;
+  padding: 19px 0 0 !important;
+  border-top: 1px solid #eaecf0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #101f46 !important;
+  font-size: clamp(18px, 1.45vw, 21px) !important;
+  line-height: 1.4 !important;
+  font-weight: 650 !important;
+}
+@media (max-width: 900px) {
+  .scene[data-slug="contexto"] .center-block > .flow {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+  .scene[data-slug="contexto"] .center-block > .flow > .flow-step {
+    min-height: auto !important;
+    padding: 22px 24px !important;
+  }
+  .scene[data-slug="contexto"] .center-block > .takeaway {
+    margin-top: 18px !important;
+  }
+}
+"""
+
 def get_html():
     parts = []
     for i in range(100):
@@ -754,6 +830,7 @@ def get_html():
         html = html.replace("</body>", "<script>\n" + RANKING_FIT_JS + "\n</script></body>", 1)
     if 'data-slug="procedencia"' in html or "data-slug='procedencia'" in html:
         html = html.replace("</body>", "<script>\n" + PROCEDENCIA_HEADING_FIX_JS + "\n</script></body>", 1)
+    html = html.replace("</style>", CONTEXTO_REFINED_CSS + "\n</style>", 1)
     return html.encode("utf-8")
 
 
