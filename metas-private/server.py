@@ -243,29 +243,85 @@ RANKING_LAYOUT_CSS = r"""
   .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-winner {font-size:22px !important;}
 }
 
-/* Shared KPI scale in the two neighboring slides. */
+/* Consistent KPI scale in Procedencia and Rendimiento. Numbers stay fully visible. */
 .scene[data-slug="procedencia"] .hero-count,
 .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value,
 .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-compact .ranking-main-value,
 .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-tight .ranking-main-value {
-  font-size: clamp(72px, 7vw, 86px) !important;
+  font-size: 64px !important;
   line-height: 1.08 !important;
   font-weight: 800 !important;
   letter-spacing: -.055em !important;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums !important;
   white-space: nowrap !important;
 }
 .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value {
-  max-width: 100%;
-  margin-bottom: 12px !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 0 11px !important;
+  overflow: visible !important;
 }
-.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) #rank-explanation ~ * {
-  display: none !important;
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-tight {
+  justify-content: center !important;
+  align-items: stretch !important;
+  padding: 20px 22px !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-winner,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-compact .ranking-winner,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-tight .ranking-winner {
+  font-size: 23px !important;
+  line-height: 1.22 !important;
+  margin: 0 0 13px !important;
+  font-weight: 700 !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading p,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading #rank-explanation,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading #rank-implication {
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+  margin: 0 !important;
+  color: #475467 !important;
+  overflow-wrap: break-word;
+  display: block !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading .reading-divider {
+  display: block !important;
+  box-sizing: border-box !important;
+  height: 1px !important;
+  min-height: 1px !important;
+  margin: 15px 0 !important;
+  background: #eaecf0 !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact .ranking-winner {
+  margin-bottom: 10px !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact p {
+  font-size: 13.5px !important;
+  line-height: 1.36 !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-compact .reading-divider {
+  margin: 10px 0 !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-tight .ranking-winner {
+  font-size: 21px !important;
+  margin-bottom: 8px !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-tight p {
+  font-size: 12.5px !important;
+  line-height: 1.32 !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading.metrics-tight .reading-divider {
+  margin: 8px 0 !important;
 }
 @media (max-width: 540px) {
   .scene[data-slug="procedencia"] .hero-count,
   .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value {
-    font-size: 58px !important;
+    font-size: 56px !important;
   }
 }
 """
@@ -568,38 +624,55 @@ def patch_procedencia_html(html):
 RANKING_FIT_JS = r"""
 (function () {
   "use strict";
-  const readings = {
-    conversion: "Mayor tasa de conversión entre los principales metabuscadores. No implica necesariamente más reservas.",
-    ingresos: "Mayor aportación a los ingresos del canal. Conviene contrastarla también con la conversión.",
-    sesiones: "Mayor cuota de sesiones del canal. Más tráfico no significa necesariamente mayor conversión."
-  };
+  // Keep the original text from the presentation for each metric.
+  // Only adjust the KPI size when the number is too wide for its fixed card.
   function setup() {
     const scene = document.querySelector('.scene[data-slug="rendimiento"]');
     const card = scene && scene.querySelector('.ranking-reading');
-    const explanation = card && card.querySelector('#rank-explanation');
-    if (!scene || !explanation) return;
+    const value = card && card.querySelector('.ranking-main-value');
+    if (!card || !value) return;
     let queued = false;
-    function refresh() {
+    function fit() {
       queued = false;
-      card.classList.remove('metrics-compact','metrics-tight');
-      const active = scene.querySelector('.seg-btn.selected, .seg-btn[aria-selected="true"]');
-      const label = active ? active.textContent.trim().toLowerCase() : "conversión";
-      const metric = label.includes("ingres") ? "ingresos" : label.includes("sesion") ? "sesiones" : "conversion";
-      const next = readings[metric];
-      if (explanation.textContent.trim() !== next) explanation.textContent = next;
+      card.classList.remove('metrics-compact', 'metrics-tight');
+      value.style.removeProperty('font-size');
+      const initial = window.innerWidth <= 540 ? 56 : 64;
+      let size = initial;
+      value.style.setProperty('font-size', size + 'px', 'important');
+      // Numerals differ in length: e.g. 11,5 % and 52,82 M€.
+      while (size > 42 && value.scrollWidth > value.clientWidth + 1) {
+        size -= 2;
+        value.style.setProperty('font-size', size + 'px', 'important');
+      }
+      if (card.scrollHeight > card.clientHeight + 2) {
+        card.classList.add('metrics-compact');
+      }
+      if (card.scrollHeight > card.clientHeight + 2) {
+        card.classList.add('metrics-tight');
+      }
     }
     function schedule() {
       if (queued) return;
       queued = true;
-      requestAnimationFrame(refresh);
+      window.requestAnimationFrame(fit);
     }
-    new MutationObserver(schedule).observe(card,{childList:true,characterData:true,subtree:true});
-    scene.querySelectorAll('.seg-btn').forEach(btn => btn.addEventListener('click',schedule));
-    window.addEventListener('hashchange',schedule);
+    new MutationObserver(schedule).observe(card, {
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
+    scene.querySelectorAll('.seg-btn').forEach(function (btn) {
+      btn.addEventListener('click', schedule);
+    });
+    if (window.ResizeObserver) new ResizeObserver(schedule).observe(card);
+    window.addEventListener('resize', schedule);
     schedule();
   }
-  if (document.readyState === "loading") document.addEventListener('DOMContentLoaded',setup,{once:true});
-  else setup();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setup, {once: true});
+  } else {
+    setup();
+  }
 })();
 """
 
