@@ -7,6 +7,7 @@ import base64
 import hmac
 import os
 import re
+import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
@@ -33,6 +34,15 @@ def get_html():
         html = html.replace("</style>", patch_css + "\n</style>", 1)
     if patch_js:
         html = html.replace("</body>", "<script>\n" + patch_js + "\n</script></body>", 1)
+    replacements_json = os.environ.get("METAS_PRESENTATION_TEXT_FIXES", "")
+    if replacements_json:
+        try:
+            fixes = json.loads(replacements_json)
+            for old, new in fixes.items():
+                if isinstance(old, str) and isinstance(new, str) and old:
+                    html = html.replace(old, new)
+        except (TypeError, ValueError):
+            pass
     return html.encode("utf-8")
 
 class Handler(BaseHTTPRequestHandler):
