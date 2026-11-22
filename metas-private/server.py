@@ -282,8 +282,48 @@ class Handler(BaseHTTPRequestHandler):
             return
         self._send_body(404, b"Not found", "text/plain; charset=utf-8")
 
+
+def _audit_procedencia_structure():
+    """One-time structure-only check: no slide text or numbers are emitted."""
+    from html.parser import HTMLParser
+    class Audit(HTMLParser):
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.level = 0
+            self.inside = False
+            self.root_level = None
+            self.nodes = []
+            self.sections = []
+        def handle_starttag(self, tag, attrs):
+            a = dict(attrs)
+            if tag == "section" and "scene" in a.get("class", "").split():
+                slug = a.get("data-slug","")
+                self.sections.append(slug)
+                if slug == "procedencia":
+                    self.inside = True
+                    self.root_level = self.level
+            if self.inside and len(self.nodes) < 145 and self.level - self.root_level <= 9:
+                self.nodes.append((self.level-self.root_level, tag, a.get("class",""), a.get("id",""), a.get("data-slug","")))
+            if tag not in ("area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"):
+                self.level += 1
+        def handle_endtag(self, tag):
+            if tag not in ("area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"):
+                self.level = max(0,self.level - 1)
+            if self.inside and self.level == self.root_level:
+                self.inside = False
+    try:
+        a=Audit()
+        a.feed(get_html().decode("utf-8"))
+        print("PROC_AUDIT_SLUGS " + ",".join(a.sections), flush=True)
+        print("PROC_AUDIT_NODES " + str(len(a.nodes)), flush=True)
+        for depth,tag,cls,nid,slug in a.nodes:
+            print("PROC_AUDIT " + str(depth) + " "+tag+" class="+cls[:120]+" id="+nid[:80]+" slug="+slug[:40],flush=True)
+    except Exception:
+        print("PROC_AUDIT_UNAVAILABLE",flush=True)
+
 if __name__ == "__main__":
     if not USER or not PASSWORD:
         raise RuntimeError("Authentication credentials are required")
 
+    _audit_procedencia_structure()
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
