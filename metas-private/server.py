@@ -844,6 +844,43 @@ class Handler(BaseHTTPRequestHandler):
 
 
 
+def _audit_contexto_structure():
+    """Inspect structural selectors only. Do not print presentation text or figures."""
+    from html.parser import HTMLParser
+    class ContextAudit(HTMLParser):
+        voids = {"area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"}
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.stack=[]
+            self.nodes=0
+        def handle_starttag(self, tag, attrs):
+            attr=dict(attrs)
+            cls=attr.get("class","")
+            slug=attr.get("data-slug","")
+            in_context=slug=="contexto" or any(t[2]=="contexto" for t in self.stack)
+            if in_context and self.nodes<65:
+                self.nodes+=1
+                print("CONTEXT_DOM depth="+str(len(self.stack))+" tag="+tag+" class="+cls[:130]+" id="+attr.get("id","")[:35],flush=True)
+            if tag not in self.voids:
+                self.stack.append((tag,cls,"contexto" if in_context else ""))
+        def handle_endtag(self,tag):
+            if tag in self.voids:return
+            for i in range(len(self.stack)-1,-1,-1):
+                if self.stack[i][0]==tag:
+                    del self.stack[i:]
+                    break
+    try:
+        src=get_html().decode("utf-8")
+        ContextAudit().feed(src)
+        style=re.search(r"<style[^>]*>(.*?)</style>",src,re.S|re.I)
+        if style:
+            for selector,body in re.findall(r"([^{}]+)\{([^{}]*)\}",style.group(1)):
+                if any(term in selector.lower() for term in ("contexto","journey","step-card","step-grid","three-col","context-flow","context-grid","flow-step","takeaway")):
+                    print("CONTEXT_CSS "+re.sub(r"\s+"," ",selector.strip())[:180]+" => "+re.sub(r"\s+"," ",body.strip())[:230],flush=True)
+    except Exception as ex:
+        print("CONTEXT_AUDIT_ERROR "+type(ex).__name__,flush=True)
+
+
 if __name__ == "__main__":
     if not USER or not PASSWORD:
         raise RuntimeError("Authentication credentials are required")
@@ -859,4 +896,5 @@ if __name__ == "__main__":
     color_ok = all("background:" + c + " !important" in proc_chunk for c in ("#2563eb", "#0d9488", "#f97316", "#94a3b8"))
     tabs_ok = '.segmented .seg-btn.selected' in rendered and 'background-color: #1659bd' in rendered
     print("METAS_LAYOUT_VERIFY title_split=" + str(title_ok) + " chart_labels=" + str(cards_ok) + " distinct_bars=" + str(color_ok) + " tabs_blue=" + str(tabs_ok), flush=True)
+    _audit_contexto_structure()
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
