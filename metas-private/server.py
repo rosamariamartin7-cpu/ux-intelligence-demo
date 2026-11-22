@@ -516,13 +516,14 @@ if __name__ == "__main__":
     if not USER or not PASSWORD:
         raise RuntimeError("Authentication credentials are required")
 
-    # Safe startup check: only structural booleans, no private presentation content.
+    # Safe structural startup check, without private data or user information.
     rendered = get_html().decode("utf-8")
-    proc_start = re.search(r'<section\\b[^>]*data-slug=["\\']procedencia["\\'][^>]*>', rendered, re.I)
-    proc_chunk = rendered[proc_start.start():] if proc_start else ""
-    proc_chunk = re.split(r'<section\\b', proc_chunk, maxsplit=1, flags=re.I)[0] if False else proc_chunk
-    title_ok = bool(re.search(r'82,9\\s*%\\s*<br>\\s*<span class="source-title-line">de las sesiones</span>', proc_chunk, re.I))
-    cards_ok = "source-chart-heading" in proc_chunk and "source-chart-column-headings" in proc_chunk
-    tabs_ok = ".segmented .seg-btn.selected" in rendered and "background-color: #1659bd" in rendered
+    proc_start = rendered.find('data-slug="procedencia"')
+    if proc_start < 0:
+        proc_start = rendered.find("data-slug='procedencia'")
+    proc_chunk = rendered[proc_start:proc_start + 17000] if proc_start >= 0 else ""
+    title_ok = '82,9 %<br><span class="source-title-line">de las sesiones</span>' in proc_chunk
+    cards_ok = 'source-chart-heading' in proc_chunk and 'source-chart-column-headings' in proc_chunk
+    tabs_ok = '.segmented .seg-btn.selected' in rendered and 'background-color: #1659bd' in rendered
     print("METAS_LAYOUT_VERIFY title_split=" + str(title_ok) + " chart_labels=" + str(cards_ok) + " tabs_blue=" + str(tabs_ok), flush=True)
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
