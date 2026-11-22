@@ -45,6 +45,31 @@ def get_html():
             pass
     return html.encode("utf-8")
 
+
+def _debug_layout_structure():
+    """Temporary, structural-only diagnostic. Never prints private text or metrics."""
+    try:
+        source = get_html().decode("utf-8")
+        import re as _r
+        target = _r.search(r'<[^>]{0,350}\bid=["\\\']rendimiento["\\\'][^>]*>', source, _r.I)
+        if not target:
+            print("METAS_LAYOUT: no exact rendimiento id", flush=True)
+            return
+        window = source[max(0, target.start()-1200):target.start()+16000]
+        out = []
+        for t in _r.finditer(r'<([a-z][\w-]*)([^<>]{0,600})>', window, _r.I):
+            attrs = t.group(2)
+            ids = _r.search(r'\bid=["\\\']([^"\\\']+)["\\\']', attrs)
+            classes = _r.search(r'\bclass=["\\\']([^"\\\']+)["\\\']', attrs)
+            if ids or classes:
+                out.append(t.group(1).lower()+" #"+(ids.group(1) if ids else "")+" ."+(classes.group(1) if classes else ""))
+            if len(out)>=105: break
+        print("METAS_LAYOUT_START"+"\n" + "\n".join(out)+"\nMETAS_LAYOUT_END", flush=True)
+    except Exception:
+        print("METAS_LAYOUT: introspection unavailable", flush=True)
+
+_debug_layout_structure()
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "AirEuropaPreview"
 
