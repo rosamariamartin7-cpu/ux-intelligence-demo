@@ -200,6 +200,48 @@ RANKING_LAYOUT_CSS = r"""
     max-height: 420px !important;
   }
 }
+
+/* Legible metric reading: the figure and one key insight, without repeated text. */
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading {
+  justify-content:center !important;
+  align-items:flex-start !important;
+  padding:25px 24px !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value {
+  font-size:46px !important;
+  line-height:1.1 !important;
+  margin:0 0 10px !important;
+  letter-spacing:-.045em !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-winner {
+  font-size:24px !important;
+  line-height:1.25 !important;
+  margin:0 0 22px !important;
+  font-weight:700 !important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading #rank-explanation {
+  font-size:16px !important;
+  line-height:1.5 !important;
+  color:#475467 !important;
+  margin:0 !important;
+  overflow-wrap:break-word;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading #rank-implication,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .ranking-reading .reading-divider {
+  display:none !important;
+}
+.scene[data-slug="rendimiento"] #rank-chart .chart-name,
+.scene[data-slug="rendimiento"] #rank-chart .bar-label { font-size:18px !important; }
+.scene[data-slug="rendimiento"] #rank-chart .chart-value,
+.scene[data-slug="rendimiento"] #rank-chart .bar-value {
+  font-size:19px !important;
+  font-weight:700 !important;
+  font-variant-numeric:tabular-nums;
+}
+@media(max-width:540px) {
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value {font-size:42px !important;}
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-winner {font-size:22px !important;}
+}
 """
 
 
@@ -499,38 +541,39 @@ def patch_procedencia_html(html):
 
 RANKING_FIT_JS = r"""
 (function () {
-  const setup = function () {
+  "use strict";
+  const readings = {
+    conversion: "Mayor tasa de conversión entre los principales metabuscadores. No implica necesariamente más reservas.",
+    ingresos: "Mayor aportación a los ingresos del canal. Conviene contrastarla también con la conversión.",
+    sesiones: "Mayor cuota de sesiones del canal. Más tráfico no significa necesariamente mayor conversión."
+  };
+  function setup() {
     const scene = document.querySelector('.scene[data-slug="rendimiento"]');
     const card = scene && scene.querySelector('.ranking-reading');
-    if (!scene || !card) return;
-    let scheduled = false;
-    const fit = function () {
-      scheduled = false;
-      card.classList.remove('metrics-compact', 'metrics-tight');
-      if (card.scrollHeight > card.clientHeight + 2) {
-        card.classList.add('metrics-compact');
-      }
-      if (card.scrollHeight > card.clientHeight + 2) {
-        card.classList.add('metrics-tight');
-      }
-    };
-    const scheduleFit = function () {
-      if (scheduled) return;
-      scheduled = true;
-      requestAnimationFrame(fit);
-    };
-    const observer = new MutationObserver(scheduleFit);
-    observer.observe(card, { childList: true, characterData: true, subtree: true });
-    scene.querySelectorAll('.seg-btn').forEach(function (btn) {
-      btn.addEventListener('click', scheduleFit);
-    });
-    scheduleFit();
-  };
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setup, { once: true });
-  } else {
-    setup();
+    const explanation = card && card.querySelector('#rank-explanation');
+    if (!scene || !explanation) return;
+    let queued = false;
+    function refresh() {
+      queued = false;
+      card.classList.remove('metrics-compact','metrics-tight');
+      const active = scene.querySelector('.seg-btn.selected, .seg-btn[aria-selected="true"]');
+      const label = active ? active.textContent.trim().toLowerCase() : "conversión";
+      const metric = label.includes("ingres") ? "ingresos" : label.includes("sesion") ? "sesiones" : "conversion";
+      const next = readings[metric];
+      if (explanation.textContent.trim() !== next) explanation.textContent = next;
+    }
+    function schedule() {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(refresh);
+    }
+    new MutationObserver(schedule).observe(card,{childList:true,characterData:true,subtree:true});
+    scene.querySelectorAll('.seg-btn').forEach(btn => btn.addEventListener('click',schedule));
+    window.addEventListener('hashchange',schedule);
+    schedule();
   }
+  if (document.readyState === "loading") document.addEventListener('DOMContentLoaded',setup,{once:true});
+  else setup();
 })();
 """
 
