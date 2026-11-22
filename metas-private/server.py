@@ -46,25 +46,30 @@ def get_html():
     return html.encode("utf-8")
 
 
+
 def _debug_layout_structure():
-    """Temporary, structural-only diagnostic. Never prints private text or metrics."""
+    """Print structural selectors only, never embedded content or user data."""
     try:
         source = get_html().decode("utf-8")
         import re as _r
-        target = _r.search(r'<[^>]{0,350}\bid=["\\\']rendimiento["\\\'][^>]*>', source, _r.I)
-        if not target:
-            print("METAS_LAYOUT: no exact rendimiento id", flush=True)
-            return
-        window = source[max(0, target.start()-1200):target.start()+16000]
-        out = []
-        for t in _r.finditer(r'<([a-z][\w-]*)([^<>]{0,600})>', window, _r.I):
-            attrs = t.group(2)
-            ids = _r.search(r'\bid=["\\\']([^"\\\']+)["\\\']', attrs)
-            classes = _r.search(r'\bclass=["\\\']([^"\\\']+)["\\\']', attrs)
-            if ids or classes:
-                out.append(t.group(1).lower()+" #"+(ids.group(1) if ids else "")+" ."+(classes.group(1) if classes else ""))
-            if len(out)>=105: break
-        print("METAS_LAYOUT_START"+"\n" + "\n".join(out)+"\nMETAS_LAYOUT_END", flush=True)
+        keys = ("rendimiento", "Ingresos", "ingresos", "chart", "grafico", "gráfico")
+        for key in keys:
+            positions = [m.start() for m in _r.finditer(_r.escape(key), source, _r.I)]
+            print("METAS_DOM_KEY " + key + " count=" + str(len(positions)), flush=True)
+            for pos in (positions[:1]+positions[-2:]):
+                window = source[max(0, pos-700):min(len(source), pos+1000)]
+                out = []
+                for t in _r.finditer(r'<([a-z][\w-]*)([^<>]{0,450})>', window, _r.I):
+                    attrs = t.group(2)
+                    ids = _r.search(r'\bid=["\\\']([^"\\\']+)["\\\']', attrs)
+                    classes = _r.search(r'\bclass=["\\\']([^"\\\']+)["\\\']', attrs)
+                    if ids or classes:
+                        out.append(t.group(1).lower()+"#"+(ids.group(1) if ids else "")+"."+(classes.group(1) if classes else ""))
+                print("METAS_DOM_WINDOW "+key+" at="+str(pos)+" :: "+" | ".join(out[:18])[:1300],flush=True)
+        ids = _r.findall(r'\bid=["\\\']([^"\\\']+)["\\\']', source)
+        c = _r.findall(r'\bclass=["\\\']([^"\\\']+)["\\\']', source)
+        print("METAS_DOM_IDS "+", ".join(x for x in ids if _r.search(r'rend|chart|metric|funnel|ingres|business|kpi|graph|capt|result|trend',x,_r.I))[:1500],flush=True)
+        print("METAS_DOM_CLASSES "+", ".join(dict.fromkeys(x for x in c if _r.search(r'rend|chart|metric|business|kpi|graph|capt|result|trend|side|panel',x,_r.I)))[:4000],flush=True)
     except Exception:
         print("METAS_LAYOUT: introspection unavailable", flush=True)
 
