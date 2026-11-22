@@ -454,13 +454,22 @@ def patch_procedencia_html(html):
     # Target the heading element itself, not an outdated literal string.
     intended_title = (
         'Google Flights y Skyscanner reúnen el 82,9 %'
-        '<span class="source-title-line">de las sesiones</span>'
+        '<span class="source-title-line" style="display:block!important">de las sesiones</span>'
     )
     slide = re.sub(
         r'(<h2\b[^>]*>)(.*?)(</h2>)',
         lambda m: m.group(1) + intended_title + m.group(3),
         slide, count=1, flags=re.I | re.S
     )
+    # Explicit inline colors guarantee the four bars retain their distinct palette
+    # even when legacy styles or theme variables override backgrounds.
+    for legacy_color, dashboard_color in (
+        ("var(--gflights)", "#2563eb"),
+        ("var(--sky)", "#0d9488"),
+        ("var(--kayak)", "#f97316"),
+        ("var(--other)", "#94a3b8"),
+    ):
+        slide = slide.replace("background:" + legacy_color, "background:" + dashboard_color + " !important")
     if 'source-chart-heading' not in slide:
         chart_intro = (
             '<div class="source-chart-heading">'
@@ -653,8 +662,9 @@ if __name__ == "__main__":
     if proc_start < 0:
         proc_start = rendered.find("data-slug='procedencia'")
     proc_chunk = rendered[proc_start:proc_start + 17000] if proc_start >= 0 else ""
-    title_ok = '82,9 %<span class="source-title-line">de las sesiones</span>' in proc_chunk
+    title_ok = '82,9 %<span class="source-title-line" style="display:block!important">de las sesiones</span>' in proc_chunk
     cards_ok = 'source-chart-heading' in proc_chunk and 'source-chart-column-headings' in proc_chunk
+    color_ok = all("background:" + c + " !important" in proc_chunk for c in ("#2563eb", "#0d9488", "#f97316", "#94a3b8"))
     tabs_ok = '.segmented .seg-btn.selected' in rendered and 'background-color: #1659bd' in rendered
-    print("METAS_LAYOUT_VERIFY title_split=" + str(title_ok) + " chart_labels=" + str(cards_ok) + " tabs_blue=" + str(tabs_ok), flush=True)
+    print("METAS_LAYOUT_VERIFY title_split=" + str(title_ok) + " chart_labels=" + str(cards_ok) + " distinct_bars=" + str(color_ok) + " tabs_blue=" + str(tabs_ok), flush=True)
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
