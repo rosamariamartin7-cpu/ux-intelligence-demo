@@ -955,6 +955,15 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         path = urlsplit(self.path).path
+        # Optional, authenticated two-slide visual prototype.
+        # The private HTML stays in Render environment configuration, not in Git.
+        if path in ("/preview-v2", "/preview-v2/"):
+            prototype = os.environ.get("METAS_PRESENTATION_V2_HTML", "")
+            if not prototype:
+                self._send_body(503, b"Preview not configured", "text/plain")
+            else:
+                self._send_body(200, prototype.encode("utf-8"))
+            return
         if path == "/brand/air-europa.svg":
             svg = os.environ.get("METAS_BRAND_SVG", "")
             if not svg.startswith("<svg"):
