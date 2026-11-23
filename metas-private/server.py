@@ -958,6 +958,9 @@ class Handler(BaseHTTPRequestHandler):
         # Optional, authenticated two-slide visual prototype.
         # The private HTML stays in Render environment configuration, not in Git.
         if path in ("/preview-v2", "/preview-v2/"):
+            if os.environ.get("METAS_PRESENTATION_V2_ENABLED") != "1":
+                self._send_body(404, b"Preview disabled", "text/plain")
+                return
             prototype = os.environ.get("METAS_PRESENTATION_V2_HTML", "")
             if not prototype:
                 self._send_body(503, b"Preview not configured", "text/plain")
