@@ -904,6 +904,107 @@ def get_html():
 
 
 
+
+PREVIEW_V2_VERTICAL_CSS = r"""
+/* Metabuscadores: vertical, content-first landing. Applied ONLY to /preview-v2. */
+:root {scroll-behavior:smooth}
+html,body {height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;background:#fff!important;}
+.workspace {display:block!important;height:auto!important;min-height:100vh!important;overflow:visible!important;}
+.toolbar,.navigation {display:none!important;}
+.viewport {display:block!important;flex:none!important;width:100%!important;height:auto!important;min-height:0!important;padding:0!important;margin:0!important;overflow:visible!important;position:relative!important;}
+.stage {display:block!important;position:relative!important;width:100%!important;max-width:none!important;height:auto!important;transform:none!important;margin:0!important;box-shadow:none!important;border-radius:0!important;overflow:visible!important;}
+.slide,.slide.is-active {
+  box-sizing:border-box!important;display:block!important;position:relative!important;
+  visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+  width:100%!important;height:auto!important;min-height:0!important;inset:auto!important;
+}
+.slide-cover {
+  display:flex!important;flex-direction:column!important;
+  min-height:100vh!important;min-height:100svh!important;
+  padding:clamp(28px,4vw,62px) clamp(26px,7.1vw,122px) clamp(34px,4.1vw,66px)!important;
+  background:#031B4E!important;isolation:isolate;color:white!important;
+}
+.slide-cover::before {content:"";position:absolute;z-index:-1;pointer-events:none;top:0;right:0;bottom:0;width:43%;background:radial-gradient(ellipse at 100% 48%,rgba(45,105,225,.21) 0%,rgba(45,105,225,.055) 48%,transparent 78%);}
+.cover-corner,.cover-sheen,.cover-swatch,.cover-visual,.rule-top,.cover-bottom-line {display:none!important;}
+.cover-nav {display:flex!important;position:relative!important;top:auto!important;left:auto!important;right:auto!important;width:100%!important;align-items:center!important;justify-content:space-between!important;gap:24px!important;z-index:2;}
+.cover-nav .logo {width:230px!important;height:56px!important;object-fit:contain!important;object-position:left center!important;filter:brightness(0) invert(1)!important;}
+.edition {font-weight:650!important;font-size:13px!important;letter-spacing:.11em!important;}
+.cover-copy {
+  display:block!important;position:relative!important;top:auto!important;left:auto!important;
+  z-index:2!important;width:min(1070px,100%)!important;max-width:100%!important;
+  margin:auto 0!important;padding:clamp(70px,10vh,124px) 0 clamp(80px,11vh,140px)!important;
+}
+.cover-copy .eyebrow {font-size:12px!important;letter-spacing:.14em!important;gap:14px!important;color:rgba(255,255,255,.76)!important;}
+.cover-copy .eyebrow .dash {width:36px!important;background:#2D69E1!important;height:4px!important;}
+.cover-copy h1 {font-size:clamp(70px,9.2vw,132px)!important;line-height:1.02!important;letter-spacing:-.067em!important;font-weight:790!important;margin:26px 0 30px!important;max-width:100%!important;white-space:normal!important;text-wrap:balance!important;}
+.cover-subtitle {font-size:clamp(25px,3.2vw,41px)!important;line-height:1.26!important;letter-spacing:-.038em!important;font-weight:520!important;color:white!important;max-width:850px!important;margin:0!important;text-wrap:balance!important;}
+.cover-subtitle span {color:#82ACFF!important;}
+.cover-description {font-size:clamp(16px,1.4vw,20px)!important;max-width:720px!important;color:#B9CBE8!important;line-height:1.56!important;margin-top:24px!important;}
+.cover-bottom {position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;display:flex!important;justify-content:space-between!important;gap:20px!important;color:#C8D5EA!important;font-size:12px!important;font-weight:600!important;letter-spacing:.065em!important;}
+.slide-context {padding:clamp(50px,5.9vw,104px) clamp(26px,7.1vw,122px) clamp(66px,6.7vw,104px)!important;min-height:100vh!important;min-height:100svh!important;background:white!important;}
+.context-top,.context-kicker,.context-title,.context-lead,.journey,.context-rule,.context-foot {
+  position:relative!important;top:auto!important;bottom:auto!important;left:auto!important;right:auto!important;width:100%!important;height:auto!important;
+}
+.context-top{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:30px!important;}
+.context-top .logo{width:210px!important;height:51px!important;object-fit:contain!important;}
+.context-ref{font-size:12px!important;letter-spacing:.09em!important;}
+.context-kicker{margin-top:clamp(72px,8vh,112px)!important;font-size:13px!important;letter-spacing:.14em!important;}
+.context-title {font-size:clamp(45px,5.6vw,78px)!important;line-height:1.14!important;max-width:1200px!important;letter-spacing:-.061em!important;margin:27px 0 0!important;}
+.context-title em{color:#2D69E1!important;}
+.context-lead{font-size:clamp(18px,1.65vw,23px)!important;line-height:1.56!important;max-width:1060px!important;margin:27px 0 0!important;color:#475467!important;}
+.journey{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:20px!important;margin-top:clamp(48px,6vw,86px)!important;}
+.journey-card {box-shadow:0 1px 2px rgba(16,24,40,.045)!important;border:1px solid #E4E7EC!important;border-radius:14px!important;min-height:242px!important;padding:26px 27px 28px!important;overflow-wrap:break-word!important;}
+.journey-card::before{height:4px!important;}
+.journey-card h3{font-size:clamp(19px,1.9vw,24px)!important;line-height:1.18!important;letter-spacing:-.025em!important;}
+.journey-card p{font-size:15px!important;line-height:1.55!important;}
+.journey-card .fine{font-size:12px!important;}
+.context-rule{margin-top:clamp(45px,5.5vw,72px)!important;min-height:1px!important;background:#E4E7EC!important;}
+.context-foot {display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:22px!important;flex-wrap:wrap!important;margin-top:23px!important;line-height:1.55!important;}
+.context-foot>span:first-child{max-width:70%;}
+@media (max-width:900px){
+  .slide-cover{min-height:780px!important;}
+  .journey{grid-template-columns:1fr!important;gap:13px!important;}
+  .journey-card{min-height:0!important;padding:21px 23px!important;}
+  .context-title br{display:none!important;}
+  .context-foot>span:first-child{max-width:100%;}
+  .context-kicker{margin-top:75px!important;}
+}
+@media (max-width:560px){
+  .cover-nav .logo{width:180px!important;height:46px!important;}
+  .edition{font-size:10px!important;}
+  .cover-copy{padding:75px 0 84px!important;}
+  .cover-copy h1{font-size:clamp(46px,13vw,72px)!important;margin-top:25px!important;overflow-wrap:break-word!important;}
+  .cover-copy .eyebrow{font-size:10px!important;line-height:1.5!important;letter-spacing:.075em!important;}
+  .cover-subtitle{font-size:clamp(25px,6.8vw,34px)!important;}
+  .cover-description{font-size:16px!important;}
+  .cover-bottom{font-size:10px!important;}
+  .context-top .logo{width:170px!important;height:44px!important;}
+  .context-ref{font-size:10px!important;text-align:right!important;}
+  .context-title{font-size:clamp(40px,9.5vw,56px)!important;}
+  .context-lead{font-size:18px!important;}
+  .context-foot{font-size:12px!important;}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important;}}
+"""
+
+def render_vertical_preview(prototype):
+    """Reflow only the self-contained preview into a vertical landing.
+    Keep the private content in environment configuration unchanged.
+    """
+    prototype = re.sub(r'<header class="toolbar">.*?</header>', '', prototype, count=1, flags=re.S)
+    prototype = re.sub(r'<nav class="navigation"[^>]*>.*?</nav>', '', prototype, count=1, flags=re.S)
+    # Remove the preview's slide keyboard/scale controls. No legacy main-page scripts are touched.
+    prototype = re.sub(r'<script>\s*\(function\(\).*?</script>', '', prototype, count=1, flags=re.S)
+    prototype = prototype.replace('aria-hidden="true"', 'aria-hidden="false"')
+    prototype = prototype.replace(
+        '<p class="cover-subtitle">De la intención de búsqueda a la experiencia de compra</p>',
+        '<p class="cover-subtitle">De la intención de búsqueda a la <span>experiencia de compra</span></p>'
+    )
+    prototype = prototype.replace('EDICIÓN DE TRABAJO</span>', 'DESLIZA PARA EXPLORAR ↓</span>')
+    prototype = prototype.replace('</style>', PREVIEW_V2_VERTICAL_CSS + '\n</style>', 1)
+    return prototype
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "AirEuropaPreview"
 
@@ -965,7 +1066,7 @@ class Handler(BaseHTTPRequestHandler):
             if not prototype:
                 self._send_body(503, b"Preview not configured", "text/plain")
             else:
-                self._send_body(200, prototype.encode("utf-8"))
+                self._send_body(200, render_vertical_preview(prototype).encode("utf-8"))
             return
         if path == "/brand/air-europa.svg":
             svg = os.environ.get("METAS_BRAND_SVG", "")
