@@ -849,8 +849,6 @@ def patch_contexto_copy(html):
     matches = list(step_pattern.finditer(section))
     if len(matches) != 3:
         return html
-    existing_titles = [re.sub(r'<[^>]*>', '', section[m.start():m.end()].split('</div>', 1)[0].split('>', 2)[-1]).strip()
-                       for m in matches]
     # Avoid editing a different slide layout or unexpected content.
     expected = ('Metabuscador', 'Amadeus MetaConnect', 'Booking de Air Europa')
     if any(name not in matches[i].group(0) for i, name in enumerate(expected)):
@@ -1007,4 +1005,13 @@ if __name__ == "__main__":
     color_ok = all("background:" + c + " !important" in proc_chunk for c in ("#2563eb", "#0d9488", "#f97316", "#94a3b8"))
     tabs_ok = '.segmented .seg-btn.selected' in rendered and 'background-color: #1659bd' in rendered
     print("METAS_LAYOUT_VERIFY title_split=" + str(title_ok) + " chart_labels=" + str(cards_ok) + " distinct_bars=" + str(color_ok) + " tabs_blue=" + str(tabs_ok), flush=True)
+    context_ok = all(snippet in rendered for snippet in (
+        'El usuario compara vuelos, precios',
+        'MetaConnect conecta el metabuscador',
+        'Ejemplo actual: desde Skyscanner se aterriza en Availability',
+    ))
+    context_style_ok = ('CONTEXTO_REFINED_CSS' not in rendered and
+                        '.scene[data-slug="contexto"] .center-block > .flow' in rendered)
+    print("CONTEXT_REFINEMENT_VERIFY copy=" + str(context_ok) +
+          " styles=" + str(context_style_ok), flush=True)
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
