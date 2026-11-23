@@ -720,79 +720,149 @@ PROCEDENCIA_HEADING_FIX_JS = r"""
 
 
 CONTEXTO_REFINED_CSS = r"""
-/* Contexto: restrained three-column cards based on an inspected Untitled UI metric item.
-   Visual adaptation only, not a new design-system component. */
+/* Contexto only. A sober three-column editorial composition using the verified
+   Untitled UI Metric item surface: neutral border, 12px radius, subtle shadow. */
+.scene[data-slug="contexto"] .center-block {
+  width: 100%;
+  max-width: 1070px;
+  margin-inline: auto;
+}
 .scene[data-slug="contexto"] .center-block > .flow {
-  box-sizing: border-box;
+  box-sizing: border-box !important;
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   align-items: stretch !important;
-  column-gap: 16px !important;
-  row-gap: 16px !important;
-  width: 100%;
+  gap: 18px !important;
+  width: 100% !important;
+  max-width: 100%;
   padding: 0 !important;
   margin: 0 !important;
-  border: none !important;
   background: transparent !important;
+  border: 0 !important;
 }
-.scene[data-slug="contexto"] .center-block > .flow > .flow-step {
+.scene[data-slug="contexto"] .center-block > .flow > .flow-step,
+.scene[data-slug="contexto"] .center-block > .flow > .flow-step + .flow-step {
   box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
   min-width: 0 !important;
-  min-height: 224px;
-  padding: 27px 29px !important;
+  width: 100% !important;
+  min-height: 260px !important;
+  height: auto !important;
+  padding: 26px 26px 28px !important;
   margin: 0 !important;
   border: 1px solid #eaecf0 !important;
   border-radius: 12px !important;
   background: #ffffff !important;
   box-shadow: 0 1px 2px rgba(16, 24, 40, .055) !important;
-  color: #101828 !important;
-}
-.scene[data-slug="contexto"] .center-block > .flow > .flow-step + .flow-step {
-  border-left: 1px solid #eaecf0 !important;
+  overflow: visible !important;
 }
 .scene[data-slug="contexto"] .flow-step-title {
-  font-size: clamp(21px, 1.7vw, 25px) !important;
-  line-height: 1.24 !important;
-  font-weight: 680 !important;
+  display: block !important;
+  min-width: 0;
+  font-size: clamp(21px, 1.65vw, 24px) !important;
+  line-height: 1.25 !important;
+  font-weight: 700 !important;
   letter-spacing: -.025em !important;
   color: #101f46 !important;
   margin: 0 !important;
+  text-wrap: balance;
 }
 .scene[data-slug="contexto"] .flow-step p {
-  font-size: clamp(15px, 1.08vw, 16px) !important;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 16px !important;
   line-height: 1.52 !important;
+  font-weight: 400 !important;
   color: #475467 !important;
-  margin: 12px 0 0 !important;
-  overflow-wrap: break-word;
+  margin: 15px 0 0 !important;
+  overflow-wrap: break-word !important;
+  text-wrap: pretty;
 }
 .scene[data-slug="contexto"] .center-block > .takeaway {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-  margin: 26px 0 0 !important;
-  padding: 19px 0 0 !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 22px 0 0 !important;
+  padding: 18px 1px 0 !important;
+  border: 0 !important;
   border-top: 1px solid #eaecf0 !important;
-  background: transparent !important;
   border-radius: 0 !important;
+  background: transparent !important;
   box-shadow: none !important;
   color: #101f46 !important;
   font-size: clamp(18px, 1.45vw, 21px) !important;
-  line-height: 1.4 !important;
   font-weight: 650 !important;
+  line-height: 1.4 !important;
+  letter-spacing: -.015em !important;
+  text-align: left !important;
 }
 @media (max-width: 900px) {
   .scene[data-slug="contexto"] .center-block > .flow {
-    grid-template-columns: minmax(0,1fr) !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 14px !important;
   }
-  .scene[data-slug="contexto"] .center-block > .flow > .flow-step {
-    min-height: auto !important;
+  .scene[data-slug="contexto"] .center-block > .flow > .flow-step,
+  .scene[data-slug="contexto"] .center-block > .flow > .flow-step + .flow-step {
+    min-height: 0 !important;
     padding: 22px 24px !important;
   }
   .scene[data-slug="contexto"] .center-block > .takeaway {
     margin-top: 18px !important;
   }
 }
+@media (min-width: 901px) and (max-height: 750px) {
+  .scene[data-slug="contexto"] .center-block > .flow > .flow-step,
+  .scene[data-slug="contexto"] .center-block > .flow > .flow-step + .flow-step {
+    min-height: 242px !important;
+    padding: 21px 23px 22px !important;
+  }
+  .scene[data-slug="contexto"] .flow-step p {
+    font-size: 15px !important;
+    margin-top: 11px !important;
+  }
+  .scene[data-slug="contexto"] .center-block > .takeaway {
+    margin-top: 15px !important;
+    padding-top: 14px !important;
+  }
+}
 """
+
+
+def patch_contexto_copy(html):
+    """Improve the narrative, keeping only source-supported facts and the same DOM."""
+    from html import escape as _escape
+    start = re.search(r'<section\b[^>]*data-slug=["\']contexto["\'][^>]*>', html, re.I)
+    if not start:
+        return html
+    next_scene = re.search(r'<section\b[^>]*class=["\'][^"\']*\bscene\b', html[start.end():], re.I)
+    end = start.end() + next_scene.start() if next_scene else len(html)
+    section = html[start.start():end]
+    step_pattern = re.compile(
+        r'(<div\b[^>]*class=["\'][^"\']*\bflow-step\b[^"\']*["\'][^>]*>\s*'
+        r'<div\b[^>]*class=["\'][^"\']*\bflow-step-title\b[^"\']*["\'][^>]*>.*?</div>\s*'
+        r'<p\b[^>]*>)(.*?)(</p>)', re.I | re.S
+    )
+    matches = list(step_pattern.finditer(section))
+    if len(matches) != 3:
+        return html
+    existing_titles = [re.sub(r'<[^>]*>', '', section[m.start():m.end()].split('</div>', 1)[0].split('>', 2)[-1]).strip()
+                       for m in matches]
+    # Avoid editing a different slide layout or unexpected content.
+    expected = ('Metabuscador', 'Amadeus MetaConnect', 'Booking de Air Europa')
+    if any(name not in matches[i].group(0) for i, name in enumerate(expected)):
+        return html
+    descriptions = (
+        'El usuario compara vuelos, precios y, según la plataforma, alternativas de tarifa. Al hacer clic, llega con una oferta concreta como referencia.',
+        'MetaConnect conecta el metabuscador con la oferta y la búsqueda en Air Europa. Aquí importa qué información se conserva al pasar de un entorno a otro.',
+        'Ejemplo actual: desde Skyscanner se aterriza en Availability. La entrada a Shopping Cart con la selección recuperada sigue en desarrollo.',
+    )
+    count = iter(descriptions)
+    section = step_pattern.sub(lambda m: m.group(1) + _escape(next(count)) + m.group(3), section, count=3)
+    return html[:start.start()] + section + html[end:]
 
 def get_html():
     parts = []
@@ -830,6 +900,7 @@ def get_html():
         html = html.replace("</body>", "<script>\n" + RANKING_FIT_JS + "\n</script></body>", 1)
     if 'data-slug="procedencia"' in html or "data-slug='procedencia'" in html:
         html = html.replace("</body>", "<script>\n" + PROCEDENCIA_HEADING_FIX_JS + "\n</script></body>", 1)
+    html = patch_contexto_copy(html)
     html = html.replace("</style>", CONTEXTO_REFINED_CSS + "\n</style>", 1)
     return html.encode("utf-8")
 
