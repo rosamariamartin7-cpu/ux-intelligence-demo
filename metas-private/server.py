@@ -1746,7 +1746,7 @@ DECK_SHELL_CSS += r"""
 }
 """
 
-DECK_SHELL_CSS += r"""\n
+DECK_SHELL_CSS += r"""
 /* AVANCE_SHOPPING_UX_V1_20261124
    Section 07 / presentation 08. Identical editorial page and card language as
    earlier approved slides. Metrics, evidence and device colors remain unchanged. */
@@ -1930,7 +1930,9 @@ DECK_SHELL_CSS += r"""\n
   .scene[data-slug="avance-shopping"] .ux-shopping-card-columns{padding:11px 18px 0!important;}
   .scene[data-slug="avance-shopping"] .ux-shopping-card .funnel-bars{padding:10px 18px 20px!important;}
 }
-\n"""\n\ndef apply_deck_shell(html):
+"""
+
+def apply_deck_shell(html):
     if 'class="ux-slide-head"' in html:
         return html
     count = len(re.findall(r'<section\b[^>]*\bclass="scene(?:\s|")', html))
