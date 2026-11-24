@@ -594,6 +594,18 @@ def patch_procedencia_html(html):
         lambda m: m.group(1) + intended_title + m.group(3),
         slide, count=1, flags=re.I | re.S
     )
+    # An interpretative bridge between volume and commercial-performance analysis.
+    # This is a UX reading, not an additional observed metric.
+    if 'class="ux-procedencia-lead"' not in slide:
+        lead = (
+            'El volumen de tráfico no equivale necesariamente a mayor valor de negocio. '
+            'Para interpretarlo, hay que contrastar conversión, reservas e ingresos por plataforma.'
+        )
+        slide = re.sub(
+            r'(</h2>)',
+            lambda m: m.group(1) + '<p class="ux-procedencia-lead">' + lead + '</p>',
+            slide, count=1, flags=re.I
+        )
     # Explicit inline colors guarantee the four bars retain their distinct palette
     # even when legacy styles or theme variables override backgrounds.
     for legacy_color, dashboard_color in (
