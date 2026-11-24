@@ -158,3 +158,40 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
   .scene[data-slug="contexto"] .center-block>.flow>.flow-step,
   .scene[data-slug="contexto"] .center-block>.flow>.flow-step+.flow-step {padding:10px 0 12px!important;}
 }
+
+
+/* CONTEXT_SKETCH_20261124: layout measured against the approved Figma sketch.
+   Within the original HTML slide only. The flow leads, the takeaway closes.
+   No content or global navigation changes. */
+@media (min-width:901px) {
+  .scene[data-slug="contexto"] .stage-body {
+    justify-content:flex-start!important;
+    padding-top:clamp(56px,10.5vh,92px)!important;
+    padding-bottom:clamp(44px,7.4vh,62px)!important;
+  }
+  .scene[data-slug="contexto"] .center-block {
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    justify-content:space-between!important;
+    flex:1 1 auto!important;
+    height:100%!important;
+    min-height:0!important;
+  }
+  .scene[data-slug="contexto"] .center-block>.flow {
+    flex:0 0 auto!important;
+  }
+  .scene[data-slug="contexto"] .center-block>.takeaway {
+    flex:0 0 auto!important;
+    margin-top:clamp(42px,6vh,60px)!important;
+  }
+}
+@media (min-width:901px) and (max-height:760px) {
+  .scene[data-slug="contexto"] .stage-body {
+    padding-top:clamp(23px,5vh,42px)!important;
+    padding-bottom:clamp(14px,2.6vh,23px)!important;
+  }
+  .scene[data-slug="contexto"] .center-block>.takeaway {
+    margin-top:24px!important;
+  }
+}
