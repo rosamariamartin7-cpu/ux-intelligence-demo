@@ -1746,7 +1746,191 @@ DECK_SHELL_CSS += r"""
 }
 """
 
-def apply_deck_shell(html):
+DECK_SHELL_CSS += r"""\n
+/* AVANCE_SHOPPING_UX_V1_20261124
+   Section 07 / presentation 08. Identical editorial page and card language as
+   earlier approved slides. Metrics, evidence and device colors remain unchanged. */
+.scene[data-slug="avance-shopping"]{background:#fff!important;color:#071A42!important;}
+.scene[data-slug="avance-shopping"]>.stage{
+  box-sizing:border-box!important;display:grid!important;
+  grid-template-rows:auto minmax(0,1fr) auto!important;gap:0!important;
+  align-items:stretch!important;width:100%!important;max-width:none!important;
+  height:100%!important;margin:0!important;
+  padding:clamp(40px,6vh,68px) var(--meta-page-right) clamp(27px,3.8vh,43px) var(--meta-page-gutter)!important;
+}
+.scene[data-slug="avance-shopping"] .section-head{
+  width:100%!important;max-width:none!important;min-width:0!important;
+}
+.scene[data-slug="avance-shopping"] .section-head h2{
+  max-width:1220px!important;color:#071A42!important;
+  font:740 clamp(39px,3.75vw,57px)/1.13 Inter,system-ui,sans-serif!important;
+  letter-spacing:-.052em!important;text-wrap:balance!important;
+}
+.scene[data-slug="avance-shopping"] .section-head .ux-shopping-lead{
+  display:block!important;width:100%!important;max-width:1050px!important;
+  margin:clamp(14px,2vh,21px) 0 0!important;padding:0!important;
+  color:#475467!important;
+  font:400 clamp(16px,1.24vw,19px)/1.55 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="avance-shopping"] .stage-body{
+  box-sizing:border-box!important;min-height:0!important;width:100%!important;
+  display:flex!important;flex-direction:column!important;justify-content:center!important;
+  padding:clamp(23px,4.3vh,52px) 0 clamp(19px,3.1vh,34px)!important;
+}
+.scene[data-slug="avance-shopping"] .two-col.funnel-layout{
+  display:grid!important;grid-template-columns:minmax(0,.80fr) minmax(0,1.2fr)!important;
+  gap:clamp(45px,6vw,96px)!important;align-items:center!important;
+  width:100%!important;min-width:0!important;margin:0!important;
+}
+.scene[data-slug="avance-shopping"] .funnel-number{
+  min-width:0!important;max-width:480px!important;display:flex!important;flex-direction:column!important;
+  justify-content:center!important;
+}
+.scene[data-slug="avance-shopping"] .funnel-number .eyeline{
+  color:#667085!important;font:620 clamp(14px,1.1vw,16px)/1.45 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="avance-shopping"] .numeral-pair{
+  display:flex!important;flex-direction:column!important;
+  gap:clamp(24px,3.3vh,36px)!important;margin:clamp(23px,3.3vh,35px) 0 0!important;
+}
+.scene[data-slug="avance-shopping"] .numeral-pair>div{
+  display:flex!important;align-items:baseline!important;gap:18px!important;flex-wrap:wrap!important;
+}
+.scene[data-slug="avance-shopping"] .numeral-pair b{
+  color:#071A42!important;white-space:nowrap!important;
+  font:740 clamp(57px,5vw,78px)/1.05 Inter,system-ui,sans-serif!important;
+  letter-spacing:-.063em!important;font-variant-numeric:tabular-nums!important;
+}
+.scene[data-slug="avance-shopping"] .numeral-pair span{
+  color:#535862!important;font:500 clamp(15px,1.08vw,17px)/1.4 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="avance-shopping"] .difference-figure{
+  display:flex!important;align-items:baseline!important;flex-wrap:wrap!important;
+  gap:10px!important;margin:clamp(24px,3.9vh,42px) 0 0!important;
+  color:#071A42!important;font:720 clamp(30px,2.5vw,38px)/1.25 Inter,system-ui,sans-serif!important;
+  letter-spacing:-.04em!important;
+}
+.scene[data-slug="avance-shopping"] .difference-figure span{
+  color:#475467!important;font:500 clamp(14px,1.08vw,16px)/1.5 Inter,system-ui,sans-serif!important;
+  letter-spacing:0!important;
+}
+.scene[data-slug="avance-shopping"] .funnel-explain{
+  display:flex!important;flex-direction:column!important;gap:clamp(19px,2.4vh,27px)!important;
+  width:100%!important;min-width:0!important;margin:0!important;
+}
+.scene[data-slug="avance-shopping"] .ux-shopping-card{
+  box-sizing:border-box!important;display:flex!important;flex-direction:column!important;
+  overflow:hidden!important;width:100%!important;min-height:345px!important;
+  margin:0!important;padding:0!important;background:#fff!important;
+  border:1px solid #E9EAEB!important;border-radius:16px!important;
+  box-shadow:0 1px 2px rgba(16,24,40,.045)!important;
+}
+.scene[data-slug="avance-shopping"] .ux-shopping-card-heading{
+  flex:0 0 auto!important;background:#FAFAFA!important;
+  border-bottom:1px solid #E4E7EC!important;
+  padding:clamp(22px,2.2vw,29px) clamp(24px,2.4vw,33px) clamp(17px,1.8vw,23px)!important;
+}
+.scene[data-slug="avance-shopping"] .ux-shopping-card-heading h3{
+  margin:0!important;color:#101828!important;
+  font:710 clamp(20px,1.5vw,24px)/1.3 Inter,system-ui,sans-serif!important;
+  letter-spacing:-.025em!important;
+}
+.scene[data-slug="avance-shopping"] .ux-shopping-card-heading p{
+  margin:8px 0 0!important;color:#667085!important;
+  font:400 clamp(12px,.98vw,14px)/1.48 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="avance-shopping"] .ux-shopping-card-columns{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  padding:15px clamp(24px,2.4vw,33px) 0!important;color:#667085!important;
+  font:650 12px/1.4 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="avance-shopping"] .ux-shopping-card .funnel-bars{
+  display:flex!important;flex:1 1 auto!important;flex-direction:column!important;
+  justify-content:space-evenly!important;gap:clamp(23px,3vh,34px)!important;
+  width:100%!important;margin:0!important;
+  padding:10px clamp(24px,2.4vw,33px) clamp(22px,2.6vw,32px)!important;
+}
+.scene[data-slug="avance-shopping"] .funnel-step{
+  display:flex!important;flex-direction:column!important;
+  gap:9px!important;width:100%!important;
+}
+.scene[data-slug="avance-shopping"] .funnel-step span{
+  color:#344054!important;font:640 clamp(15px,1.12vw,17px)/1.4 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="avance-shopping"] .funnel-step .bar-surface{
+  box-sizing:border-box!important;width:100%!important;height:18px!important;
+  border-radius:5px!important;background:#E9EEF5!important;
+}
+.scene[data-slug="avance-shopping"] .funnel-step .bar-surface i{
+  height:100%!important;border-radius:5px!important;
+}
+.scene[data-slug="avance-shopping"] .funnel-step b{
+  color:#535862!important;font:580 clamp(13px,1.02vw,15px)/1.4 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="avance-shopping"] .funnel-explain > .body-lead{
+  box-sizing:border-box!important;max-width:none!important;margin:0!important;
+  border-left:2px solid #2D69E1!important;padding:5px 0 5px 20px!important;
+  background:transparent!important;color:#344054!important;
+  font:italic 500 clamp(16px,1.16vw,18px)/1.55 Inter,system-ui,sans-serif!important;
+  letter-spacing:0!important;
+}
+.scene[data-slug="avance-shopping"] .ux-slide-foot{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;gap:20px!important;min-height:20px!important;
+  margin:0!important;padding:0!important;border:0!important;background:transparent!important;
+}
+.scene[data-slug="avance-shopping"] .ux-slide-foot .source-note{
+  display:block!important;position:static!important;clip-path:none!important;
+  overflow:visible!important;white-space:normal!important;pointer-events:auto!important;
+  box-sizing:border-box!important;width:auto!important;height:auto!important;min-height:0!important;
+  margin:0!important;padding:0!important;max-width:none!important;
+  color:#98A2B3!important;font:400 11px/1.4 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="avance-shopping"] .ux-slide-foot-count{
+  justify-self:end!important;color:#98A2B3!important;
+  font:650 11px/1.4 Inter,system-ui,sans-serif!important;
+  letter-spacing:.025em!important;white-space:nowrap!important;
+}
+@media(max-height:780px) and (min-width:901px){
+  .scene[data-slug="avance-shopping"] .section-head h2{
+    font-size:clamp(35px,3.35vw,48px)!important;
+  }
+  .scene[data-slug="avance-shopping"] .section-head .ux-shopping-lead{
+    font-size:15px!important;line-height:1.45!important;margin-top:11px!important;
+  }
+  .scene[data-slug="avance-shopping"] .stage-body{padding:15px 0 20px!important;}
+  .scene[data-slug="avance-shopping"] .numeral-pair{gap:20px!important;margin-top:20px!important;}
+  .scene[data-slug="avance-shopping"] .numeral-pair b{font-size:clamp(49px,4.6vw,66px)!important;}
+  .scene[data-slug="avance-shopping"] .difference-figure{margin-top:25px!important;}
+  .scene[data-slug="avance-shopping"] .ux-shopping-card{min-height:306px!important;}
+  .scene[data-slug="avance-shopping"] .ux-shopping-card-heading{padding:17px 23px 15px!important;}
+  .scene[data-slug="avance-shopping"] .ux-shopping-card-columns{padding:9px 23px 0!important;}
+  .scene[data-slug="avance-shopping"] .ux-shopping-card .funnel-bars{padding:6px 23px 18px!important;gap:17px!important;}
+  .scene[data-slug="avance-shopping"] .funnel-explain>.body-lead{font-size:15px!important;}
+}
+@media(max-width:900px){
+  .scene[data-slug="avance-shopping"]{overflow-y:auto!important;}
+  .scene[data-slug="avance-shopping"]>.stage{
+    display:flex!important;flex-direction:column!important;height:auto!important;
+    min-height:100%!important;padding:30px 50px 26px 32px!important;
+  }
+  .scene[data-slug="avance-shopping"] .section-head h2{font-size:clamp(32px,4.9vw,46px)!important;}
+  .scene[data-slug="avance-shopping"] .stage-body{flex:none!important;padding:30px 0 35px!important;}
+  .scene[data-slug="avance-shopping"] .two-col.funnel-layout{
+    grid-template-columns:minmax(0,1fr)!important;gap:28px!important;
+  }
+  .scene[data-slug="avance-shopping"] .ux-slide-foot{margin-top:auto!important;}
+}
+@media(max-width:600px){
+  .scene[data-slug="avance-shopping"]>.stage{padding:25px 24px 28px!important;}
+  .scene[data-slug="avance-shopping"] .section-head h2{font-size:clamp(30px,7.8vw,42px)!important;}
+  .scene[data-slug="avance-shopping"] .section-head .ux-shopping-lead{font-size:15px!important;}
+  .scene[data-slug="avance-shopping"] .numeral-pair b{font-size:clamp(45px,10vw,60px)!important;}
+  .scene[data-slug="avance-shopping"] .ux-shopping-card-heading{padding:19px 18px 16px!important;}
+  .scene[data-slug="avance-shopping"] .ux-shopping-card-columns{padding:11px 18px 0!important;}
+  .scene[data-slug="avance-shopping"] .ux-shopping-card .funnel-bars{padding:10px 18px 20px!important;}
+}
+\n"""\n\ndef apply_deck_shell(html):
     if 'class="ux-slide-head"' in html:
         return html
     count = len(re.findall(r'<section\b[^>]*\bclass="scene(?:\s|")', html))
@@ -1910,6 +2094,57 @@ def apply_deck_shell(html):
         return markup
     if len(dispositivos.findall(html)) == 1:
         html = dispositivos.sub(decorate_dispositivos, html, count=1)
+
+    # Presentation 08 / research section 07: editorial funnel conversion.
+    # Retain original metrics, bars, counts and source.
+    avance_shopping = re.compile(r'<section\b[^>]*\bdata-slug="avance-shopping"[^>]*>.*?</section>', re.S)
+    def decorate_avance_shopping(m):
+        markup = m.group(0)
+        if (markup.count('<div class="funnel-explain">') != 1
+                or markup.count('<div class="funnel-bars">') != 1
+                or markup.count('<div class="source-note">') != 1
+                or markup.count('<div class="funnel-step">') != 2):
+            return markup
+        subtitle = (
+            "Progresión de sesiones de metabuscadores entre Availability "
+            "y Shopping Cart, comparada por dispositivo."
+        )
+        markup = markup.replace('</h2>', '</h2><div class="ux-shopping-lead">' + subtitle + '</div>', 1)
+        card_heading = (
+            '<div class="ux-shopping-card-heading">'
+            '<h3>Avance hacia Shopping Cart</h3>'
+            '<p>Porcentaje de sesiones que progresan desde Availability</p>'
+            '</div>'
+            '<div class="ux-shopping-card-columns" aria-hidden="true">'
+            '<span>Dispositivo</span><span>Progresión</span>'
+            '</div>'
+        )
+        markup = markup.replace(
+            '<div class="funnel-explain"><div class="funnel-bars">',
+            '<div class="funnel-explain"><div class="ux-shopping-card">' +
+            card_heading + '<div class="funnel-bars">',
+            1
+        )
+        # The explanatory text remains unchanged and follows the card body.
+        markup = markup.replace(
+            '</div><p class="body-lead">',
+            '</div></div><p class="body-lead">',
+            1
+        )
+        markup = re.sub(
+            r'(<div class="source-note">.*?</div>)',
+            lambda note: (
+                '<footer class="ux-slide-foot ux-slide-foot-light">'
+                + note.group(1)
+                + f'<span class="ux-slide-foot-count">08 / {count:02d}</span>'
+                '</footer>'
+            ),
+            markup, count=1, flags=re.S
+        )
+        return markup
+    if len(avance_shopping.findall(html)) == 1:
+        html = avance_shopping.sub(decorate_avance_shopping, html, count=1)
+
     return html.replace("</style>", DECK_SHELL_CSS + "\n</style>", 1)
 
 class Handler(BaseHTTPRequestHandler):
