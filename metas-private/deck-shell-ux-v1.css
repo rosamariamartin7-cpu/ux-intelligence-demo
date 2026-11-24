@@ -1112,33 +1112,122 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
 }
 
 
-/* PROCEDENCIA_UNBOX_CHART_20261124
-   Slide 04: present the ranking directly on the white editorial grid,
-   rather than inside a tinted card. Preserve the graph and all metrics. */
-.scene[data-slug="procedencia"] .two-col.source-layout > .chart-card,
-.scene[data-slug="procedencia"] .two-col.source-layout > .chart-card.chart-card {
-  box-sizing:border-box!important;
-  background:transparent!important;
-  border:0!important;
-  border-radius:0!important;
-  box-shadow:none!important;
+/* RENDIMIENTO_KPI_UNBOX_20261124
+   Slide label 04 / RENDIMIENTO POR METABUSCADOR (fifth scene).
+   Keep the interactive chart card. Align the unboxed KPI reading with
+   Procedencia's editorial 2,39 M, title and explanatory copy.
+   Slide label 03 / PROCEDENCIA DEL TRÁFICO remains completely untouched.
+*/
+@media (min-width:1150px) {
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) {
+    grid-template-columns:minmax(0,1.66fr) minmax(340px,.91fr)!important;
+    gap:clamp(45px,4.1vw,72px)!important;
+    align-items:center!important;
+  }
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.chart-panel {
+  border-radius:16px!important;
+  box-shadow:0 1px 2px rgba(16,24,40,.035)!important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading.metrics-compact,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading.metrics-tight {
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  align-items:stretch!important;
+  width:100%!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
   padding:0!important;
   margin:0!important;
-  min-width:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
 }
-.scene[data-slug="procedencia"] .source-chart-heading {
-  padding:0 0 16px!important;
-  border-bottom:1px solid #E4E7EC!important;
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-compact .ranking-main-value,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-tight .ranking-main-value {
+  display:block!important;
+  font-variant-numeric:tabular-nums!important;
+  font-weight:760!important;
+  letter-spacing:-.065em!important;
+  line-height:1.09!important;
+  color:#071A42!important;
+  width:100%!important;
+  max-width:100%!important;
+  margin:0 0 13px!important;
+  white-space:nowrap!important;
 }
-.scene[data-slug="procedencia"] .source-chart-column-headings {
-  padding-top:15px!important;
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-winner,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-compact .ranking-winner,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-tight .ranking-winner {
+  font:650 clamp(19px,1.7vw,24px)/1.32 Inter,system-ui,sans-serif!important;
+  letter-spacing:-.025em!important;
+  color:#344054!important;
+  margin:0 0 clamp(16px,2vh,23px)!important;
 }
-.scene[data-slug="procedencia"] .chart-card>.chart {
-  padding-top:8px!important;
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading #rank-explanation,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading.metrics-compact #rank-explanation,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading.metrics-tight #rank-explanation {
+  font:400 clamp(15px,1.13vw,17px)/1.57 Inter,system-ui,sans-serif!important;
+  color:#535862!important;
+  margin:0!important;
+  max-width:100%!important;
 }
-@media(max-width:1000px) {
-  .scene[data-slug="procedencia"] .two-col.source-layout > .chart-card,
-  .scene[data-slug="procedencia"] .two-col.source-layout > .chart-card.chart-card {
-    padding:0!important;
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading #rank-implication,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading.metrics-compact #rank-implication,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading.metrics-tight #rank-implication {
+  display:block!important;
+  font:400 clamp(14px,1.02vw,16px)/1.53 Inter,system-ui,sans-serif!important;
+  color:#667085!important;
+  margin:clamp(16px,2.6vh,26px) 0 0!important;
+  max-width:100%!important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading .reading-divider {
+  display:none!important;
+}
+/* The summary injected by an earlier enhancement repeats the selected KPI.
+   Its information is already present in the headline, label and explanation. */
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)> .ranking-reading [data-reading-conclusion] {
+  display:none!important;
+}
+@media (max-width:1149px) {
+  .scene[data-slug="rendimiento"] {overflow-y:auto!important;}
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) {
+    grid-template-columns:minmax(0,1fr)!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    gap:clamp(24px,4vw,42px)!important;
+  }
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.chart-panel {
+    height:clamp(300px,46vh,420px)!important;
+    min-height:300px!important;
+    max-height:none!important;
+  }
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading {
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    padding:0 4px 10px!important;
+  }
+  .scene[data-slug="rendimiento"] .stage-body {
+    flex:none!important;
+  }
+}
+@media (max-width:600px) {
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.chart-panel {
+    height:330px!important;
+    min-height:330px!important;
+  }
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading,
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading.metrics-compact,
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading.metrics-tight {
+    padding:0 2px 10px!important;
   }
 }
