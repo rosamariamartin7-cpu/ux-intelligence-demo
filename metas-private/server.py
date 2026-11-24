@@ -1674,6 +1674,38 @@ def apply_deck_shell(html):
         )
     if len(ranking.findall(html)) == 1:
         html = ranking.sub(decorate_ranking, html, count=1)
+    # Slide 06: show the one known meta CVR apart from pending organic/direct data.
+    # Preserve all three original channel entries and the research caveat.
+    canales = re.compile(r'<section\b[^>]*\bdata-slug="canales"[^>]*>.*?</section>', re.S)
+    def decorate_canales(m):
+        markup = m.group(0)
+        if (markup.count('<div class="source-note">') != 1 or
+                markup.count('<div class="comparison-grid">') != 1 or
+                markup.count('class="pending-metric"') != 2 or
+                markup.count('class="metric-value"') != 1):
+            return markup
+        lead = (
+            "Disponemos de la conversión agregada de metabuscadores. "
+            "Compararla con orgánico y directo requiere datos del mismo periodo "
+            "y con definiciones y puntos de entrada equivalentes."
+        )
+        markup = markup.replace(
+            '</h2>',
+            '</h2><p class="ux-canales-lead">' + lead + '</p>', 1
+        )
+        markup = re.sub(
+            r'(<div class="source-note">.*?</div>)',
+            lambda note: (
+                '<footer class="ux-slide-foot ux-slide-foot-light">'
+                + note.group(1)
+                + f'<span class="ux-slide-foot-count">06 / {count:02d}</span>'
+                '</footer>'
+            ),
+            markup, count=1, flags=re.S
+        )
+        return markup
+    if len(canales.findall(html)) == 1:
+        html = canales.sub(decorate_canales, html, count=1)
     return html.replace("</style>", DECK_SHELL_CSS + "\n</style>", 1)
 
 class Handler(BaseHTTPRequestHandler):
