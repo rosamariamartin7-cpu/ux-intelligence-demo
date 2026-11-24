@@ -1395,6 +1395,52 @@ FIRST_TWO_CSS += r"""
 .scene.cover[data-slug="portada"] p.ux-cover-subtitle { max-width: 780px !important; }
 """
 
+
+# CONTENT_ITEM_558_21505 - Untitled UI Content item, only slide 02.
+FIRST_TWO_CSS += r"""
+/* Executive takeaway: brand divider + Inter Medium Italic 24/32. */
+.scene[data-slug="contexto"] .center-block > .takeaway {
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 1100px !important;
+  margin: clamp(20px, 3.2vh, 28px) 0 0 !important;
+  padding: 8px 0 8px 20px !important;
+  border: 0 !important;
+  border-left: 2px solid #2D69E1 !important;
+  border-top: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #181D27 !important;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
+  font-size: 24px !important;
+  font-weight: 500 !important;
+  font-style: italic !important;
+  line-height: 32px !important;
+  letter-spacing: 0 !important;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+}
+@media (max-height: 760px) and (min-width: 901px) {
+  .scene[data-slug="contexto"] .center-block > .takeaway {
+    font-size: 21px !important;
+    line-height: 29px !important;
+    margin-top: 16px !important;
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+  }
+}
+@media (max-width: 900px) {
+  .scene[data-slug="contexto"] .center-block > .takeaway {
+    font-size: clamp(18px, 2.8vw, 24px) !important;
+    line-height: 1.34 !important;
+    margin-top: 20px !important;
+    padding: 6px 0 6px 18px !important;
+  }
+}
+"""
+
 FIRST_TWO_COVER = r"""<section class="scene cover" data-slug="portada" aria-label="Portada - Metabuscadores"><div class="cover-inner">
 <div class="ux-cover-top"><img class="cover-logo" src="/brand/air-europa.svg" alt="Air Europa"><time class="ux-cover-date" datetime="2026-11">NOVIEMBRE 2026</time></div>
 <div class="ux-cover-main"><div class="ux-cover-kicker">UX RESEARCH / AIR EUROPA</div><h1>Metabuscadores</h1><p class="ux-cover-subtitle">Research UX, comportamiento de compra y <strong>oportunidades de conversión</strong></p></div>
