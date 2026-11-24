@@ -1389,3 +1389,235 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
     padding:13px 17px 17px!important;
   }
 }
+
+
+/* CANALES_SLIDE06_20261124
+   Presentation 06 / 26, section 05 / COMPARATIVA DE CANALES.
+   Evidence first: 9,3% aggregated Meta CVR, organic and direct are pending.
+   Air Europa + Untitled UI typography and surfaces; no invented metrics.
+*/
+.scene[data-slug="canales"] {
+  background:#FFFFFF!important;
+  color:#071A42!important;
+}
+.scene[data-slug="canales"] > .stage {
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  height:100%!important;
+  margin:0!important;
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr) auto!important;
+  gap:0!important;
+  padding-bottom:clamp(27px,3.8vh,43px)!important;
+}
+.scene[data-slug="canales"] .section-head {
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  margin:0!important;
+}
+.scene[data-slug="canales"] .section-head h2 {
+  max-width:none!important;
+  font-size:clamp(41px,3.75vw,57px)!important;
+  line-height:1.13!important;
+  letter-spacing:-.052em!important;
+  font-weight:740!important;
+  text-wrap:balance;
+}
+.scene[data-slug="canales"] .section-head .ux-canales-lead {
+  display:block!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:clamp(15px,2.1vh,22px) 0 0!important;
+  padding:0!important;
+  font:400 clamp(16px,1.26vw,19px)/1.55 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  letter-spacing:0!important;
+  color:#475467!important;
+}
+.scene[data-slug="canales"] .stage-body {
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:space-between!important;
+  gap:clamp(40px,6vh,65px)!important;
+  min-height:0!important;
+  width:100%!important;
+  padding:clamp(45px,8vh,84px) 0 clamp(35px,5vh,55px)!important;
+}
+.scene[data-slug="canales"] .comparison-grid {
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1.2fr) repeat(2,minmax(0,1fr))!important;
+  gap:clamp(16px,1.9vw,28px)!important;
+  align-items:stretch!important;
+  width:100%!important;
+  max-width:none!important;
+  min-height:0!important;
+  margin:0!important;
+}
+.scene[data-slug="canales"] .comparison-grid > .metric-item,
+.scene[data-slug="canales"] .comparison-grid > .pending-metric {
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:flex-start!important;
+  min-width:0!important;
+  min-height:clamp(214px,26vh,255px)!important;
+  height:auto!important;
+  padding:clamp(25px,2.4vw,34px)!important;
+  margin:0!important;
+  border:1px solid #E9EAEB!important;
+  border-radius:16px!important;
+  background:#F9FAFB!important;
+  box-shadow:none!important;
+  overflow-wrap:break-word!important;
+}
+.scene[data-slug="canales"] .comparison-grid > .metric-item {
+  border-color:#DCE8FF!important;
+  background:#F7F9FF!important;
+}
+.scene[data-slug="canales"] .comparison-grid .metric-label,
+.scene[data-slug="canales"] .comparison-grid .pending-metric > span {
+  display:block!important;
+  color:#344054!important;
+  font:650 clamp(16px,1.4vw,20px)/1.35 Inter,system-ui,sans-serif!important;
+  letter-spacing:-.025em!important;
+  margin:0!important;
+}
+.scene[data-slug="canales"] .comparison-grid .metric-value {
+  display:block!important;
+  font:760 clamp(66px,6vw,93px)/1.08 Inter,system-ui,sans-serif!important;
+  letter-spacing:-.07em!important;
+  font-variant-numeric:tabular-nums!important;
+  color:#071A42!important;
+  margin:clamp(18px,2.8vh,28px) 0 0!important;
+  white-space:nowrap!important;
+}
+.scene[data-slug="canales"] .comparison-grid .metric-support {
+  display:block!important;
+  color:#475467!important;
+  font:400 clamp(14px,1.1vw,16px)/1.48 Inter,system-ui,sans-serif!important;
+  margin:clamp(11px,1.65vh,16px) 0 0!important;
+}
+.scene[data-slug="canales"] .comparison-grid .pending-metric strong {
+  display:block!important;
+  color:#667085!important;
+  font:620 clamp(25px,2.25vw,33px)/1.22 Inter,system-ui,sans-serif!important;
+  letter-spacing:-.037em!important;
+  margin:clamp(27px,3.5vh,38px) 0 0!important;
+}
+.scene[data-slug="canales"] .comparison-grid .pending-metric p {
+  display:block!important;
+  color:#667085!important;
+  font:400 clamp(14px,1.08vw,16px)/1.55 Inter,system-ui,sans-serif!important;
+  margin:clamp(15px,2vh,20px) 0 0!important;
+  max-width:390px!important;
+}
+.scene[data-slug="canales"] .stage-body > .takeaway {
+  box-sizing:border-box!important;
+  display:block!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:7px 0 7px clamp(18px,1.5vw,23px)!important;
+  border:0!important;
+  border-left:2px solid #2D69E1!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#181D27!important;
+  font:italic 500 clamp(20px,1.62vw,24px)/1.38 Inter,system-ui,sans-serif!important;
+  letter-spacing:0!important;
+  text-wrap:pretty!important;
+}
+.scene[data-slug="canales"] .ux-slide-foot {
+  box-sizing:border-box!important;
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:20px!important;
+  margin:0!important;
+  padding:0!important;
+  min-height:20px!important;
+  border:0!important;
+  background:transparent!important;
+}
+.scene[data-slug="canales"] .ux-slide-foot .source-note {
+  display:block!important;
+  position:static!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+  clip-path:none!important;
+  width:auto!important;
+  height:auto!important;
+  min-height:0!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  color:#98A2B3!important;
+  font:400 11px/1.4 Inter,system-ui,sans-serif!important;
+  white-space:normal!important;
+  pointer-events:auto!important;
+}
+.scene[data-slug="canales"] .ux-slide-foot-count {
+  justify-self:end!important;
+  color:#98A2B3!important;
+  font:650 11px/1.4 Inter,system-ui,sans-serif!important;
+  letter-spacing:.025em!important;
+  white-space:nowrap!important;
+  font-variant-numeric:tabular-nums!important;
+}
+@media(max-height:760px) and (min-width:901px){
+  .scene[data-slug="canales"] .section-head h2 {font-size:clamp(34px,3.2vw,47px)!important;}
+  .scene[data-slug="canales"] .section-head .ux-canales-lead {font-size:15px!important;line-height:1.45!important;margin-top:11px!important;}
+  .scene[data-slug="canales"] .stage-body {padding:clamp(20px,4vh,37px) 0 clamp(15px,2vh,24px)!important;gap:20px!important;}
+  .scene[data-slug="canales"] .comparison-grid > .metric-item,
+  .scene[data-slug="canales"] .comparison-grid > .pending-metric {
+    min-height:190px!important;
+    padding:20px 22px!important;
+  }
+  .scene[data-slug="canales"] .comparison-grid .metric-value {font-size:clamp(60px,5vw,72px)!important;margin-top:13px!important;}
+  .scene[data-slug="canales"] .comparison-grid .pending-metric strong {font-size:27px!important;margin-top:19px!important;}
+  .scene[data-slug="canales"] .comparison-grid .pending-metric p {font-size:13px!important;line-height:1.4!important;margin-top:10px!important;}
+  .scene[data-slug="canales"] .stage-body>.takeaway{font-size:19px!important;line-height:1.35!important;}
+}
+@media(max-width:900px) {
+  .scene[data-slug="canales"]{overflow-y:auto!important;}
+  .scene[data-slug="canales"]>.stage{
+    display:flex!important;
+    flex-direction:column!important;
+    height:auto!important;
+    min-height:100%!important;
+  }
+  .scene[data-slug="canales"] .section-head h2 {font-size:clamp(32px,5vw,46px)!important;}
+  .scene[data-slug="canales"] .section-head .ux-canales-lead{font-size:16px!important;}
+  .scene[data-slug="canales"] .stage-body{
+    justify-content:flex-start!important;
+    flex:none!important;
+    gap:35px!important;
+    padding:35px 0 40px!important;
+  }
+  .scene[data-slug="canales"] .comparison-grid {
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:13px!important;
+  }
+  .scene[data-slug="canales"] .comparison-grid>.metric-item,
+  .scene[data-slug="canales"] .comparison-grid>.pending-metric{
+    min-height:0!important;
+    padding:24px 25px!important;
+  }
+  .scene[data-slug="canales"] .comparison-grid .metric-value{font-size:75px!important;margin-top:17px!important;}
+  .scene[data-slug="canales"] .comparison-grid .pending-metric strong{margin-top:16px!important;}
+  .scene[data-slug="canales"] .ux-slide-foot{margin-top:auto!important;}
+}
+@media(max-width:600px){
+  .scene[data-slug="canales"]>.stage{padding:27px 24px 30px!important;}
+  .scene[data-slug="canales"] .section-head h2{font-size:clamp(30px,8vw,43px)!important;}
+  .scene[data-slug="canales"] .comparison-grid .metric-value{font-size:68px!important;}
+  .scene[data-slug="canales"] .stage-body>.takeaway{font-size:19px!important;}
+}
