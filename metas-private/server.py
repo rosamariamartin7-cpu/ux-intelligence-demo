@@ -978,6 +978,7 @@ def get_html():
     html = refine_portada_copy(html)
     html = html.replace("</style>", PORTADA_EDITORIAL_CSS + "\n</style>", 1)
     html = patch_first_two_visuals(html)
+    html = apply_deck_shell(html)
     return html.encode("utf-8")
 
 
@@ -1548,6 +1549,47 @@ def patch_first_two_visuals(html):
     html = context.sub(apply_context, html, count=1)
     return html.replace('</style>', FIRST_TWO_CSS + '\n</style>', 1)
 
+
+
+# Shared visual shell (one grid, one navigation rail).
+# Initially applied to Contexto; promote to further scenes after each visual review.
+with open(os.path.join(os.path.dirname(__file__), "deck-shell-ux-v1.css"), encoding="utf-8") as _f:
+    DECK_SHELL_CSS = _f.read()
+
+def apply_deck_shell(html):
+    if 'class="ux-slide-head"' in html:
+        return html
+    count = len(re.findall(r'<section\b[^>]*\bclass="scene(?:\s|")', html))
+    if count < 2:
+        return html
+    section = re.compile(r'<section\b[^>]*\bdata-slug="contexto"[^>]*>.*?</section>', re.S)
+    def decorate(m):
+        markup = m.group(0)
+        if markup.count('<div class="stage">') != 1 or not re.search(r'<div class="source-note">.*?</div>', markup, re.S):
+            return markup
+        header = (
+            '<header class="ux-slide-head" aria-label="Cabecera del análisis">'
+            '<img src="/brand/air-europa.svg" alt="Air Europa">'
+            '<span class="ux-slide-head-label">METABUSCADORES / UX RESEARCH</span>'
+            '</header>'
+        )
+        markup = markup.replace('<div class="stage">', '<div class="stage">' + header, 1)
+        markup = re.sub(
+            r'(<div class="source-note">.*?</div>)',
+            lambda note: (
+                '<footer class="ux-slide-foot">'
+                '<span class="ux-slide-foot-product">UX / PRODUCTO DIGITAL</span>'
+                + note.group(1)
+                + f'<span class="ux-slide-foot-count">02 / {count:02d}</span>'
+                '</footer>'
+            ),
+            markup, count=1, flags=re.S
+        )
+        return markup
+    if len(section.findall(html)) != 1:
+        return html
+    html = section.sub(decorate, html, count=1)
+    return html.replace("</style>", DECK_SHELL_CSS + "\n</style>", 1)
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "AirEuropaPreview"
