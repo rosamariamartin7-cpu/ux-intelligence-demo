@@ -960,3 +960,153 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
 .scene[data-slug="metaconnect"] .section-head::before{content:"23 / METACONNECT"!important}
 .scene[data-slug="datos-pendientes"] .section-head::before{content:"24 / DATOS PENDIENTES"!important}
 .scene[data-slug="conclusiones"] .section-head::before{content:"25 / CONCLUSIONES PROVISIONALES"!important}
+
+
+/* RANKING_SLIDE05_20261124
+   Screen 05: same grid, section label and source/footer rhythm.
+   Keep the existing three-tab ranking chart and all its metrics unchanged. */
+.scene[data-slug="rendimiento"]{
+  --gflights:#2563EB;
+  --sky:#069B9D;
+  --kayak:#E77A22;
+  --other:#8D9AAD;
+}
+.scene[data-slug="rendimiento"]>.stage{
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-width:none!important;
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr) auto!important;
+  align-items:stretch!important;
+  gap:0!important;
+  padding-bottom:clamp(27px,3.8vh,43px)!important;
+}
+.scene[data-slug="rendimiento"] .section-head{
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+}
+.scene[data-slug="rendimiento"] .section-head h2{
+  max-width:none!important;
+  font-size:clamp(40px,3.75vw,57px)!important;
+  line-height:1.14!important;
+  letter-spacing:-.05em!important;
+  text-wrap:wrap!important;
+}
+.scene[data-slug="rendimiento"] .section-head>p{
+  width:100%!important;
+  max-width:none!important;
+  margin-top:clamp(14px,1.9vh,21px)!important;
+  font-size:clamp(16px,1.24vw,19px)!important;
+  line-height:1.5!important;
+}
+.scene[data-slug="rendimiento"] .stage-body{
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  min-height:0!important;
+  padding:clamp(21px,3vh,37px) 0 clamp(14px,2vh,24px)!important;
+}
+@media(min-width:951px){
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart){
+    box-sizing:border-box!important;
+    height:min(460px,52vh)!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+  }
+}
+.scene[data-slug="rendimiento"] .ux-slide-foot{
+  box-sizing:border-box!important;
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:20px!important;
+  min-height:20px!important;
+  border:0!important;
+  background:transparent!important;
+  margin:0!important;
+  padding:0!important;
+}
+.scene[data-slug="rendimiento"] .ux-slide-foot .source-note{
+  position:static!important;
+  display:block!important;
+  overflow:visible!important;
+  clip-path:none!important;
+  width:auto!important;
+  height:auto!important;
+  min-height:0!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  pointer-events:auto!important;
+  white-space:normal!important;
+  text-align:left!important;
+  color:#98A2B3!important;
+  font-size:11px!important;
+  line-height:1.4!important;
+}
+.scene[data-slug="rendimiento"] .ux-slide-foot-count{
+  justify-self:end!important;
+  white-space:nowrap!important;
+  color:#98A2B3!important;
+  font-size:11px!important;
+  font-weight:650!important;
+  letter-spacing:.025em!important;
+  font-variant-numeric:tabular-nums!important;
+}
+@media (max-height:760px) and (min-width:951px){
+  .scene[data-slug="rendimiento"] .section-head h2{
+    font-size:clamp(36px,3.2vw,47px)!important;
+  }
+  .scene[data-slug="rendimiento"] .section-head>p{
+    font-size:15px!important;
+    line-height:1.4!important;
+    margin-top:11px!important;
+  }
+  .scene[data-slug="rendimiento"] .stage-body{
+    padding:13px 0 11px!important;
+  }
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart){
+    height:min(420px,52vh)!important;
+  }
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)> .chart-panel{
+    padding:15px 19px!important;
+  }
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)> .ranking-reading{
+    padding:15px 18px!important;
+  }
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value{
+    font-size:clamp(38px,3.35vw,49px)!important;
+  }
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-winner{
+    font-size:20px!important;
+  }
+}
+@media(max-width:950px){
+  .scene[data-slug="rendimiento"]{
+    overflow-y:auto!important;
+  }
+  .scene[data-slug="rendimiento"]>.stage{
+    display:flex!important;
+    flex-direction:column!important;
+    height:auto!important;
+    min-height:100%!important;
+  }
+  .scene[data-slug="rendimiento"] .stage-body{
+    flex:none!important;
+    padding:28px 0!important;
+  }
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart){
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+  }
+  .scene[data-slug="rendimiento"] .ux-slide-foot{
+    margin-top:auto!important;
+  }
+}
