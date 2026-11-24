@@ -1397,11 +1397,11 @@ def patch_first_two_visuals(html):
     """
     if 'class="ux-cover-top"' in html:
         return html
-    cover = re.compile(r'<section\\b[^>]*\\bdata-slug="portada"[^>]*>.*?</section>', re.S)
+    cover = re.compile(r'<section\b[^>]*\bdata-slug="portada"[^>]*>.*?</section>', re.S)
     if len(cover.findall(html)) != 1:
         return html
     html = cover.sub(lambda m: FIRST_TWO_COVER, html, count=1)
-    context = re.compile(r'(<section\\b[^>]*\\bdata-slug="contexto"[^>]*>)(.*?)(</section>)', re.S)
+    context = re.compile(r'(<section\b[^>]*\bdata-slug="contexto"[^>]*>)(.*?)(</section>)', re.S)
     def apply_context(m):
         section = m.group(2)
         old_title = '<h2>La decisión empieza antes de llegar a Air Europa</h2>'
@@ -1412,7 +1412,7 @@ def patch_first_two_visuals(html):
         section = re.sub(r'class="flow-step"', lambda x: 'class="flow-step" data-step="' + next(num) + '"', section, count=3)
         return m.group(1) + section + m.group(3)
     html = context.sub(apply_context, html, count=1)
-    return html.replace('</style>', FIRST_TWO_CSS + '\\n</style>', 1)
+    return html.replace('</style>', FIRST_TWO_CSS + '\n</style>', 1)
 
 
 class Handler(BaseHTTPRequestHandler):
