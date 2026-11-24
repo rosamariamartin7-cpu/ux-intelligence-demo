@@ -1988,6 +1988,57 @@ DECK_SHELL_CSS += r"""
   .scene[data-slug="avance-shopping"] .ux-journey-meta{font-size:13px!important;}
 }
 
+
+/* AVANCE_SHOPPING_FINISH_V3_20261124
+   One-line desktop headline and full-width bottom takeaway, aligned with
+   slides 02 and 06. Keep the same metrics, card and source footer. */
+@media (min-width:1280px) {
+ .scene[data-slug="avance-shopping"] .section-head h2 {
+  width:100%!important;max-width:none!important;white-space:nowrap!important;
+  text-wrap:nowrap!important;
+  font-size:clamp(39px,3vw,46px)!important;
+  line-height:1.16!important;letter-spacing:-.055em!important;
+ }
+}
+@media (min-width:901px) and (max-width:1279px) {
+ .scene[data-slug="avance-shopping"] .section-head h2 {
+  max-width:none!important;
+  font-size:clamp(36px,3.25vw,41px)!important;
+  white-space:normal!important;text-wrap:balance!important;
+ }
+}
+.scene[data-slug="avance-shopping"] .stage-body {
+  display:flex!important;flex-direction:column!important;
+  justify-content:space-between!important;min-height:0!important;
+}
+.scene[data-slug="avance-shopping"] .stage-body > .two-col.funnel-layout {
+  flex:0 0 auto!important;margin:auto 0!important;
+}
+.scene[data-slug="avance-shopping"] .stage-body > .ux-shopping-takeaway {
+  box-sizing:border-box!important;display:block!important;flex:0 0 auto!important;
+  align-self:stretch!important;width:100%!important;max-width:none!important;
+  margin:clamp(22px,3.8vh,44px) 0 0!important;
+  padding:8px 0 8px 21px!important;background:transparent!important;
+  border:0!important;border-left:2px solid #2D69E1!important;border-radius:0!important;
+  color:#181D27!important;
+  font:italic 500 clamp(19px,1.55vw,23px)/1.42 Inter,system-ui,sans-serif!important;
+  letter-spacing:0!important;text-wrap:pretty!important;
+}
+@media (max-height:760px) and (min-width:901px) {
+ .scene[data-slug="avance-shopping"] .stage-body > .ux-shopping-takeaway {
+   margin-top:18px!important;font-size:18px!important;line-height:1.34!important;
+ }
+}
+@media (max-width:900px) {
+ .scene[data-slug="avance-shopping"] .stage-body > .two-col.funnel-layout {
+  margin:0!important;
+ }
+ .scene[data-slug="avance-shopping"] .stage-body > .ux-shopping-takeaway {
+  margin-top:30px!important;
+  font-size:clamp(17px,2.5vw,21px)!important;line-height:1.48!important;
+ }
+}
+
 """
 
 def apply_deck_shell(html):
@@ -2217,6 +2268,21 @@ def apply_deck_shell(html):
         markup = (markup[:from_pos] +
                   '<div class="funnel-explain">' + card +
                   markup[until_pos:])
+        # Move the existing research takeaway below BOTH columns, so it runs
+        # across the full slide width. Keep its copy unchanged for editorial JS.
+        takeaway_pattern = re.compile(
+            r'(<p class="body-lead">.*?</p>)</div></div></div>(?=<div class="source-note">)',
+            re.S
+        )
+        if len(takeaway_pattern.findall(markup)) != 1:
+            return m.group(0)
+        markup = takeaway_pattern.sub(
+            lambda m: ('</div></div>' +
+                       m.group(1).replace('class="body-lead"',
+                                          'class="body-lead ux-shopping-takeaway"') +
+                       '</div>'),
+            markup, count=1
+        )
         markup = re.sub(
             r'(<div class="source-note">.*?</div>)',
             lambda note: (
