@@ -792,3 +792,72 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
     white-space:normal!important;
   }
 }
+
+
+/* PROCEDENCIA_STORYTELLING_V2_20261124.
+   Wider title, readable evidence-led subtitle and a balanced fullscreen hierarchy.
+   No changes to chart data, palette, or global slide grid. */
+.scene[data-slug="procedencia"] .section-head {
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+}
+.scene[data-slug="procedencia"] .section-head h2 {
+  width:100%!important;
+  max-width:none!important;
+  font-size:clamp(40px,3.75vw,57px)!important;
+  line-height:1.13!important;
+  letter-spacing:-.049em!important;
+  text-wrap:wrap!important;
+}
+.scene[data-slug="procedencia"] .section-head .ux-procedencia-lead {
+  display:block!important;
+  width:100%!important;
+  max-width:1120px!important;
+  margin:clamp(16px,2.2vh,24px) 0 0!important;
+  padding:0!important;
+  color:#475467!important;
+  font-family:Inter,system-ui,sans-serif!important;
+  font-size:clamp(16px,1.26vw,19px)!important;
+  line-height:1.55!important;
+  font-weight:400!important;
+  letter-spacing:0!important;
+}
+.scene[data-slug="procedencia"] .stage-body {
+  padding-top:clamp(23px,3.8vh,45px)!important;
+}
+@media (max-height:760px) and (min-width:1001px) {
+  .scene[data-slug="procedencia"] .section-head h2 {
+    font-size:clamp(36px,3.28vw,47px)!important;
+  }
+  .scene[data-slug="procedencia"] .section-head .ux-procedencia-lead {
+    font-size:15px!important;
+    line-height:1.45!important;
+    margin-top:12px!important;
+  }
+  .scene[data-slug="procedencia"] .stage-body {
+    padding-top:13px!important;
+  }
+}
+@media (max-width:1000px) {
+  .scene[data-slug="procedencia"] .section-head h2 {
+    font-size:clamp(34px,4.65vw,47px)!important;
+    text-wrap:pretty!important;
+  }
+  .scene[data-slug="procedencia"] .section-head .ux-procedencia-lead {
+    max-width:820px!important;
+    margin-top:16px!important;
+    font-size:clamp(15px,1.85vw,18px)!important;
+  }
+  .scene[data-slug="procedencia"] .stage-body {padding-top:27px!important;}
+}
+@media (max-width:600px) {
+  .scene[data-slug="procedencia"] .section-head h2 {
+    font-size:clamp(31px,7.8vw,42px)!important;
+  }
+  .scene[data-slug="procedencia"] .section-head .ux-procedencia-lead {
+    font-size:15px!important;
+    line-height:1.5!important;
+    margin-top:15px!important;
+  }
+}
