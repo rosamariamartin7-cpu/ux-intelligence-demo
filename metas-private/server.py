@@ -1589,6 +1589,26 @@ def apply_deck_shell(html):
     if len(section.findall(html)) != 1:
         return html
     html = section.sub(decorate, html, count=1)
+    # Page 03: show original data provenance and the same pagination as Contexto.
+    # No new metrics, no rewording and no structural change to other scenes.
+    business = re.compile(r'<section\b[^>]*\bdata-slug="negocio"[^>]*>.*?</section>', re.S)
+    def decorate_business(m):
+        markup = m.group(0)
+        if markup.count('<div class="stage">') != 1 or markup.count('<div class="source-note">') != 1:
+            return markup
+        return re.sub(
+            r'(<div class="source-note">.*?</div>)',
+            lambda note: (
+                '<footer class="ux-slide-foot ux-slide-foot-dark">'
+                '<span class="ux-slide-foot-product">UX / PRODUCTO DIGITAL</span>'
+                + note.group(1)
+                + f'<span class="ux-slide-foot-count">03 / {count:02d}</span>'
+                '</footer>'
+            ),
+            markup, count=1, flags=re.S
+        )
+    if len(business.findall(html)) == 1:
+        html = business.sub(decorate_business, html, count=1)
     return html.replace("</style>", DECK_SHELL_CSS + "\n</style>", 1)
 
 class Handler(BaseHTTPRequestHandler):
