@@ -1139,6 +1139,15 @@ if __name__ == "__main__":
             fragment = re.sub(r'data:image/[^"\']+', 'data:image:omitted', fragment, flags=re.I)
             fragment = re.sub(r'\s+', ' ', fragment)
             print("METAS_PORTADA_AUDIT " + fragment[:7500], flush=True)
+            relevant = []
+            first_style = rendered.split('</style>',1)[0]
+            for match in re.finditer(r'([^{}]+)\{([^{}]*)\}', first_style):
+                selector, body = match.group(1).strip(), match.group(2).strip()
+                if any(token in selector for token in ('.cover', '.cover-inner', '.brand-logo', '.scene {', '.scene,', 'html,body')):
+                    relevant.append(selector[:230] + ' {' + body[:900] + '}')
+                if len(relevant) >= 20:
+                    break
+            print("METAS_COVER_CSS_AUDIT " + " || ".join(relevant)[:9500], flush=True)
         else:
             print("METAS_PORTADA_AUDIT missing_portada", flush=True)
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
