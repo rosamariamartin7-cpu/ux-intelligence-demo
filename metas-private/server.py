@@ -1893,7 +1893,7 @@ def apply_deck_shell(html):
         )
         markup = markup.replace(
             '</h2>',
-            '</h2><p class="ux-device-lead">' + subtitle + '</p>',
+            '</h2><div class="ux-device-lead">' + subtitle + '</div>',
             1
         )
         markup = markup.replace('<div class="dark-chart">', '<div class="dark-chart">' + heading, 1)
