@@ -1930,6 +1930,64 @@ DECK_SHELL_CSS += r"""
   .scene[data-slug="avance-shopping"] .ux-shopping-card-columns{padding:11px 18px 0!important;}
   .scene[data-slug="avance-shopping"] .ux-shopping-card .funnel-bars{padding:10px 18px 20px!important;}
 }
+
+/* UX_SHOPPING_CARD_READABLE_V2_20261124
+   Show explicitly the numerator / denominator per device, with a complete
+   100%-width track. This does not equate nonprogression to abandonment. */
+.scene[data-slug="avance-shopping"] .ux-shopping-card {
+  min-height:345px!important;
+}
+.scene[data-slug="avance-shopping"] .ux-journey-body {
+  box-sizing:border-box!important;display:flex!important;flex:1 1 auto!important;
+  flex-direction:column!important;justify-content:space-evenly!important;
+  gap:12px!important;min-height:0!important;
+  padding:clamp(19px,2.3vw,30px) clamp(24px,2.4vw,33px) clamp(18px,2vw,25px)!important;
+}
+.scene[data-slug="avance-shopping"] .ux-journey-row{
+  display:flex!important;flex-direction:column!important;gap:11px!important;
+}
+.scene[data-slug="avance-shopping"] .ux-journey-meta{
+  display:flex!important;align-items:baseline!important;
+  justify-content:space-between!important;gap:12px!important;flex-wrap:wrap!important;
+  color:#535862!important;font:500 clamp(13px,1.1vw,16px)/1.42 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="avance-shopping"] .ux-journey-meta strong{
+  color:#344054!important;
+  font:650 clamp(15px,1.18vw,18px)/1.4 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="avance-shopping"] .ux-journey-meta span{
+  color:#535862!important;font-variant-numeric:tabular-nums!important;
+}
+.scene[data-slug="avance-shopping"] .ux-journey-meta span b{
+  color:#071A42!important;font-weight:730!important;
+}
+.scene[data-slug="avance-shopping"] .ux-journey-track{
+  display:block!important;width:100%!important;height:20px!important;
+  background:#E9EEF5!important;border-radius:6px!important;overflow:hidden!important;
+}
+.scene[data-slug="avance-shopping"] .ux-journey-progress{
+  display:block!important;height:100%!important;border-radius:6px!important;
+}
+.scene[data-slug="avance-shopping"] .ux-journey-note{
+  display:flex!important;align-items:flex-start!important;gap:9px!important;
+  border-top:1px solid #EAECF0!important;padding-top:13px!important;margin-top:2px!important;
+  color:#667085!important;font:400 clamp(11px,.96vw,13px)/1.5 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="avance-shopping"] .ux-journey-key{
+  flex:0 0 10px!important;display:inline-block!important;width:10px!important;
+  height:10px!important;margin-top:4px!important;background:#2861A3!important;border-radius:3px!important;
+}
+@media(max-height:780px) and (min-width:901px){
+  .scene[data-slug="avance-shopping"] .ux-shopping-card{min-height:310px!important;}
+  .scene[data-slug="avance-shopping"] .ux-journey-body{padding:16px 23px 17px!important;gap:13px!important;}
+  .scene[data-slug="avance-shopping"] .ux-journey-meta{font-size:13px!important;}
+  .scene[data-slug="avance-shopping"] .ux-journey-note{font-size:11px!important;line-height:1.35!important;}
+}
+@media(max-width:600px){
+  .scene[data-slug="avance-shopping"] .ux-journey-body{padding:18px!important;}
+  .scene[data-slug="avance-shopping"] .ux-journey-meta{font-size:13px!important;}
+}
+
 """
 
 def apply_deck_shell(html):
@@ -2102,37 +2160,63 @@ def apply_deck_shell(html):
     avance_shopping = re.compile(r'<section\b[^>]*\bdata-slug="avance-shopping"[^>]*>.*?</section>', re.S)
     def decorate_avance_shopping(m):
         markup = m.group(0)
-        if (markup.count('<div class="funnel-explain">') != 1
-                or markup.count('<div class="funnel-bars">') != 1
-                or markup.count('<div class="source-note">') != 1
-                or markup.count('<div class="funnel-step">') != 2):
+        # Guard every original measure: the card remains grounded in the same funnel.
+        expected = ('14.040 de 20.627', '15.148 de 25.895',
+                    '68,07 %', '58,50 %', '<div class="source-note">')
+        if (not all(x in markup for x in expected)
+                or markup.count('<div class="funnel-explain">') != 1
+                or markup.count('<p class="body-lead">') != 1):
             return markup
         subtitle = (
             "Progresión de sesiones de metabuscadores entre Availability "
             "y Shopping Cart, comparada por dispositivo."
         )
-        markup = markup.replace('</h2>', '</h2><div class="ux-shopping-lead">' + subtitle + '</div>', 1)
-        card_heading = (
+        markup = markup.replace(
+            '</h2>',
+            '</h2><div class="ux-shopping-lead">' + subtitle + '</div>', 1
+        )
+        # The left column explains percentages. The right card instead explains
+        # numerators and denominators and why the remaining bar is neutral.
+        card = (
+            '<div class="ux-shopping-card">'
             '<div class="ux-shopping-card-heading">'
-            '<h3>Avance hacia Shopping Cart</h3>'
-            '<p>Porcentaje de sesiones que progresan desde Availability</p>'
+            '<h3>¿Cuántas sesiones llegan a Shopping Cart?</h3>'
+            '<p>Del total de sesiones que pasan por Availability</p>'
             '</div>'
-            '<div class="ux-shopping-card-columns" aria-hidden="true">'
-            '<span>Dispositivo</span><span>Progresión</span>'
+            '<div class="ux-journey-body">'
+            '<div class="ux-journey-row">'
+            '<div class="ux-journey-meta">'
+            '<strong>Desktop</strong><span><b>14.040</b> de 20.627 sesiones</span>'
+            '</div>'
+            '<div class="ux-journey-track" role="img" aria-label="Desktop: '
+            '14.040 de 20.627 sesiones avanzan, equivalente al 68,07 por ciento">'
+            '<span class="ux-journey-progress" style="width:68.07%;background:var(--desktop)"></span>'
+            '</div>'
+            '</div>'
+            '<div class="ux-journey-row">'
+            '<div class="ux-journey-meta">'
+            '<strong>Mobile</strong><span><b>15.148</b> de 25.895 sesiones</span>'
+            '</div>'
+            '<div class="ux-journey-track" role="img" aria-label="Mobile: '
+            '15.148 de 25.895 sesiones avanzan, equivalente al 58,50 por ciento">'
+            '<span class="ux-journey-progress" style="width:58.50%;background:var(--mobile)"></span>'
+            '</div>'
+            '</div>'
+            '<div class="ux-journey-note">'
+            '<span class="ux-journey-key" aria-hidden="true"></span>'
+            '<span>Color: avance registrado a Shopping Cart. '
+            'Gris: sin avance registrado en este funnel.</span>'
+            '</div>'
+            '</div>'
             '</div>'
         )
-        markup = markup.replace(
-            '<div class="funnel-explain"><div class="funnel-bars">',
-            '<div class="funnel-explain"><div class="ux-shopping-card">' +
-            card_heading + '<div class="funnel-bars">',
-            1
-        )
-        # The explanatory text remains unchanged and follows the card body.
-        markup = markup.replace(
-            '</div><p class="body-lead">',
-            '</div></div><p class="body-lead">',
-            1
-        )
+        from_pos = markup.find('<div class="funnel-explain">')
+        until_pos = markup.find('<p class="body-lead">', from_pos)
+        if from_pos < 0 or until_pos <= from_pos:
+            return m.group(0)
+        markup = (markup[:from_pos] +
+                  '<div class="funnel-explain">' + card +
+                  markup[until_pos:])
         markup = re.sub(
             r'(<div class="source-note">.*?</div>)',
             lambda note: (
