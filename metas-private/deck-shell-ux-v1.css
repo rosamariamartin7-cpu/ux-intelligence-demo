@@ -195,3 +195,95 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
     margin-top:24px!important;
   }
 }
+
+
+/* UNTITLED_CONTACT_FIRST_CARD_558_20906 - first card from Figma Contact sections.
+   Apply to Contexto only; three steps, existing copy and editorial quote remain intact.
+   Untitled UI bg-secondary #FAFAFA, radius-2xl 16px and featured circle 48px.
+   We use numbered journey steps in the circles instead of contact icons. */
+.scene[data-slug="contexto"] .center-block > .flow {
+  gap:clamp(18px,2.1vw,30px)!important;
+  padding-top:22px!important;
+  overflow:visible!important;
+}
+.scene[data-slug="contexto"] .center-block > .flow > .flow-step,
+.scene[data-slug="contexto"] .center-block > .flow > .flow-step + .flow-step {
+  position:relative!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  min-width:0!important;
+  min-height:228px!important;
+  height:auto!important;
+  padding:44px clamp(18px,2.2vw,30px) 24px!important;
+  margin:0!important;
+  background:#FAFAFA!important;
+  border:0!important;
+  border-radius:16px!important;
+  box-shadow:none!important;
+  text-align:center!important;
+  overflow:visible!important;
+}
+.scene[data-slug="contexto"] .flow-step::before {
+  content:attr(data-step)!important;
+  position:absolute!important;
+  top:-24px!important;
+  left:calc(50% - 24px)!important;
+  width:48px!important;
+  min-width:48px!important;
+  height:48px!important;
+  margin:0!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:999px!important;
+  color:#2D69E1!important;
+  background:#EFF4FF!important;
+  font:700 14px/1 Inter,system-ui,sans-serif!important;
+  letter-spacing:0!important;
+}
+.scene[data-slug="contexto"] .flow-step-title {
+  margin:0!important;
+  font:650 clamp(18px,1.55vw,23px)/1.32 Inter,system-ui,sans-serif!important;
+  letter-spacing:-.025em!important;
+  color:#071A42!important;
+  text-align:center!important;
+  width:100%!important;
+}
+.scene[data-slug="contexto"] .flow-step p {
+  margin:12px 0 0!important;
+  color:#535862!important;
+  font-size:clamp(14px,1vw,16px)!important;
+  font-weight:400!important;
+  line-height:1.52!important;
+  text-align:center!important;
+  max-width:400px!important;
+}
+@media (max-height:760px) and (min-width:901px){
+  .scene[data-slug="contexto"] .center-block > .flow > .flow-step,
+  .scene[data-slug="contexto"] .center-block > .flow > .flow-step + .flow-step {
+    min-height:190px!important;
+    padding:34px 16px 16px!important;
+  }
+  .scene[data-slug="contexto"] .flow-step::before {
+    top:-20px!important;width:40px!important;min-width:40px!important;
+    height:40px!important;left:calc(50% - 20px)!important;
+  }
+  .scene[data-slug="contexto"] .flow-step-title {font-size:clamp(18px,1.6vw,22px)!important;}
+  .scene[data-slug="contexto"] .flow-step p {font-size:13.5px!important;margin-top:9px!important;line-height:1.45!important;}
+}
+@media (max-width:900px){
+  .scene[data-slug="contexto"] .center-block > .flow {padding-top:20px!important;gap:35px!important;}
+  .scene[data-slug="contexto"] .center-block > .flow > .flow-step,
+  .scene[data-slug="contexto"] .center-block > .flow > .flow-step + .flow-step {
+    min-height:0!important;padding:38px 22px 24px!important;
+    border:0!important;background:#FAFAFA!important;border-radius:16px!important;
+  }
+  .scene[data-slug="contexto"] .flow-step::before {
+    top:-20px!important;left:calc(50% - 20px)!important;
+    width:40px!important;min-width:40px!important;height:40px!important;
+  }
+  .scene[data-slug="contexto"] .flow-step p {max-width:580px!important;font-size:15px!important;}
+}
