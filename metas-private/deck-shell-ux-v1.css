@@ -1110,3 +1110,35 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
     margin-top:auto!important;
   }
 }
+
+
+/* PROCEDENCIA_UNBOX_CHART_20261124
+   Slide 04: present the ranking directly on the white editorial grid,
+   rather than inside a tinted card. Preserve the graph and all metrics. */
+.scene[data-slug="procedencia"] .two-col.source-layout > .chart-card,
+.scene[data-slug="procedencia"] .two-col.source-layout > .chart-card.chart-card {
+  box-sizing:border-box!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  padding:0!important;
+  margin:0!important;
+  min-width:0!important;
+}
+.scene[data-slug="procedencia"] .source-chart-heading {
+  padding:0 0 16px!important;
+  border-bottom:1px solid #E4E7EC!important;
+}
+.scene[data-slug="procedencia"] .source-chart-column-headings {
+  padding-top:15px!important;
+}
+.scene[data-slug="procedencia"] .chart-card>.chart {
+  padding-top:8px!important;
+}
+@media(max-width:1000px) {
+  .scene[data-slug="procedencia"] .two-col.source-layout > .chart-card,
+  .scene[data-slug="procedencia"] .two-col.source-layout > .chart-card.chart-card {
+    padding:0!important;
+  }
+}
