@@ -1585,6 +1585,152 @@ def patch_first_two_visuals(html):
 with open(os.path.join(os.path.dirname(__file__), "deck-shell-ux-v1.css"), encoding="utf-8") as _f:
     DECK_SHELL_CSS = _f.read()
 
+DECK_SHELL_CSS += r"""
+/* DISPOSITIVOS_UX_V1_20261124
+   Blue editorial canvas, same card header, spacing and footer system as preceding slides.
+   Only section 06 / presentation 07. No changes to figures or original color mapping. */
+.scene[data-slug="dispositivos"] {background:#071A42!important;color:#fff!important;}
+.scene[data-slug="dispositivos"]>.stage{
+  box-sizing:border-box!important;display:grid!important;
+  grid-template-rows:auto minmax(0,1fr) auto!important;align-items:stretch!important;
+  gap:0!important;width:100%!important;max-width:none!important;height:100%!important;
+  padding:clamp(40px,6vh,68px) var(--meta-page-right) clamp(27px,3.8vh,43px) var(--meta-page-gutter)!important;
+}
+.scene[data-slug="dispositivos"] .section-head{width:100%!important;max-width:1190px!important;min-width:0!important;}
+.scene[data-slug="dispositivos"] .section-head::before{color:#A8C8FF!important;}
+.scene[data-slug="dispositivos"] .section-head h2{
+  max-width:1120px!important;color:#fff!important;
+  font:740 clamp(39px,3.85vw,57px)/1.13 Inter,system-ui,sans-serif!important;
+  letter-spacing:-.052em!important;text-wrap:balance;
+}
+.scene[data-slug="dispositivos"] .stage-body{
+  box-sizing:border-box!important;display:flex!important;flex-direction:column!important;
+  min-height:0!important;justify-content:center!important;
+  padding:clamp(25px,4.4vh,52px) 0 clamp(17px,3vh,35px)!important;
+}
+.scene[data-slug="dispositivos"] .two-col.device-layout{
+  display:grid!important;grid-template-columns:minmax(0,.76fr) minmax(0,1.32fr)!important;
+  gap:clamp(32px,4vw,64px)!important;align-items:center!important;min-width:0!important;
+}
+.scene[data-slug="dispositivos"] .device-hero{min-width:0!important;}
+.scene[data-slug="dispositivos"] .dark-metrics{gap:clamp(16px,2.4vh,25px)!important;}
+.scene[data-slug="dispositivos"] .dark-metrics>div{padding-bottom:clamp(13px,1.8vh,20px)!important;}
+.scene[data-slug="dispositivos"] .dark-metrics strong{
+  font:740 clamp(55px,5.3vw,78px)/1.05 Inter,system-ui,sans-serif!important;letter-spacing:-.06em!important;
+}
+.scene[data-slug="dispositivos"] .dark-metrics span{font-size:clamp(15px,1.1vw,17px)!important;}
+.scene[data-slug="dispositivos"] .dark-gap{margin:clamp(17px,2.5vh,25px) 0 clamp(16px,2vh,20px)!important;flex-wrap:wrap!important;}
+.scene[data-slug="dispositivos"] .dark-gap strong{font-size:clamp(23px,1.9vw,28px)!important;}
+.scene[data-slug="dispositivos"] .device-hero>p{
+  max-width:465px!important;color:#C8D6E9!important;font:400 clamp(15px,1.1vw,17px)/1.6 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="dispositivos"] .dark-chart{
+  display:flex!important;flex-direction:column!important;box-sizing:border-box!important;
+  width:100%!important;min-width:0!important;height:clamp(398px,49vh,488px)!important;
+  min-height:398px!important;padding:0!important;overflow:hidden!important;
+  background:#fff!important;border:1px solid #E9EAEB!important;border-radius:16px!important;
+  box-shadow:0 1px 2px rgba(16,24,40,.05)!important;
+}
+.scene[data-slug="dispositivos"] .ux-device-card-heading{
+  flex:0 0 auto!important;padding:clamp(22px,2.2vw,30px) clamp(23px,2.45vw,34px) clamp(17px,1.6vw,23px)!important;
+  background:#FAFAFA!important;border-bottom:1px solid #E4E7EC!important;
+}
+.scene[data-slug="dispositivos"] .ux-device-card-heading h3{
+  color:#101828!important;font:710 clamp(19px,1.48vw,23px)/1.3 Inter,system-ui,sans-serif!important;
+  letter-spacing:-.03em!important;margin:0!important;
+}
+.scene[data-slug="dispositivos"] .ux-device-card-heading p{
+  margin:8px 0 0!important;color:#667085!important;font:400 clamp(12px,1vw,14px)/1.48 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="dispositivos"] .ux-device-card-columns{
+  display:grid!important;grid-template-columns:minmax(110px,145px) minmax(0,1fr)!important;
+  align-items:center!important;gap:clamp(12px,1.55vw,22px)!important;
+  padding:15px clamp(23px,2.45vw,34px) 3px!important;
+  color:#667085!important;font:650 12px/1.4 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="dispositivos"] .ux-device-card-columns span:last-child{text-align:right!important;}
+.scene[data-slug="dispositivos"] .dark-chart .legend{
+  display:flex!important;justify-content:flex-end!important;align-items:center!important;
+  gap:clamp(15px,2vw,28px)!important;flex:0 0 auto!important;
+  padding:4px clamp(23px,2.45vw,34px) 3px!important;margin:0!important;
+  color:#535862!important;font:540 12px/1.35 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="dispositivos"] .dark-chart .legend>span{gap:7px!important;}
+.scene[data-slug="dispositivos"] .dark-chart .pair-chart{
+  box-sizing:border-box!important;display:flex!important;flex:1 1 auto!important;
+  flex-direction:column!important;justify-content:space-evenly!important;
+  gap:clamp(15px,2.4vh,26px)!important;min-height:0!important;
+  padding:9px clamp(23px,2.45vw,34px) clamp(20px,2vw,28px)!important;
+}
+.scene[data-slug="dispositivos"] .dark-chart .pair-row{
+  display:grid!important;grid-template-columns:minmax(110px,145px) minmax(0,1fr)!important;
+  gap:clamp(12px,1.55vw,22px)!important;align-items:center!important;
+}
+.scene[data-slug="dispositivos"] .dark-chart .pair-label{
+  color:#344054!important;font:640 clamp(13px,1.08vw,16px)/1.35 Inter,system-ui,sans-serif!important;
+  white-space:nowrap!important;
+}
+.scene[data-slug="dispositivos"] .dark-chart .pair-bars{gap:8px!important;}
+.scene[data-slug="dispositivos"] .dark-chart .pair-line{gap:12px!important;}
+.scene[data-slug="dispositivos"] .dark-chart .pair-track{
+  height:14px!important;min-height:14px!important;border-radius:5px!important;background:#E9EEF5!important;
+}
+.scene[data-slug="dispositivos"] .dark-chart .pair-track i{height:100%!important;border-radius:5px!important;}
+.scene[data-slug="dispositivos"] .dark-chart .pair-line strong{
+  min-width:57px!important;color:#071A42!important;
+  font:700 clamp(12px,.96vw,14px)/1.35 Inter,system-ui,sans-serif!important;
+  text-align:right!important;font-variant-numeric:tabular-nums!important;
+}
+.scene[data-slug="dispositivos"] .ux-slide-foot{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;gap:20px!important;min-height:20px!important;margin:0!important;
+  padding:0!important;border:0!important;background:transparent!important;
+}
+.scene[data-slug="dispositivos"] .ux-slide-foot .source-note{
+  display:block!important;position:static!important;clip-path:none!important;overflow:visible!important;
+  width:auto!important;height:auto!important;min-height:0!important;max-width:none!important;
+  margin:0!important;padding:0!important;white-space:normal!important;pointer-events:auto!important;
+  color:#A5B9D7!important;font:400 11px/1.4 Inter,system-ui,sans-serif!important;
+}
+.scene[data-slug="dispositivos"] .ux-slide-foot-count{
+  justify-self:end!important;color:#A5B9D7!important;
+  font:650 11px/1.4 Inter,system-ui,sans-serif!important;white-space:nowrap!important;
+}
+@media(max-height:780px) and (min-width:901px){
+  .scene[data-slug="dispositivos"] .section-head h2{font-size:clamp(35px,3.4vw,48px)!important;}
+  .scene[data-slug="dispositivos"] .stage-body{padding:16px 0!important;}
+  .scene[data-slug="dispositivos"] .dark-chart{height:clamp(350px,51vh,410px)!important;min-height:350px!important;}
+  .scene[data-slug="dispositivos"] .ux-device-card-heading{padding:17px 24px 15px!important;}
+  .scene[data-slug="dispositivos"] .ux-device-card-columns{padding:10px 24px 3px!important;}
+  .scene[data-slug="dispositivos"] .dark-chart .legend{padding:2px 24px!important;}
+  .scene[data-slug="dispositivos"] .dark-chart .pair-chart{padding:4px 24px 16px!important;gap:10px!important;}
+  .scene[data-slug="dispositivos"] .dark-chart .pair-row{grid-template-columns:minmax(100px,135px) minmax(0,1fr)!important;}
+  .scene[data-slug="dispositivos"] .dark-metrics strong{font-size:clamp(47px,4.6vw,66px)!important;}
+}
+@media(max-width:900px){
+  .scene[data-slug="dispositivos"]{overflow-y:auto!important;}
+  .scene[data-slug="dispositivos"]>.stage{
+    display:flex!important;flex-direction:column!important;height:auto!important;min-height:100%!important;
+    padding:30px 53px 28px 32px!important;
+  }
+  .scene[data-slug="dispositivos"] .section-head h2{font-size:clamp(32px,4.8vw,46px)!important;}
+  .scene[data-slug="dispositivos"] .stage-body{flex:none!important;padding:26px 0 34px!important;}
+  .scene[data-slug="dispositivos"] .two-col.device-layout{grid-template-columns:minmax(0,1fr)!important;gap:26px!important;}
+  .scene[data-slug="dispositivos"] .dark-chart{height:auto!important;min-height:400px!important;}
+  .scene[data-slug="dispositivos"] .ux-slide-foot{margin-top:auto!important;}
+}
+@media(max-width:600px){
+  .scene[data-slug="dispositivos"]>.stage{padding:25px 24px 28px!important;}
+  .scene[data-slug="dispositivos"] .section-head h2{font-size:clamp(30px,7.6vw,42px)!important;}
+  .scene[data-slug="dispositivos"] .ux-device-card-columns{grid-template-columns:105px minmax(0,1fr)!important;padding:13px 17px 3px!important;font-size:11px!important;}
+  .scene[data-slug="dispositivos"] .ux-device-card-heading{padding:20px 17px 16px!important;}
+  .scene[data-slug="dispositivos"] .dark-chart .legend{padding:6px 17px 3px!important;}
+  .scene[data-slug="dispositivos"] .dark-chart .pair-chart{padding:10px 17px 23px!important;}
+  .scene[data-slug="dispositivos"] .dark-chart .pair-row{grid-template-columns:105px minmax(0,1fr)!important;gap:9px!important;}
+  .scene[data-slug="dispositivos"] .dark-chart .pair-line strong{min-width:46px!important;font-size:11px!important;}
+}
+"""
+
 def apply_deck_shell(html):
     if 'class="ux-slide-head"' in html:
         return html
@@ -1706,6 +1852,39 @@ def apply_deck_shell(html):
         return markup
     if len(canales.findall(html)) == 1:
         html = canales.sub(decorate_canales, html, count=1)
+
+    # Presentation screen 07 / section 06: preserve the original figures and paired device bars.
+    dispositivos = re.compile(r'<section\b[^>]*\bdata-slug="dispositivos"[^>]*>.*?</section>', re.S)
+    def decorate_dispositivos(m):
+        markup = m.group(0)
+        if (markup.count('<div class="dark-chart">') != 1
+                or markup.count('<div class="legend">') != 1
+                or markup.count('<div class="source-note">') != 1
+                or markup.count('<div class="pair-chart">') != 1):
+            return markup
+        heading = (
+            '<div class="ux-device-card-heading">'
+            '<h3>Conversión por metabuscador</h3>'
+            '<p>Comparativa de la tasa de conversión en Desktop y Mobile</p>'
+            '</div>'
+            '<div class="ux-device-card-columns" aria-hidden="true">'
+            '<span>Metabuscador</span><span>Conversión por dispositivo</span>'
+            '</div>'
+        )
+        markup = markup.replace('<div class="dark-chart">', '<div class="dark-chart">' + heading, 1)
+        markup = re.sub(
+            r'(<div class="source-note">.*?</div>)',
+            lambda note: (
+                '<footer class="ux-slide-foot ux-slide-foot-dark">'
+                + note.group(1)
+                + f'<span class="ux-slide-foot-count">07 / {count:02d}</span>'
+                '</footer>'
+            ),
+            markup, count=1, flags=re.S
+        )
+        return markup
+    if len(dispositivos.findall(html)) == 1:
+        html = dispositivos.sub(decorate_dispositivos, html, count=1)
     return html.replace("</style>", DECK_SHELL_CSS + "\n</style>", 1)
 
 class Handler(BaseHTTPRequestHandler):
