@@ -1707,6 +1707,21 @@ DECK_SHELL_CSS += r"""
   .scene[data-slug="dispositivos"] .dark-chart .pair-row{grid-template-columns:minmax(100px,135px) minmax(0,1fr)!important;}
   .scene[data-slug="dispositivos"] .dark-metrics strong{font-size:clamp(47px,4.6vw,66px)!important;}
 }
+
+.scene[data-slug="dispositivos"] .section-head .ux-device-lead{
+  display:block!important;width:100%!important;max-width:990px!important;
+  margin:clamp(14px,2vh,21px) 0 0!important;padding:0!important;
+  color:#C6D5E9!important;
+  font:400 clamp(16px,1.25vw,19px)/1.55 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  letter-spacing:0!important;
+}
+@media(max-height:780px) and (min-width:901px){
+  .scene[data-slug="dispositivos"] .section-head .ux-device-lead{font-size:15px!important;line-height:1.45!important;margin-top:11px!important;}
+}
+@media(max-width:600px){
+  .scene[data-slug="dispositivos"] .section-head .ux-device-lead{font-size:15px!important;line-height:1.48!important;}
+}
+
 @media(max-width:900px){
   .scene[data-slug="dispositivos"]{overflow-y:auto!important;}
   .scene[data-slug="dispositivos"]>.stage{
@@ -1870,6 +1885,16 @@ def apply_deck_shell(html):
             '<div class="ux-device-card-columns" aria-hidden="true">'
             '<span>Metabuscador</span><span>Conversión por dispositivo</span>'
             '</div>'
+        )
+        # An editorial subtitle provides context under the screen title, as in the white slides.
+        subtitle = (
+            "Comparativa de conversión comercial entre Mobile y Desktop, "
+            "tanto en el total del canal como en cada metabuscador."
+        )
+        markup = markup.replace(
+            '</h2>',
+            '</h2><p class="ux-device-lead">' + subtitle + '</p>',
+            1
         )
         markup = markup.replace('<div class="dark-chart">', '<div class="dark-chart">' + heading, 1)
         markup = re.sub(
