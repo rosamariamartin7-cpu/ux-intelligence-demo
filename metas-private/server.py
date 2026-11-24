@@ -1127,4 +1127,18 @@ if __name__ == "__main__":
                         '.scene[data-slug="contexto"] .center-block > .flow' in rendered)
     print("CONTEXT_REFINEMENT_VERIFY copy=" + str(context_ok) +
           " styles=" + str(context_style_ok), flush=True)
+    # Temporary private diagnostic: only first-slide markup, never image assets.
+    if os.environ.get("METAS_PORTADA_AUDIT") == "1":
+        start = re.search(r'<section\\b[^>]*data-slug=["\\\']portada["\\\'][^>]*>', rendered, re.I)
+        if start:
+            boundary = re.search(r'<section\\b[^>]*\\bclass=["\\\'][^"\\\']*\\bscene\\b', rendered[start.end():], re.I)
+            end = start.end() + boundary.start() if boundary else len(rendered)
+            fragment = rendered[start.start():end][:24000]
+            fragment = re.sub(r'<img\\b[^>]*>', '<IMG/>', fragment, flags=re.I | re.S)
+            fragment = re.sub(r'<svg\\b.*?</svg>', '<SVG/>', fragment, flags=re.I | re.S)
+            fragment = re.sub(r'data:image/[^"\\\']+', 'data:image:omitted', fragment, flags=re.I)
+            fragment = re.sub(r'\\s+', ' ', fragment)
+            print("METAS_PORTADA_AUDIT " + fragment[:7500], flush=True)
+        else:
+            print("METAS_PORTADA_AUDIT missing_portada", flush=True)
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
