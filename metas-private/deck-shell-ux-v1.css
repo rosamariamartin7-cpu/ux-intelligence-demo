@@ -75,3 +75,86 @@ body:has(.scene.active.dark) .dots .dot.active::before,body:has(.scene.active.co
   .scene[data-slug="contexto"] .ux-slide-head-label{font-size:9px;letter-spacing:.03em;text-align:right;}
   .scene[data-slug="contexto"] .section-head h2{font-size:clamp(33px,7.8vw,43px)!important;}
 }
+
+
+/* V2 editorial simplification - Contexto only; original content is unchanged. */
+.scene[data-slug="contexto"] .ux-slide-head { display:none!important; }
+.scene[data-slug="contexto"] .stage {
+  grid-template-rows:auto minmax(0,1fr) auto!important;
+  padding-top:clamp(45px,6.7vh,78px)!important;
+  padding-bottom:clamp(26px,3.7vh,43px)!important;
+}
+.scene[data-slug="contexto"] .section-head { padding-top:0!important; }
+.scene[data-slug="contexto"] .section-head::before { margin-bottom:clamp(16px,2.3vh,25px)!important; }
+.scene[data-slug="contexto"] .stage-body { padding-top:clamp(16px,2.8vh,32px)!important; padding-bottom:clamp(10px,1.8vh,22px)!important; }
+/* Three editorial columns instead of three boxed cards. */
+.scene[data-slug="contexto"] .center-block>.flow { gap:clamp(19px,2.5vw,38px)!important; }
+.scene[data-slug="contexto"] .center-block>.flow>.flow-step,
+.scene[data-slug="contexto"] .center-block>.flow>.flow-step+.flow-step {
+  padding:8px 14px 7px 0!important; min-height:0!important;
+  border:0!important; border-radius:0!important;
+  background:transparent!important; box-shadow:none!important;
+}
+.scene[data-slug="contexto"] .center-block>.flow>.flow-step+.flow-step {
+  border-left:1px solid #E4E7EC!important;
+  padding-left:clamp(17px,2.2vw,33px)!important;
+}
+.scene[data-slug="contexto"] .flow-step::before {
+  background:transparent!important;color:#2D69E1!important;
+  font-size:12px!important;font-weight:700!important;
+  width:auto!important;min-width:0!important;height:auto!important;
+  padding:0!important;border-radius:0!important;margin-bottom:22px!important;
+}
+.scene[data-slug="contexto"] .flow-step-title { font-size:clamp(21px,1.65vw,26px)!important; }
+.scene[data-slug="contexto"] .flow-step p { font-size:clamp(14px,1.07vw,16px)!important;line-height:1.55!important; }
+.scene[data-slug="contexto"] .center-block>.takeaway {
+  margin-top:clamp(32px,5.8vh,59px)!important;max-width:1080px!important;
+}
+/* Compact and aligned source + screen number: not another visual band. */
+.scene[data-slug="contexto"] .ux-slide-foot {
+  grid-template-columns:minmax(0,1fr) auto!important;
+  border-top:0!important; padding-top:0!important;
+  min-height:0!important;gap:20px!important;
+}
+.scene[data-slug="contexto"] .ux-slide-foot-product { display:none!important; }
+.scene[data-slug="contexto"] .ux-slide-foot .source-note {
+  text-align:left!important;color:#98A2B3!important;font-size:11px!important;
+}
+.scene[data-slug="contexto"] .ux-slide-foot-count {
+  color:#98A2B3!important;font-weight:650!important;font-size:11px!important;
+}
+/* All 26 navigation targets remain; inactive dots are nearly invisible until hover/focus. */
+body .dots .dot::before {width:4px!important;height:4px!important;background:#E4E7EC!important;}
+body .dots .dot.active::before {width:5px!important;height:15px!important;background:#2D69E1!important;}
+body .dots:hover .dot::before,body .dots:focus-within .dot::before {background:#B8C2D2!important;}
+body .dots:hover .dot.active::before,body .dots:focus-within .dot.active::before {background:#2D69E1!important;}
+body:has(.scene.active.dark) .dots .dot::before,
+body:has(.scene.active.cover) .dots .dot::before {background:rgba(225,235,251,.23)!important;}
+body:has(.scene.active.dark) .dots .dot.active::before,
+body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!important;}
+@media(max-height:770px) and (min-width:901px) {
+  .scene[data-slug="contexto"] .stage {padding-top:27px!important;padding-bottom:23px!important;}
+  .scene[data-slug="contexto"] .section-head::before {margin-bottom:13px!important;}
+  .scene[data-slug="contexto"] .center-block>.flow>.flow-step,
+  .scene[data-slug="contexto"] .center-block>.flow>.flow-step+.flow-step {padding-top:3px!important;padding-bottom:3px!important;}
+  .scene[data-slug="contexto"] .flow-step::before {margin-bottom:12px!important;}
+  .scene[data-slug="contexto"] .center-block>.takeaway {
+    font-size:20px!important;line-height:27px!important;margin-top:24px!important;
+  }
+}
+@media(max-width:900px) {
+  .scene[data-slug="contexto"] .stage {padding-top:31px!important;padding-bottom:27px!important;}
+  .scene[data-slug="contexto"] .center-block>.flow {grid-template-columns:1fr!important;gap:13px!important;}
+  .scene[data-slug="contexto"] .center-block>.flow>.flow-step,
+  .scene[data-slug="contexto"] .center-block>.flow>.flow-step+.flow-step {padding:15px 0 16px!important;}
+  .scene[data-slug="contexto"] .center-block>.flow>.flow-step+.flow-step {
+    border-left:0!important;border-top:1px solid #E4E7EC!important;
+  }
+  .scene[data-slug="contexto"] .flow-step::before {margin-bottom:8px!important;}
+  .scene[data-slug="contexto"] .center-block>.takeaway {margin-top:24px!important;}
+}
+@media(max-width:720px) {
+  .scene[data-slug="contexto"] .stage {padding:28px 25px 27px!important;}
+  .scene[data-slug="contexto"] .center-block>.flow>.flow-step,
+  .scene[data-slug="contexto"] .center-block>.flow>.flow-step+.flow-step {padding:10px 0 12px!important;}
+}
