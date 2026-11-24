@@ -1525,7 +1525,7 @@ FIRST_TWO_CSS += r"""
 
 FIRST_TWO_COVER = r"""<section class="scene cover" data-slug="portada" aria-label="Portada - Metabuscadores"><div class="cover-inner">
 <div class="ux-cover-top"><img class="cover-logo" src="/brand/air-europa.svg" alt="Air Europa"><time class="ux-cover-date" datetime="2026-11">NOVIEMBRE 2026</time></div>
-<div class="ux-cover-main"><div class="ux-cover-kicker">UX RESEARCH / AIR EUROPA</div><h1>Metabuscadores</h1><p class="ux-cover-subtitle">Research UX, comportamiento de compra y <strong>oportunidades de conversión</strong></p></div>
+<div class="ux-cover-main"><h1>Metabuscadores</h1><p class="ux-cover-subtitle">Research UX, comportamiento de compra y <strong>oportunidades de conversión</strong></p></div>
 <div class="ux-cover-footer"><span>ANÁLISIS DE INICIATIVA</span><span class="ux-cover-footer-right">UX / PRODUCTO DIGITAL</span></div>
 </div></section>"""
 
