@@ -1621,3 +1621,167 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
   .scene[data-slug="canales"] .comparison-grid .metric-value{font-size:68px!important;}
   .scene[data-slug="canales"] .stage-body>.takeaway{font-size:19px!important;}
 }
+
+
+/* CANALES_UNTITLED_CONTACT_CARDS_BLUE_20261124
+   Adapt the FIRST Untitled UI Contact card from Figma 558:20906:
+   bg-secondary #FAFAFA, radius-2xl 16px, 48px featured circle overlapping
+   top edge, centered text. Replace purple with Air Europa brand blue.
+   The factual 9,3% and the two pending states remain distinct.
+   Scoped to 05 / Comparativa de canales (presentation screen 06).
+*/
+.scene[data-slug="canales"] .comparison-grid {
+  overflow:visible!important;
+  align-items:stretch!important;
+}
+.scene[data-slug="canales"] .comparison-grid > .metric-item,
+.scene[data-slug="canales"] .comparison-grid > .pending-metric {
+  box-sizing:border-box!important;
+  position:relative!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:256px!important;
+  height:auto!important;
+  padding:48px clamp(20px,2vw,28px) 26px!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:16px!important;
+  background:#FAFAFA!important;
+  box-shadow:none!important;
+  text-align:center!important;
+  overflow:visible!important;
+}
+.scene[data-slug="canales"] .comparison-grid > .metric-item::before,
+.scene[data-slug="canales"] .comparison-grid > .pending-metric::before {
+  position:absolute!important;
+  z-index:1!important;
+  top:-24px!important;
+  left:calc(50% - 24px)!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:48px!important;
+  height:48px!important;
+  min-width:48px!important;
+  padding:0!important;
+  margin:0!important;
+  border-radius:999px!important;
+  border:0!important;
+  background:#EFF4FF!important;
+  color:#2D69E1!important;
+  font:700 14px/1 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  letter-spacing:0!important;
+}
+.scene[data-slug="canales"] .comparison-grid > :nth-child(1)::before {content:"01"!important}
+.scene[data-slug="canales"] .comparison-grid > :nth-child(2)::before {content:"02"!important}
+.scene[data-slug="canales"] .comparison-grid > :nth-child(3)::before {content:"03"!important}
+.scene[data-slug="canales"] .comparison-grid .metric-label,
+.scene[data-slug="canales"] .comparison-grid .pending-metric > span {
+  box-sizing:border-box!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  color:#181D27!important;
+  font:650 clamp(17px,1.45vw,21px)/1.35 Inter,system-ui,sans-serif!important;
+  letter-spacing:-.025em!important;
+  text-align:center!important;
+}
+.scene[data-slug="canales"] .comparison-grid .metric-value {
+  box-sizing:border-box!important;
+  width:100%!important;
+  margin:clamp(16px,2.2vh,23px) 0 0!important;
+  color:#071A42!important;
+  font:760 clamp(66px,5.35vw,82px)/1.08 Inter,system-ui,sans-serif!important;
+  font-variant-numeric:tabular-nums!important;
+  letter-spacing:-.068em!important;
+  white-space:nowrap!important;
+  text-align:center!important;
+}
+.scene[data-slug="canales"] .comparison-grid .metric-support {
+  width:100%!important;
+  max-width:340px!important;
+  margin:clamp(11px,1.45vh,16px) 0 0!important;
+  color:#535862!important;
+  font:400 clamp(14px,1.07vw,16px)/1.5 Inter,system-ui,sans-serif!important;
+  text-align:center!important;
+}
+.scene[data-slug="canales"] .comparison-grid .pending-metric strong {
+  box-sizing:border-box!important;
+  width:100%!important;
+  margin:clamp(23px,3vh,30px) 0 0!important;
+  color:#667085!important;
+  font:620 clamp(25px,2.15vw,32px)/1.22 Inter,system-ui,sans-serif!important;
+  letter-spacing:-.037em!important;
+  text-align:center!important;
+}
+.scene[data-slug="canales"] .comparison-grid .pending-metric p {
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:340px!important;
+  margin:clamp(13px,1.65vh,18px) 0 0!important;
+  color:#535862!important;
+  font:400 clamp(14px,1.06vw,16px)/1.5 Inter,system-ui,sans-serif!important;
+  text-align:center!important;
+}
+@media(max-height:760px) and (min-width:901px) {
+  .scene[data-slug="canales"] .comparison-grid > .metric-item,
+  .scene[data-slug="canales"] .comparison-grid > .pending-metric {
+    min-height:210px!important;
+    padding:37px clamp(17px,1.8vw,24px) 18px!important;
+  }
+  .scene[data-slug="canales"] .comparison-grid > .metric-item::before,
+  .scene[data-slug="canales"] .comparison-grid > .pending-metric::before {
+    top:-21px!important;
+    left:calc(50% - 21px)!important;
+    width:42px!important;
+    height:42px!important;
+    min-width:42px!important;
+    font-size:12px!important;
+  }
+  .scene[data-slug="canales"] .comparison-grid .metric-label,
+  .scene[data-slug="canales"] .comparison-grid .pending-metric>span {
+    font-size:17px!important;
+  }
+  .scene[data-slug="canales"] .comparison-grid .metric-value {
+    font-size:64px!important;
+    margin-top:10px!important;
+  }
+  .scene[data-slug="canales"] .comparison-grid .metric-support {
+    font-size:13px!important;
+    margin-top:9px!important;
+  }
+  .scene[data-slug="canales"] .comparison-grid .pending-metric strong {
+    font-size:25px!important;
+    margin-top:17px!important;
+  }
+  .scene[data-slug="canales"] .comparison-grid .pending-metric p {
+    font-size:13px!important;
+    margin-top:10px!important;
+    line-height:1.42!important;
+  }
+}
+@media(max-width:900px) {
+  .scene[data-slug="canales"] .comparison-grid {
+    gap:35px!important;
+    padding-top:16px!important;
+  }
+  .scene[data-slug="canales"] .comparison-grid > .metric-item,
+  .scene[data-slug="canales"] .comparison-grid > .pending-metric {
+    min-height:0!important;
+    padding:43px 23px 25px!important;
+  }
+}
+@media(max-width:600px) {
+  .scene[data-slug="canales"] .comparison-grid .metric-value {
+    font-size:70px!important;
+  }
+  .scene[data-slug="canales"] .comparison-grid .metric-label,
+  .scene[data-slug="canales"] .comparison-grid .pending-metric>span {
+    font-size:18px!important;
+  }
+}
