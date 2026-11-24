@@ -1385,6 +1385,16 @@ body:has(.scene[data-slug="contexto"].active) .dots { display: none !important; 
 }
 
 """
+
+# Override legacy cover-editorial pseudo-elements retained by the old site.
+FIRST_TWO_CSS += r"""
+.scene.cover[data-slug="portada"] .cover-inner { justify-content: space-between !important; align-items: stretch !important; max-width: 1500px !important; }
+.scene.cover[data-slug="portada"] .cover-inner::before,
+.scene.cover[data-slug="portada"] h1::before,
+.scene.cover[data-slug="portada"] h1::after { content: none !important; display: none !important; }
+.scene.cover[data-slug="portada"] p.ux-cover-subtitle { max-width: 780px !important; }
+"""
+
 FIRST_TWO_COVER = r"""<section class="scene cover" data-slug="portada" aria-label="Portada - Metabuscadores"><div class="cover-inner">
 <div class="ux-cover-top"><img class="cover-logo" src="/brand/air-europa.svg" alt="Air Europa"><time class="ux-cover-date" datetime="2026-11">NOVIEMBRE 2026</time></div>
 <div class="ux-cover-main"><div class="ux-cover-kicker">UX RESEARCH / AIR EUROPA</div><h1>Metabuscadores</h1><p class="ux-cover-subtitle">Research UX, comportamiento de compra y <strong>oportunidades de conversión</strong></p></div>
