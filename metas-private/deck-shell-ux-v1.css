@@ -1785,3 +1785,35 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
     font-size:18px!important;
   }
 }
+
+
+/* CANALES_VERTICAL_RHYTHM_V3_20261124
+   Slides 06 / 26. Adjust the vertical distance only:
+   move cards down into the available centre, retain the editorial
+   quote near the bottom and keep its fixed footer position.
+   All typography, figures, labels and other slide grids remain untouched.
+*/
+@media (min-width:901px) and (min-height:851px) {
+  .scene[data-slug="canales"] .stage-body {
+    justify-content:flex-end!important;
+    gap:clamp(112px,14.4vh,148px)!important;
+  }
+  .scene[data-slug="canales"] .stage-body > .comparison-grid,
+  .scene[data-slug="canales"] .stage-body > .takeaway {
+    flex:0 0 auto!important;
+  }
+}
+@media (min-width:901px) and (min-height:761px) and (max-height:850px) {
+  .scene[data-slug="canales"] .stage-body {
+    justify-content:flex-end!important;
+    padding-top:clamp(20px,4vh,35px)!important;
+    padding-bottom:clamp(20px,3vh,28px)!important;
+    gap:clamp(50px,7.5vh,75px)!important;
+  }
+}
+@media (min-width:901px) and (max-height:760px) {
+  .scene[data-slug="canales"] .stage-body {
+    justify-content:flex-end!important;
+    gap:clamp(25px,5vh,44px)!important;
+  }
+}
