@@ -108,7 +108,7 @@ body:has(.scene.active.dark) .dots .dot.active::before,body:has(.scene.active.co
 .scene[data-slug="contexto"] .flow-step-title { font-size:clamp(21px,1.65vw,26px)!important; }
 .scene[data-slug="contexto"] .flow-step p { font-size:clamp(14px,1.07vw,16px)!important;line-height:1.55!important; }
 .scene[data-slug="contexto"] .center-block>.takeaway {
-  margin-top:clamp(68px,9vh,90px)!important;max-width:none!important;width:100%!important;
+  margin-top:clamp(98px,12vh,126px)!important;max-width:none!important;width:100%!important;
 }
 /* Compact and aligned source + screen number: not another visual band. */
 .scene[data-slug="contexto"] .ux-slide-foot {
@@ -139,7 +139,7 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
   .scene[data-slug="contexto"] .center-block>.flow>.flow-step+.flow-step {padding-top:3px!important;padding-bottom:3px!important;}
   .scene[data-slug="contexto"] .flow-step::before {margin-bottom:12px!important;}
   .scene[data-slug="contexto"] .center-block>.takeaway {
-    font-size:20px!important;line-height:27px!important;margin-top:44px!important;
+    font-size:20px!important;line-height:27px!important;margin-top:68px!important;
   }
 }
 @media(max-width:900px) {
