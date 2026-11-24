@@ -1441,6 +1441,84 @@ FIRST_TWO_CSS += r"""
 }
 """
 
+FIRST_TWO_CSS += r"""
+/* COVER_PANORAMIC_UX_V3 - new full-width cover grid, scoped to portada only. */
+.scene.cover[data-slug="portada"] .cover-inner {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  padding: clamp(34px, 5.3vh, 64px) clamp(34px, 5.6vw, 94px) clamp(38px, 5.2vh, 60px) !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto minmax(0,1fr) auto !important;
+  align-items: stretch !important;
+  justify-items: stretch !important;
+  gap: 0 !important;
+  margin: 0 !important;
+}
+.scene.cover[data-slug="portada"] .ux-cover-top {
+  width:100% !important;
+  align-self:start !important;
+}
+.scene.cover[data-slug="portada"] .cover-logo {
+  width:clamp(200px,16.6vw,260px) !important;
+  height:54px !important;
+}
+.scene.cover[data-slug="portada"] .ux-cover-main {
+  box-sizing:border-box !important;
+  width:100% !important;
+  max-width:none !important;
+  padding:0 !important;
+  margin:0 !important;
+  align-self:center !important;
+  transform:translateY(-25px);
+}
+.scene.cover[data-slug="portada"] .ux-cover-kicker {
+  font-size:clamp(12px,.95vw,14px) !important;
+  letter-spacing:.12em !important;
+}
+.scene.cover[data-slug="portada"] h1 {
+  max-width:100% !important;
+  width:100% !important;
+  font-size:clamp(76px,9.9vw,152px) !important;
+  font-weight:760 !important;
+  letter-spacing:-.064em !important;
+  line-height:1.02 !important;
+  margin:clamp(22px,3.2vh,34px) 0 0 !important;
+  overflow-wrap:normal !important;
+  white-space:normal !important;
+  text-wrap:balance !important;
+}
+.scene.cover[data-slug="portada"] .ux-cover-subtitle {
+  max-width:930px !important;
+  font-size:clamp(23px,2.2vw,32px) !important;
+  line-height:1.37 !important;
+  margin:clamp(25px,3.6vh,36px) 0 0 !important;
+}
+.scene.cover[data-slug="portada"] .ux-cover-footer {
+  width:100% !important;
+  font-size:11px !important;
+  letter-spacing:.06em !important;
+  padding-top:19px !important;
+  min-height:0 !important;
+}
+@media (max-height:700px) and (min-width:721px) {
+  .scene.cover[data-slug="portada"] .ux-cover-main {transform:translateY(-10px)}
+  .scene.cover[data-slug="portada"] h1 {font-size:clamp(68px,8.7vw,123px) !important;}
+  .scene.cover[data-slug="portada"] .ux-cover-subtitle {font-size:clamp(21px,2vw,28px) !important;margin-top:20px !important;}
+}
+@media (max-width:720px) {
+  .scene.cover[data-slug="portada"] .cover-inner { padding:clamp(24px,5vw,35px) clamp(22px,7vw,40px) 30px !important; }
+  .scene.cover[data-slug="portada"] .cover-logo {width:clamp(146px,34vw,190px) !important;height:45px !important;}
+  .scene.cover[data-slug="portada"] .ux-cover-main {transform:translateY(-6px)}
+  .scene.cover[data-slug="portada"] h1 {font-size:clamp(43px,11vw,72px) !important;letter-spacing:-.063em !important;overflow-wrap:anywhere !important;}
+  .scene.cover[data-slug="portada"] .ux-cover-subtitle {font-size:clamp(20px,5.3vw,26px) !important;line-height:1.4 !important;max-width:100% !important;}
+  .scene.cover[data-slug="portada"] .ux-cover-footer {font-size:10px !important;}
+}
+"""
+
 FIRST_TWO_COVER = r"""<section class="scene cover" data-slug="portada" aria-label="Portada - Metabuscadores"><div class="cover-inner">
 <div class="ux-cover-top"><img class="cover-logo" src="/brand/air-europa.svg" alt="Air Europa"><time class="ux-cover-date" datetime="2026-11">NOVIEMBRE 2026</time></div>
 <div class="ux-cover-main"><div class="ux-cover-kicker">UX RESEARCH / AIR EUROPA</div><h1>Metabuscadores</h1><p class="ux-cover-subtitle">Research UX, comportamiento de compra y <strong>oportunidades de conversión</strong></p></div>
