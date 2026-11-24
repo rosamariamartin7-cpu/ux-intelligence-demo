@@ -587,8 +587,7 @@ def patch_procedencia_html(html):
     # The final editorial fixes may change this heading before the slide is rendered.
     # Target the heading element itself, not an outdated literal string.
     intended_title = (
-        'Google Flights y Skyscanner reúnen el 82,9 %'
-        '<span class="source-title-line" style="display:block!important">de las sesiones</span>'
+        'Google Flights y Skyscanner reúnen el 82,9 % de las sesiones'
     )
     slide = re.sub(
         r'(<h2\b[^>]*>)(.*?)(</h2>)',
@@ -971,14 +970,18 @@ def get_html():
     html = html.replace("</style>", PROCEDENCIA_DASHBOARD_CSS + "\n" + CORPORATE_SELECTED_TABS_CSS + "\n</style>", 1)
     if "rank-chart" in html:
         html = html.replace("</body>", "<script>\n" + RANKING_FIT_JS + "\n</script></body>", 1)
-    if 'data-slug="procedencia"' in html or "data-slug='procedencia'" in html:
-        html = html.replace("</body>", "<script>\n" + PROCEDENCIA_HEADING_FIX_JS + "\n</script></body>", 1)
+    # Procedencia's title wraps naturally under the shared grid. No forced linebreak script.
     html = patch_contexto_copy(html)
     html = html.replace("</style>", CONTEXTO_REFINED_CSS + "\n</style>", 1)
     html = refine_portada_copy(html)
     html = html.replace("</style>", PORTADA_EDITORIAL_CSS + "\n</style>", 1)
     html = patch_first_two_visuals(html)
     html = apply_deck_shell(html)
+    # Non-breaking space keeps the commercial amount and its unit together.
+    html = html.replace(
+        "Los metabuscadores generan 102,24 M€ y crecen más que sus sesiones",
+        "Los metabuscadores generan 102,24\u00a0M€ y crecen más que sus sesiones"
+    )
     return html.encode("utf-8")
 
 
@@ -1609,6 +1612,24 @@ def apply_deck_shell(html):
         )
     if len(business.findall(html)) == 1:
         html = business.sub(decorate_business, html, count=1)
+    # Page 04: expose the existing source without changing its values or chart.
+    procedencia = re.compile(r'<section\b[^>]*\bdata-slug="procedencia"[^>]*>.*?</section>', re.S)
+    def decorate_procedencia(m):
+        markup = m.group(0)
+        if markup.count('<div class="source-note">') != 1:
+            return markup
+        return re.sub(
+            r'(<div class="source-note">.*?</div>)',
+            lambda note: (
+                '<footer class="ux-slide-foot ux-slide-foot-light">'
+                + note.group(1)
+                + f'<span class="ux-slide-foot-count">04 / {count:02d}</span>'
+                '</footer>'
+            ),
+            markup, count=1, flags=re.S
+        )
+    if len(procedencia.findall(html)) == 1:
+        html = procedencia.sub(decorate_procedencia, html, count=1)
     return html.replace("</style>", DECK_SHELL_CSS + "\n</style>", 1)
 
 class Handler(BaseHTTPRequestHandler):
