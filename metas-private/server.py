@@ -1657,7 +1657,7 @@ def apply_deck_shell(html):
     if len(procedencia.findall(html)) == 1:
         html = procedencia.sub(decorate_procedencia, html, count=1)
     # Page 05: keep the interactive graph and its source, sharing the common footer.
-    ranking = re.compile(r'<section\\b[^>]*\\bdata-slug="rendimiento"[^>]*>.*?</section>', re.S)
+    ranking = re.compile(r'<section\b[^>]*\bdata-slug="rendimiento"[^>]*>.*?</section>', re.S)
     def decorate_ranking(m):
         markup = m.group(0)
         if markup.count('<div class="source-note">') != 1 or markup.count('id="rank-chart"') != 1:
