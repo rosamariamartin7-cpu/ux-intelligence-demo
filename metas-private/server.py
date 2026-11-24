@@ -862,6 +862,81 @@ def patch_contexto_copy(html):
     section = step_pattern.sub(lambda m: m.group(1) + _escape(next(count)) + m.group(3), section, count=3)
     return html[:start.start()] + section + html[end:]
 
+
+# Cover-only design refinement. All other scenes, content, and navigation untouched.
+PORTADA_EDITORIAL_CSS = r"""
+.scene[data-slug="portada"].cover {
+  background: radial-gradient(ellipse 720px 690px at 99% 53%,rgba(45,105,225,.17),transparent 73%),#031B4E!important;
+  color:#fff!important;overflow:hidden;
+}
+.scene[data-slug="portada"] .cover-inner {
+  position:relative!important;max-width:1440px!important;min-width:0!important;
+  display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;
+  padding:clamp(48px,6.5vw,100px) clamp(48px,7.5vw,116px)!important;
+  box-sizing:border-box!important;
+}
+.scene[data-slug="portada"] .cover-logo {
+  display:block!important;width:clamp(210px,21vw,300px)!important;height:auto!important;
+  filter:brightness(0) invert(1)!important;margin:0 0 clamp(76px,11vh,122px)!important;flex-shrink:0!important;
+}
+.scene[data-slug="portada"] .cover-inner::before {
+  content:"NOVIEMBRE 2026";position:absolute;top:clamp(48px,6.5vw,100px);right:clamp(48px,7.5vw,116px);
+  color:#CBD9F0;font:650 13px/1.4 Inter,system-ui,sans-serif;letter-spacing:.12em;
+}
+.scene[data-slug="portada"] h1 {
+  font-family:Inter,system-ui,sans-serif!important;font-size:clamp(70px,8.8vw,132px)!important;
+  font-weight:760!important;letter-spacing:-.071em!important;line-height:1.04!important;
+  color:#fff!important;margin:0!important;max-width:100%!important;text-wrap:balance;
+}
+.scene[data-slug="portada"] h1::before {
+  content:"UX RESEARCH  /  ANÁLISIS DE INICIATIVA";display:block;color:#C9D8EE;
+  font:650 clamp(11px,.95vw,13px)/1.45 Inter,system-ui,sans-serif;letter-spacing:.14em;
+  margin:0 0 clamp(25px,3vw,39px);
+}
+.scene[data-slug="portada"] h1::after {
+  content:"";display:block;width:62px;height:4px;background:#2D69E1;border-radius:3px;
+  margin:clamp(28px,3.5vh,40px) 0 0;
+}
+.scene[data-slug="portada"] p {
+  font-family:Inter,system-ui,sans-serif!important;font-size:clamp(23px,2.5vw,36px)!important;
+  line-height:1.36!important;font-weight:420!important;letter-spacing:-.025em!important;
+  color:#D7E4F5!important;margin:clamp(22px,3vh,33px) 0 0!important;
+  max-width:min(980px,100%)!important;overflow-wrap:break-word;text-wrap:pretty;
+}
+.scene[data-slug="portada"] .cover-emphasis {color:#91BBFF!important;font-weight:620!important;}
+@media (max-height:670px) and (min-width:701px) {
+  .scene[data-slug="portada"] .cover-logo {width:215px!important;margin-bottom:35px!important;}
+  .scene[data-slug="portada"] h1 {font-size:clamp(63px,7.8vw,100px)!important;}
+  .scene[data-slug="portada"] h1::before {margin-bottom:18px!important;}
+  .scene[data-slug="portada"] h1::after {margin-top:22px!important;}
+  .scene[data-slug="portada"] p {font-size:clamp(20px,2vw,28px)!important;}
+}
+@media (max-width:700px) {
+  .scene[data-slug="portada"] .cover-inner {padding:46px 29px!important;}
+  .scene[data-slug="portada"] .cover-logo {width:178px!important;margin-bottom:clamp(55px,11vh,88px)!important;}
+  .scene[data-slug="portada"] .cover-inner::before {top:49px;right:29px;font-size:10px;letter-spacing:.05em;}
+  .scene[data-slug="portada"] h1 {font-size:clamp(46px,11.6vw,74px)!important;letter-spacing:-.065em!important;}
+  .scene[data-slug="portada"] h1::before {font-size:10px;letter-spacing:.07em;margin-bottom:26px;}
+  .scene[data-slug="portada"] h1::after {margin-top:26px;}
+  .scene[data-slug="portada"] p {font-size:clamp(20px,5.4vw,26px)!important;}
+}
+"""
+
+def refine_portada_copy(html):
+    """Add one visual emphasis without changing any wording or other slides."""
+    start = re.search(r'<section\b[^>]*data-slug=["\']portada["\'][^>]*>', html, re.I)
+    if not start:
+        return html
+    boundary = re.search(r'<section\b[^>]*\bclass=["\'][^"\']*\bscene\b', html[start.end():], re.I)
+    end = start.end() + boundary.start() if boundary else len(html)
+    chunk = html[start.start():end]
+    old = 'Research UX, comportamiento de compra y oportunidades de conversión'
+    new = 'Research UX, comportamiento de compra y <span class="cover-emphasis">oportunidades de conversión</span>'
+    if old in chunk and 'cover-emphasis' not in chunk:
+        chunk = chunk.replace(old, new, 1)
+    return html[:start.start()] + chunk + html[end:]
+
+
 def get_html():
     parts = []
     for i in range(100):
@@ -900,6 +975,8 @@ def get_html():
         html = html.replace("</body>", "<script>\n" + PROCEDENCIA_HEADING_FIX_JS + "\n</script></body>", 1)
     html = patch_contexto_copy(html)
     html = html.replace("</style>", CONTEXTO_REFINED_CSS + "\n</style>", 1)
+    html = refine_portada_copy(html)
+    html = html.replace("</style>", PORTADA_EDITORIAL_CSS + "\n</style>", 1)
     return html.encode("utf-8")
 
 
@@ -1127,27 +1204,4 @@ if __name__ == "__main__":
                         '.scene[data-slug="contexto"] .center-block > .flow' in rendered)
     print("CONTEXT_REFINEMENT_VERIFY copy=" + str(context_ok) +
           " styles=" + str(context_style_ok), flush=True)
-    # Temporary private diagnostic: only first-slide markup, never image assets.
-    if os.environ.get("METAS_PORTADA_AUDIT") == "1":
-        start = re.search(r'<section\b[^>]*data-slug=["\']portada["\'][^>]*>', rendered, re.I)
-        if start:
-            boundary = re.search(r'<section\b[^>]*\bclass=["\'][^"\']*\bscene\b', rendered[start.end():], re.I)
-            end = start.end() + boundary.start() if boundary else len(rendered)
-            fragment = rendered[start.start():end][:24000]
-            fragment = re.sub(r'<img\b[^>]*>', '<IMG/>', fragment, flags=re.I | re.S)
-            fragment = re.sub(r'<svg\b.*?</svg>', '<SVG/>', fragment, flags=re.I | re.S)
-            fragment = re.sub(r'data:image/[^"\']+', 'data:image:omitted', fragment, flags=re.I)
-            fragment = re.sub(r'\s+', ' ', fragment)
-            print("METAS_PORTADA_AUDIT " + fragment[:7500], flush=True)
-            relevant = []
-            first_style = rendered.split('</style>',1)[0]
-            for match in re.finditer(r'([^{}]+)\{([^{}]*)\}', first_style):
-                selector, body = match.group(1).strip(), match.group(2).strip()
-                if any(token in selector for token in ('.cover', '.cover-inner', '.brand-logo', '.scene {', '.scene,', 'html,body')):
-                    relevant.append(selector[:230] + ' {' + body[:900] + '}')
-                if len(relevant) >= 20:
-                    break
-            print("METAS_COVER_CSS_AUDIT " + " || ".join(relevant)[:9500], flush=True)
-        else:
-            print("METAS_PORTADA_AUDIT missing_portada", flush=True)
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
