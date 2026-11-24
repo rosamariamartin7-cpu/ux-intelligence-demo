@@ -989,6 +989,20 @@ def get_html():
     html = html.replace("</style>", PORTADA_EDITORIAL_CSS + "\n</style>", 1)
     html = patch_first_two_visuals(html)
     html = apply_deck_shell(html)
+    # META_RANK_PALETTE_FIXED: use stable brand chart colors on the initial render
+    # and every tab update, rather than relying on a later DOM recolor pass.
+    initial_rank_palette = (
+        "const colors={'Google Flights':'var(--gflights)',"
+        "'Skyscanner':'var(--sky)','KAYAK':'var(--kayak)',"
+        "'Otros':'var(--other)'};"
+    )
+    fixed_rank_palette = (
+        "const colors={'Google Flights':'#2563EB',"
+        "'Skyscanner':'#069B9D','KAYAK':'#E77A22',"
+        "'Otros':'#8D9AAD'};"
+    )
+    if initial_rank_palette in html:
+        html = html.replace(initial_rank_palette, fixed_rank_palette, 1)
     # Non-breaking space keeps the commercial amount and its unit together.
     html = html.replace(
         "Los metabuscadores generan 102,24 M€ y crecen más que sus sesiones",
@@ -1642,6 +1656,24 @@ def apply_deck_shell(html):
         )
     if len(procedencia.findall(html)) == 1:
         html = procedencia.sub(decorate_procedencia, html, count=1)
+    # Page 05: keep the interactive graph and its source, sharing the common footer.
+    ranking = re.compile(r'<section\\b[^>]*\\bdata-slug="rendimiento"[^>]*>.*?</section>', re.S)
+    def decorate_ranking(m):
+        markup = m.group(0)
+        if markup.count('<div class="source-note">') != 1 or markup.count('id="rank-chart"') != 1:
+            return markup
+        return re.sub(
+            r'(<div class="source-note">.*?</div>)',
+            lambda note: (
+                '<footer class="ux-slide-foot ux-slide-foot-light">'
+                + note.group(1)
+                + f'<span class="ux-slide-foot-count">05 / {count:02d}</span>'
+                '</footer>'
+            ),
+            markup, count=1, flags=re.S
+        )
+    if len(ranking.findall(html)) == 1:
+        html = ranking.sub(decorate_ranking, html, count=1)
     return html.replace("</style>", DECK_SHELL_CSS + "\n</style>", 1)
 
 class Handler(BaseHTTPRequestHandler):
