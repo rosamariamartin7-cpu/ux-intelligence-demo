@@ -977,6 +977,7 @@ def get_html():
     html = html.replace("</style>", CONTEXTO_REFINED_CSS + "\n</style>", 1)
     html = refine_portada_copy(html)
     html = html.replace("</style>", PORTADA_EDITORIAL_CSS + "\n</style>", 1)
+    html = patch_first_two_visuals(html)
     return html.encode("utf-8")
 
 
@@ -1080,6 +1081,338 @@ def render_vertical_preview(prototype):
     prototype = prototype.replace('EDICIÓN DE TRABAJO</span>', 'DESLIZA PARA EXPLORAR ↓</span>')
     prototype = prototype.replace('</style>', PREVIEW_V2_VERTICAL_CSS + '\n</style>', 1)
     return prototype
+
+
+
+# Visual system v2 - preserve all research/data scenes except cover and context.
+FIRST_TWO_CSS = r"""
+/* Air Europa × Untitled UI - portada y contexto, iteración editorial 01.
+   ALCANCE ESTRICTO: sólo las escenas portada y contexto. */
+:root { --meta-brand: #2D69E1; --meta-night: #071A42; --meta-brand-light: #A8C7FF; }
+
+/* 00 / Portada. Sin formas gratuitas ni interfaces que compitan con la historia. */
+.scene.cover[data-slug="portada"] {
+  background: var(--meta-night) !important;
+  color: #fff;
+}
+.scene.cover[data-slug="portada"] .cover-inner {
+  position: relative;
+  height: 100%;
+  width: min(100%, 1500px);
+  max-width: 1500px;
+  margin-inline: auto;
+  padding: clamp(32px, 5.2vh, 72px) clamp(48px, 7.1vw, 118px) clamp(36px, 5.6vh, 70px) !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+}
+.scene.cover[data-slug="portada"] .ux-cover-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  min-width: 0;
+}
+.scene.cover[data-slug="portada"] .cover-logo {
+  width: clamp(194px, 18.5vw, 244px) !important;
+  height: 58px !important;
+  display: block;
+  margin: 0 !important;
+  object-fit: contain;
+  object-position: left center;
+  filter: brightness(0) invert(1);
+  flex: 0 1 auto;
+}
+.scene.cover[data-slug="portada"] .ux-cover-date {
+  font-size: 12px;
+  font-weight: 680;
+  letter-spacing: .135em;
+  color: #DCE7F7;
+  text-align: right;
+  white-space: nowrap;
+}
+.scene.cover[data-slug="portada"] .ux-cover-main {
+  max-width: 1080px;
+  width: 100%;
+  padding: 28px 0 38px;
+  margin: auto 0;
+}
+.scene.cover[data-slug="portada"] .ux-cover-kicker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 680;
+  color: #C9D8EC;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.scene.cover[data-slug="portada"] .ux-cover-kicker::before {
+  content: '';
+  flex: 0 0 38px;
+  width: 38px;
+  height: 4px;
+  background: var(--meta-brand);
+  border-radius: 2px;
+}
+.scene.cover[data-slug="portada"] h1 {
+  max-width: 100%;
+  width: auto;
+  font-size: clamp(66px, 8.8vw, 132px) !important;
+  line-height: 1.01 !important;
+  font-weight: 750 !important;
+  letter-spacing: -.065em !important;
+  color: white !important;
+  margin: clamp(28px, 4.1vh, 52px) 0 0 !important;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+.scene.cover[data-slug="portada"] .ux-cover-subtitle {
+  max-width: 780px;
+  font-size: clamp(22px, 2.15vw, 31px) !important;
+  line-height: 1.38 !important;
+  font-weight: 420 !important;
+  letter-spacing: -.026em;
+  color: #D7E1F1 !important;
+  margin: 30px 0 0 !important;
+  text-wrap: pretty;
+}
+.scene.cover[data-slug="portada"] .ux-cover-subtitle strong {
+  color: var(--meta-brand-light);
+  font-weight: 630;
+}
+.scene.cover[data-slug="portada"] .ux-cover-footer {
+  border-top: 1px solid rgba(225, 236, 255, .20);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 22px;
+  min-height: 44px;
+  gap: 16px;
+  font-size: 12px;
+  color: #B9CAE1;
+  font-weight: 550;
+  letter-spacing: .035em;
+}
+.scene.cover[data-slug="portada"] .ux-cover-footer .ux-cover-footer-right { color: #E7EEFC; }
+
+/* 01 / Contexto. Ritmo editorial, lectura primero, componentes después. */
+.scene[data-slug="contexto"] { background: #FFFFFF !important; }
+.scene[data-slug="contexto"] .stage {
+  width: 100%;
+  max-width: 1440px;
+  padding: clamp(38px, 6.8vh, 84px) clamp(48px, 6.2vw, 92px) clamp(36px, 5.8vh, 72px) !important;
+  gap: 0 !important;
+}
+.scene[data-slug="contexto"] .section-head {
+  max-width: 1160px;
+  width: 100%;
+  flex: 0 0 auto;
+}
+.scene[data-slug="contexto"] .section-head::before {
+  content: '01  /  CONTEXTO';
+  display: block;
+  margin: 0 0 clamp(23px, 3.2vh, 33px);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: .13em;
+  color: var(--meta-brand);
+}
+.scene[data-slug="contexto"] .section-head h2 {
+  font-size: clamp(37px, 4.1vw, 60px) !important;
+  line-height: 1.12 !important;
+  font-weight: 720 !important;
+  letter-spacing: -.055em !important;
+  color: var(--meta-night) !important;
+  max-width: 1060px !important;
+  text-wrap: balance;
+}
+.scene[data-slug="contexto"] .section-head h2 .ux-emphasis { color: var(--meta-brand); white-space: nowrap; }
+.scene[data-slug="contexto"] .section-head p {
+  max-width: 1000px !important;
+  margin: clamp(19px, 2.7vh, 27px) 0 0 !important;
+  font-size: clamp(16px, 1.37vw, 19px) !important;
+  line-height: 1.58 !important;
+  color: #475467 !important;
+}
+.scene[data-slug="contexto"] .stage-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center !important;
+  padding-top: 22px;
+  padding-bottom: 16px;
+}
+.scene[data-slug="contexto"] .center-block {
+  width: 100% !important;
+  max-width: 1170px !important;
+  margin-inline: 0 !important;
+  gap: 0 !important;
+}
+.scene[data-slug="contexto"] .center-block > .flow {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  gap: clamp(14px, 1.55vw, 22px) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}
+.scene[data-slug="contexto"] .center-block > .flow > .flow-step,
+.scene[data-slug="contexto"] .center-block > .flow > .flow-step + .flow-step {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 214px !important;
+  min-width: 0;
+  padding: clamp(20px, 2vw, 27px) clamp(20px, 1.9vw, 27px) !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  border: 1px solid #E4E7EC !important;
+  border-radius: 12px !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .048) !important;
+  overflow: visible !important;
+}
+.scene[data-slug="contexto"] .flow-step::before {
+  content: attr(data-step);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #EEF4FF;
+  color: var(--meta-brand);
+  font-size: 12px;
+  font-weight: 720;
+  letter-spacing: .015em;
+  margin: 0 0 18px;
+}
+.scene[data-slug="contexto"] .flow-step-title {
+  display: block;
+  font-size: clamp(20px, 1.55vw, 24px) !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  letter-spacing: -.027em !important;
+  margin: 0;
+  color: var(--meta-night) !important;
+  text-wrap: balance;
+}
+.scene[data-slug="contexto"] .flow-step p {
+  font-size: clamp(14px, 1.02vw, 16px) !important;
+  line-height: 1.52 !important;
+  margin: 13px 0 0 !important;
+  color: #475467 !important;
+  overflow-wrap: break-word;
+}
+.scene[data-slug="contexto"] .center-block > .takeaway {
+  width: 100% !important;
+  max-width: 1100px !important;
+  padding: clamp(18px, 3vh, 28px) 0 0 !important;
+  margin: clamp(20px, 3.5vh, 32px) 0 0 !important;
+  border: 0 !important;
+  border-top: 1px solid #E4E7EC !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: clamp(19px, 1.55vw, 23px) !important;
+  line-height: 1.4 !important;
+  color: var(--meta-night) !important;
+  font-weight: 620 !important;
+  letter-spacing: -.02em;
+}
+/* La navegación por puntos compite con la portada.
+   La ocultamos solo en estas dos escenas. Rueda y teclado continúan funcionando. */
+body:has(.scene[data-slug="portada"].active) .dots,
+body:has(.scene[data-slug="contexto"].active) .dots { display: none !important; }
+/* No alteramos el contenido ni el estado de ninguna otra escena. */
+@media (max-width: 900px) {
+  .scene[data-slug="contexto"] .stage { padding: 34px 45px 36px 34px !important; }
+  .scene[data-slug="contexto"] .section-head h2 { font-size: clamp(34px, 4.9vw, 45px) !important; }
+  .scene[data-slug="contexto"] .section-head h2 .ux-emphasis { white-space: normal; }
+  .scene[data-slug="contexto"] .stage-body { justify-content: flex-start !important; padding-top: 28px; }
+  .scene[data-slug="contexto"] .center-block > .flow { grid-template-columns: 1fr !important; gap: 12px !important; }
+  .scene[data-slug="contexto"] .center-block > .flow > .flow-step,
+  .scene[data-slug="contexto"] .center-block > .flow > .flow-step + .flow-step { min-height: 0 !important; padding: 18px 20px !important; }
+  .scene[data-slug="contexto"] .flow-step::before { margin-bottom: 9px; }
+  .scene[data-slug="contexto"] .flow-step p { font-size: 15px !important; }
+}
+@media (max-height: 750px) and (min-width: 901px) {
+  .scene[data-slug="contexto"] .stage { padding-top: 29px !important; padding-bottom: 26px !important; }
+  .scene[data-slug="contexto"] .section-head::before { margin-bottom: 16px; }
+  .scene[data-slug="contexto"] .section-head h2 { font-size: clamp(34px, 3.3vw, 45px) !important; }
+  .scene[data-slug="contexto"] .section-head p { margin-top: 12px !important; font-size: 15px !important; line-height: 1.4 !important; }
+  .scene[data-slug="contexto"] .stage-body { padding-top: 13px; padding-bottom: 0; }
+  .scene[data-slug="contexto"] .center-block > .flow > .flow-step,
+  .scene[data-slug="contexto"] .center-block > .flow > .flow-step + .flow-step { min-height: 190px !important; padding: 17px 20px !important; }
+  .scene[data-slug="contexto"] .flow-step::before { height: 26px; min-width: 26px; margin-bottom: 11px; }
+  .scene[data-slug="contexto"] .flow-step-title { font-size: 19px !important; }
+  .scene[data-slug="contexto"] .flow-step p { font-size: 13.5px !important; line-height: 1.4 !important; margin-top: 9px !important; }
+  .scene[data-slug="contexto"] .center-block > .takeaway { font-size: 18px !important; padding-top: 14px !important; margin-top: 15px !important; }
+}
+@media (max-width: 720px) {
+  .scene.cover[data-slug="portada"] .cover-inner { padding: 36px 30px 33px !important; }
+  .scene.cover[data-slug="portada"] .cover-logo { width: 194px !important; height: 48px !important; }
+  .scene.cover[data-slug="portada"] .ux-cover-date { font-size: 10px; }
+  .scene.cover[data-slug="portada"] .ux-cover-kicker { font-size: 11px; letter-spacing: .08em; }
+  .scene.cover[data-slug="portada"] h1 { font-size: clamp(46px, 10.4vw, 76px) !important; }
+  .scene.cover[data-slug="portada"] .ux-cover-subtitle { font-size: clamp(21px, 4vw, 28px) !important; }
+  .scene[data-slug="contexto"] { overflow-y: auto !important; }
+  .scene[data-slug="contexto"] .stage { height: auto !important; min-height: 100%; padding: 30px 36px 35px 26px !important; }
+}
+@media (max-width: 420px) {
+  .scene.cover[data-slug="portada"] .cover-inner { padding: 27px 26px 31px !important; }
+  .scene.cover[data-slug="portada"] .cover-logo { width: 154px !important; height: 44px !important; }
+  .scene.cover[data-slug="portada"] .ux-cover-date { font-size: 9px; }
+  .scene.cover[data-slug="portada"] h1 { font-size: clamp(40px, 11.4vw, 55px) !important; letter-spacing: -.057em !important; }
+  .scene.cover[data-slug="portada"] .ux-cover-subtitle { font-size: 21px !important; }
+  .scene.cover[data-slug="portada"] .ux-cover-footer { font-size: 10px; }
+  .scene[data-slug="contexto"] .section-head h2 { font-size: 33px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene.cover[data-slug="portada"] *, .scene[data-slug="contexto"] * { transition: none !important; animation: none !important; }
+}
+
+"""
+FIRST_TWO_COVER = r"""<section class="scene cover" data-slug="portada" aria-label="Portada - Metabuscadores"><div class="cover-inner">
+<div class="ux-cover-top"><img class="cover-logo" src="/brand/air-europa.svg" alt="Air Europa"><time class="ux-cover-date" datetime="2026-11">NOVIEMBRE 2026</time></div>
+<div class="ux-cover-main"><div class="ux-cover-kicker">UX RESEARCH / AIR EUROPA</div><h1>Metabuscadores</h1><p class="ux-cover-subtitle">Research UX, comportamiento de compra y <strong>oportunidades de conversión</strong></p></div>
+<div class="ux-cover-footer"><span>ANÁLISIS DE INICIATIVA</span><span class="ux-cover-footer-right">UX / PRODUCTO DIGITAL</span></div>
+</div></section>"""
+
+def patch_first_two_visuals(html):
+    """Refine portada and contexto only, based on the reviewed Air Europa UI Kit.
+    All remaining research slides and their charts are left untouched.
+    """
+    if 'class="ux-cover-top"' in html:
+        return html
+    cover = re.compile(r'<section\\b[^>]*\\bdata-slug="portada"[^>]*>.*?</section>', re.S)
+    if len(cover.findall(html)) != 1:
+        return html
+    html = cover.sub(lambda m: FIRST_TWO_COVER, html, count=1)
+    context = re.compile(r'(<section\\b[^>]*\\bdata-slug="contexto"[^>]*>)(.*?)(</section>)', re.S)
+    def apply_context(m):
+        section = m.group(2)
+        old_title = '<h2>La decisión empieza antes de llegar a Air Europa</h2>'
+        if old_title not in section or section.count('class="flow-step"') != 3:
+            return m.group(0)
+        section = section.replace(old_title, '<h2>La decisión empieza <span class="ux-emphasis">antes de llegar</span> a Air Europa</h2>', 1)
+        num = iter(('01','02','03'))
+        section = re.sub(r'class="flow-step"', lambda x: 'class="flow-step" data-step="' + next(num) + '"', section, count=3)
+        return m.group(1) + section + m.group(3)
+    html = context.sub(apply_context, html, count=1)
+    return html.replace('</style>', FIRST_TWO_CSS + '\\n</style>', 1)
 
 
 class Handler(BaseHTTPRequestHandler):
