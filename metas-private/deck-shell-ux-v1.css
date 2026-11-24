@@ -1231,3 +1231,63 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
     padding:0 2px 10px!important;
   }
 }
+
+
+/* RENDIMIENTO_KPI_FIXED_VERTICAL_ANCHOR_20261124
+   Same KPI top and label baseline across Conversión / Ingresos / Sesiones.
+   Explanation and implication flow naturally below without shifting the KPI.
+   Scoped solely to the rendimiento scene (04 / Rendimiento por metabuscador).
+*/
+@media (min-width:1150px) {
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) {
+    align-items:stretch!important;
+  }
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading,
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading.metrics-compact,
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading.metrics-tight {
+    box-sizing:border-box!important;
+    align-self:stretch!important;
+    justify-content:flex-start!important;
+    height:100%!important;
+    min-height:0!important;
+    max-height:none!important;
+    padding:clamp(35px,5vh,56px) 0 0!important;
+    overflow:visible!important;
+  }
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-compact .ranking-main-value,
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-tight .ranking-main-value {
+  box-sizing:border-box!important;
+  flex:0 0 96px!important;
+  height:96px!important;
+  min-height:96px!important;
+  max-height:96px!important;
+  margin:0 0 13px!important;
+  padding:0!important;
+  line-height:1.09!important;
+  overflow:visible!important;
+}
+/* Narrower windows retain the vertical layout and a consistent KPI slot. */
+@media (max-width:1149px) {
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading,
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading.metrics-compact,
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart)>.ranking-reading.metrics-tight {
+    justify-content:flex-start!important;
+    align-self:stretch!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+}
+@media (max-width:600px) {
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .ranking-main-value,
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-compact .ranking-main-value,
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) .metrics-tight .ranking-main-value {
+    flex-basis:76px!important;
+    height:76px!important;
+    min-height:76px!important;
+    max-height:76px!important;
+  }
+}
