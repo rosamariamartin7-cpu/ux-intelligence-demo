@@ -1291,3 +1291,101 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
     max-height:76px!important;
   }
 }
+
+
+/* METAS_CHART_SURFACE_HEADER_GREY_BODY_WHITE_20261124
+   Shared Air Europa / Untitled UI chart-card anatomy:
+   subtle gray header, hairline divider, white plot surface.
+   Applies only to the chart panels on Procedencia and Rendimiento;
+   the right-side editorial KPI on Rendimiento remains unboxed.
+*/
+
+/* 03 / Procedencia: keep the existing chart card, give its title area its own surface. */
+.scene[data-slug="procedencia"] .two-col.source-layout > .chart-card {
+  display:flex!important;
+  flex-direction:column!important;
+  gap:0!important;
+  overflow:hidden!important;
+  padding:0!important;
+  background:#FFFFFF!important;
+  border:1px solid #E9EAEB!important;
+  border-radius:16px!important;
+  box-shadow:0 1px 2px rgba(16,24,40,.035)!important;
+}
+.scene[data-slug="procedencia"] .two-col.source-layout > .chart-card > .source-chart-heading {
+  box-sizing:border-box!important;
+  width:100%!important;
+  flex:0 0 auto!important;
+  padding:clamp(19px,2.2vw,28px) clamp(21px,2.45vw,32px) clamp(17px,1.75vw,23px)!important;
+  margin:0!important;
+  background:#F9FAFB!important;
+  border-bottom:1px solid #E9EAEB!important;
+}
+.scene[data-slug="procedencia"] .two-col.source-layout > .chart-card > .source-chart-column-headings {
+  box-sizing:border-box!important;
+  width:100%!important;
+  flex:0 0 auto!important;
+  padding:clamp(13px,1.15vw,16px) clamp(21px,2.45vw,32px) 5px!important;
+  margin:0!important;
+  background:#FFFFFF!important;
+}
+.scene[data-slug="procedencia"] .two-col.source-layout > .chart-card > .chart {
+  box-sizing:border-box!important;
+  flex:1 1 auto!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:9px clamp(21px,2.45vw,32px) clamp(18px,2vw,26px)!important;
+  background:#FFFFFF!important;
+}
+
+/* 04 / Rendimiento: identical header/plot surfaces, tabs stay in the header. */
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .chart-panel {
+  display:flex!important;
+  flex-direction:column!important;
+  gap:0!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  padding:0!important;
+  background:#FFFFFF!important;
+  border:1px solid #E9EAEB!important;
+  border-radius:16px!important;
+  box-shadow:0 1px 2px rgba(16,24,40,.035)!important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .chart-panel > .panel-top {
+  box-sizing:border-box!important;
+  width:100%!important;
+  flex:0 0 auto!important;
+  padding:clamp(18px,2vw,25px) clamp(21px,2.4vw,30px)!important;
+  margin:0!important;
+  background:#F9FAFB!important;
+  border-bottom:1px solid #E9EAEB!important;
+}
+.scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .chart-panel > #rank-chart {
+  box-sizing:border-box!important;
+  flex:1 1 auto!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:clamp(13px,1.35vw,20px) clamp(21px,2.4vw,30px) clamp(17px,1.75vw,24px)!important;
+  background:#FFFFFF!important;
+}
+@media(max-width:760px){
+  .scene[data-slug="procedencia"] .two-col.source-layout > .chart-card > .source-chart-heading{
+    padding:19px 20px 16px!important;
+  }
+  .scene[data-slug="procedencia"] .two-col.source-layout > .chart-card > .source-chart-column-headings{
+    padding:12px 20px 4px!important;
+  }
+  .scene[data-slug="procedencia"] .two-col.source-layout > .chart-card > .chart{
+    padding:9px 20px 19px!important;
+  }
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .chart-panel > .panel-top{
+    padding:17px 17px 15px!important;
+  }
+  .scene[data-slug="rendimiento"] .interactive-grid:has(#rank-chart) > .chart-panel > #rank-chart {
+    padding:13px 17px 17px!important;
+  }
+}
