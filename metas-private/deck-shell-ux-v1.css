@@ -861,3 +861,102 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
     margin-top:15px!important;
   }
 }
+
+
+/* META_GLOBAL_HEADINGS_GRID_20261124.
+   One stable header baseline and a shared full content width across all 25 internal scenes.
+   Titles and subtitles have identical start/end axes. No research figures altered.
+   Header is structural metadata; numbers refer to presentation order, not research stages.
+*/
+:root { --meta-heading-top: clamp(36px, 5.8vh, 66px); --meta-heading-gap: clamp(17px, 2.25vh, 24px); }
+/* The cover remains intentionally exceptional. */
+.scene:not([data-slug="portada"])>.stage {
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  margin-left:0!important;
+  margin-right:0!important;
+  padding-top:var(--meta-heading-top)!important;
+  padding-left:var(--meta-page-gutter)!important;
+  padding-right:var(--meta-page-right)!important;
+}
+.scene:not([data-slug="portada"]) .section-head {
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  padding-top:0!important;
+  margin-top:0!important;
+  flex-shrink:0!important;
+}
+.scene:not([data-slug="portada"]) .section-head::before {
+  display:block!important;
+  box-sizing:border-box!important;
+  margin:0 0 var(--meta-heading-gap)!important;
+  min-height:18px!important;
+  font:700 12px/18px Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif!important;
+  letter-spacing:.13em!important;
+  text-transform:uppercase!important;
+  color:#2D69E1!important;
+  white-space:normal!important;
+}
+.scene.dark .section-head::before {
+  color:#9EC0FF!important;
+}
+.scene:not([data-slug="portada"]) .section-head h2,
+.scene:not([data-slug="portada"]) .section-head > p {
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+}
+.scene:not([data-slug="portada"]) .section-head > p {
+  margin-left:0!important;
+  margin-right:0!important;
+}
+/* Consistent design tokens, with a compact presentation layout on short viewports. */
+@media (max-height:760px) and (min-width:901px) {
+  :root {--meta-heading-top:25px;--meta-heading-gap:12px}
+  .scene:not([data-slug="portada"])>.stage{padding-top:var(--meta-heading-top)!important;}
+  .scene:not([data-slug="portada"]) .section-head::before{
+    font-size:11px!important;line-height:16px!important;min-height:16px!important;
+  }
+}
+@media (max-width:900px) {
+  :root {--meta-heading-top:clamp(25px,5vw,40px);--meta-heading-gap:14px}
+  .scene:not([data-slug="portada"])>.stage{
+    padding-left:clamp(22px,5vw,45px)!important;
+    padding-right:clamp(22px,5vw,45px)!important;
+  }
+  .scene:not([data-slug="portada"]) .section-head::before{
+    font-size:11px!important;line-height:17px!important;min-height:17px!important;
+  }
+}
+
+/* Section metadata: presentation numbering, not initiative phases. */
+.scene[data-slug="contexto"] .section-head::before{content:"01 / CONTEXTO"!important}
+.scene[data-slug="negocio"] .section-head::before{content:"02 / RENDIMIENTO COMERCIAL"!important}
+.scene[data-slug="procedencia"] .section-head::before{content:"03 / PROCEDENCIA DEL TRÁFICO"!important}
+.scene[data-slug="rendimiento"] .section-head::before{content:"04 / RENDIMIENTO POR METABUSCADOR"!important}
+.scene[data-slug="canales"] .section-head::before{content:"05 / COMPARATIVA DE CANALES"!important}
+.scene[data-slug="dispositivos"] .section-head::before{content:"06 / COMPORTAMIENTO POR DISPOSITIVO"!important}
+.scene[data-slug="avance-shopping"] .section-head::before{content:"07 / AVANCE HACIA SHOPPING CART"!important}
+.scene[data-slug="funnel-meta"] .section-head::before{content:"08 / FUNNEL POR METABUSCADOR"!important}
+.scene[data-slug="tarifas"] .section-head::before{content:"09 / FARE FAMILIES"!important}
+.scene[data-slug="fechas"] .section-head::before{content:"10 / MODIFICACIÓN DE FECHAS"!important}
+.scene[data-slug="upselling"] .section-head::before{content:"11 / UPSELLING"!important}
+.scene[data-slug="extras-visibilidad"] .section-head::before{content:"12 / VISIBILIDAD DE EXTRAS"!important}
+.scene[data-slug="extras-venta"] .section-head::before{content:"13 / CONTRATACIÓN DE EXTRAS"!important}
+.scene[data-slug="extras-prioridad"] .section-head::before{content:"14 / PRIORIDAD DE EXTRAS"!important}
+.scene[data-slug="ticket"] .section-head::before{content:"15 / TICKET MEDIO"!important}
+.scene[data-slug="benchmark"] .section-head::before{content:"16 / BENCHMARK UX"!important}
+.scene[data-slug="sol-1"] .section-head::before{content:"17 / PROPUESTA UX 01"!important}
+.scene[data-slug="sol-2"] .section-head::before{content:"18 / PROPUESTA UX 02"!important}
+.scene[data-slug="sol-3"] .section-head::before{content:"19 / PROPUESTA UX 03"!important}
+.scene[data-slug="sol-4"] .section-head::before{content:"20 / PROPUESTA UX 04"!important}
+.scene[data-slug="sol-5"] .section-head::before{content:"21 / PROPUESTA UX 05"!important}
+.scene[data-slug="upgrade"] .section-head::before{content:"22 / UPGRADE EN SHOPPING CART"!important}
+.scene[data-slug="metaconnect"] .section-head::before{content:"23 / METACONNECT"!important}
+.scene[data-slug="datos-pendientes"] .section-head::before{content:"24 / DATOS PENDIENTES"!important}
+.scene[data-slug="conclusiones"] .section-head::before{content:"25 / CONCLUSIONES PROVISIONALES"!important}
