@@ -730,7 +730,7 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
   width:100%!important;
   max-width:100%!important;
   margin:0!important;
-  font-size:clamp(76px,10.8vw,166px)!important;
+  font-size:clamp(78px,11.6vw,178px)!important;
   font-weight:760!important;
   letter-spacing:-.07em!important;
   line-height:1.045!important;
