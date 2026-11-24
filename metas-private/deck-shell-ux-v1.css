@@ -687,3 +687,108 @@ body:has(.scene.active.cover) .dots .dot.active::before {background:#8FB8FF!impo
   .scene[data-slug="procedencia"] .chart-value{font-size:12px!important}
   .scene[data-slug="procedencia"] .chart-track{height:12px!important}
 }
+
+
+/* COVER_EDITORIAL_PUNCH_20261124.
+   Original Metabuscadores HTML cover: no extra kicker or unsupported claims.
+   Brand color is used as light and typographic emphasis, never decoration overload. */
+.scene.cover[data-slug="portada"] {
+  background:
+    radial-gradient(ellipse 48% 73% at 102% 51%,
+      rgba(45,105,225,.31) 0%, rgba(45,105,225,.13) 39%,
+      rgba(45,105,225,0) 83%),
+    linear-gradient(115deg,#071A42 0%,#071A42 55%,#0A214A 100%)!important;
+  isolation:isolate!important;
+}
+.scene.cover[data-slug="portada"] .cover-inner {
+  position:relative!important;
+  isolation:isolate!important;
+}
+/* One barely visible geometric horizon gives depth without competing with copy. */
+.scene.cover[data-slug="portada"] .cover-inner::after {
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  width:min(50vw,790px)!important;
+  height:min(74vh,800px)!important;
+  right:-24vw!important;
+  top:12%!important;
+  z-index:-1!important;
+  pointer-events:none!important;
+  border:1px solid rgba(139,178,249,.15)!important;
+  border-radius:50%!important;
+  transform:rotate(-19deg)!important;
+}
+.scene.cover[data-slug="portada"] .ux-cover-main {
+  padding:0!important;
+  margin:0!important;
+  max-width:none!important;
+  transform:translateY(-12px)!important;
+}
+.scene.cover[data-slug="portada"] .ux-cover-kicker {display:none!important;}
+.scene.cover[data-slug="portada"] h1 {
+  width:100%!important;
+  max-width:100%!important;
+  margin:0!important;
+  font-size:clamp(76px,10.8vw,166px)!important;
+  font-weight:760!important;
+  letter-spacing:-.07em!important;
+  line-height:1.045!important;
+  white-space:normal!important;
+  overflow-wrap:normal!important;
+  text-wrap:balance!important;
+}
+.scene.cover[data-slug="portada"] .ux-cover-subtitle {
+  max-width:990px!important;
+  margin:clamp(27px,4vh,40px) 0 0!important;
+  font-size:clamp(25px,2.38vw,36px)!important;
+  line-height:1.35!important;
+  font-weight:440!important;
+  letter-spacing:-.027em!important;
+  color:#E0E9F9!important;
+  text-wrap:pretty!important;
+}
+.scene.cover[data-slug="portada"] .ux-cover-subtitle strong {
+  display:inline-block!important;
+  color:#91B7FF!important;
+  font-weight:690!important;
+  white-space:nowrap!important;
+}
+.scene.cover[data-slug="portada"] .ux-cover-footer {
+  border-color:rgba(227,238,255,.16)!important;
+  color:#B7C8E3!important;
+}
+@media (max-height:760px) and (min-width:721px) {
+  .scene.cover[data-slug="portada"] .ux-cover-main {
+    transform:translateY(-4px)!important;
+  }
+  .scene.cover[data-slug="portada"] h1 {
+    font-size:clamp(69px,9.4vw,142px)!important;
+  }
+  .scene.cover[data-slug="portada"] .ux-cover-subtitle {
+    font-size:clamp(23px,2.2vw,31px)!important;
+    margin-top:22px!important;
+  }
+}
+@media (max-width:720px) {
+  .scene.cover[data-slug="portada"] .cover-inner::after {
+    width:88vw!important;height:55vh!important;right:-51vw!important;
+    top:24%!important;opacity:.6!important;
+  }
+  .scene.cover[data-slug="portada"] .ux-cover-main {
+    transform:translateY(-4px)!important;
+  }
+  .scene.cover[data-slug="portada"] h1 {
+    font-size:clamp(43px,10.8vw,74px)!important;
+    overflow-wrap:anywhere!important;
+  }
+  .scene.cover[data-slug="portada"] .ux-cover-subtitle {
+    font-size:clamp(21px,5.4vw,28px)!important;
+    line-height:1.42!important;
+    margin-top:24px!important;
+  }
+  .scene.cover[data-slug="portada"] .ux-cover-subtitle strong {
+    display:inline!important;
+    white-space:normal!important;
+  }
+}
