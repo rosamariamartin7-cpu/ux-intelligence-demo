@@ -651,7 +651,7 @@ RANKING_FIT_JS = r"""
       queued = false;
       card.classList.remove('metrics-compact', 'metrics-tight');
       value.style.removeProperty('font-size');
-      const initial = window.innerWidth <= 540 ? 56 : 64;
+      const initial = window.innerWidth <= 540 ? 54 : (window.innerWidth < 1150 ? 70 : 84);
       let size = initial;
       value.style.setProperty('font-size', size + 'px', 'important');
       // Numerals differ in length: e.g. 11,5 % and 52,82 M€.
